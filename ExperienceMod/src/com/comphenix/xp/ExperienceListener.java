@@ -144,9 +144,10 @@ public class ExperienceListener implements Listener {
 	public void onEntityDeathEvent(EntityDeathEvent event) {
 		
 		LivingEntity entity = event.getEntity();
-
+		boolean hasKiller = entity.getKiller() != null;
+		
 		// Only drop experience from mobs
-		if (entity != null && entity.getKiller() != null) {
+		if (entity != null) {
 			
 			Integer id = entity.getEntityId();
 			MobQuery query = new MobQuery(entity, spawnReasonLookup.get(id));
@@ -159,13 +160,13 @@ public class ExperienceListener implements Listener {
 				event.setDroppedExp(xp);
 				parentPlugin.printDebug("Entity " + id + ": Changed experience drop to " + xp);
 			
-			} else if (configuration.isDefaultRewardsDisabled()) {
+			} else if (configuration.isDefaultRewardsDisabled() && hasKiller) {
 				
 				// Disable all mob XP
 				event.setDroppedExp(0);
 				parentPlugin.printDebug("Entity " + id + ": Default mob experience disabled.");
 	
-			} else if (!configuration.isDefaultRewardsDisabled()) {
+			} else if (!configuration.isDefaultRewardsDisabled() && hasKiller) {
 				
 				int expDropped = event.getDroppedExp();
 				
