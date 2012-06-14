@@ -165,6 +165,15 @@ public class ExperienceListener implements Listener {
 				event.setDroppedExp(0);
 				parentPlugin.printDebug("Entity " + id + ": Default mob experience disabled.");
 	
+			} else if (!configuration.isDefaultRewardsDisabled()) {
+				
+				int expDropped = event.getDroppedExp();
+				
+				// Alter the default experience drop too
+				if (configuration.getMultiplier() != 1) {
+					Range increase = new Range(expDropped * configuration.getMultiplier());
+					event.setDroppedExp(increase.sampleInt(random));
+				}
 			}
 			
 			// Remove it from the lookup
