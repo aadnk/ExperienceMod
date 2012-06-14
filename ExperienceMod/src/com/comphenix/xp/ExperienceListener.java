@@ -172,7 +172,10 @@ public class ExperienceListener implements Listener {
 				// Alter the default experience drop too
 				if (configuration.getMultiplier() != 1) {
 					Range increase = new Range(expDropped * configuration.getMultiplier());
-					event.setDroppedExp(increase.sampleInt(random));
+					int expChanged = increase.sampleInt(random);
+					
+					parentPlugin.printDebug("Entity " + id + ": Changed experience drop to " + expChanged);
+					event.setDroppedExp(expChanged);
 				}
 			}
 			
