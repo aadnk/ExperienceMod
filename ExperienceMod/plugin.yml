@@ -1,0 +1,60 @@
+name: ExperienceMod
+version: 1.2.0
+description: This plugin recreates the new experience rewards in 1.3 for 1.2.5. 
+author: Comphenix
+website: http://www.comphenix.net/ExperienceMod
+main: com.comphenix.xp.ExperienceMod
+database: false
+
+commands:
+   experiencemod:
+      description: Reloads configuration OR toggles debug mode.
+      usage: /<command> [debug]
+      permission: experiencemod.admin
+      permission-message: You don't have <permission>
+
+permissions:
+  experiencemod.*:
+    description: Gives access to everything.
+    children:
+      experiencemod.admin: true
+      experiencemod.keepexp: true
+      experiencemod.rewards.smelting: true
+      experiencemod.rewards.brewing: true
+      experiencemod.rewards.crafting: true
+      experiencemod.rewards.bonus: true
+      experiencemod.rewards.block: true
+      experiencemod.rewards.placing: true
+  experiencemod.rewards.*:
+    description: Gives access to all experience rewards.
+    children:
+      experiencemod.rewards.smelting: true
+      experiencemod.rewards.brewing: true
+      experiencemod.rewards.crafting: true
+      experiencemod.rewards.bonus: true
+      experiencemod.rewards.block: true
+      experiencemod.rewards.placing: true
+  experiencemod.keepexp:
+    description: Prevents the loss of experience upon death.
+    default: op
+  experiencemod.admin:
+    description: Allows administrators to configure ExperienceMod.
+    default: op
+  experiencemod.rewards.smelting:
+    description: Rewards smelting of ores with experience.
+    default: false
+  experiencemod.rewards.brewing:
+    description: Rewards brewing potions with experience.
+    default: false
+  experiencemod.rewards.crafting:
+    description: Rewards crafting items with experience.
+    default: false
+  experiencemod.rewards.bonus:
+    description: Rewards destroying non-renewable blocks with experience.
+    default: false
+  experiencemod.rewards.block:
+    description: Rewards destroying ore blocks with experience.
+    default: false
+  experiencemod.rewards.placing:
+    description: Rewards placing blocks in the world.
+    default: false

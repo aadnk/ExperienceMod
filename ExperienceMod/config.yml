@@ -1,0 +1,96 @@
+multiplier: 1
+
+# Set this to TRUE to completely remove the default experience drop
+default rewards disabled: false
+
+# Mobs can be selected by name|death_case|[spawner]|[baby]|[tamed]:
+mobs:
+  enderman:
+    first: 1
+    last: 10
+  # Matches all mobs that have spawned from a monster spawner
+  ?|spawner: 0
+  # Disable XP from mobs that are killed with splash potions
+  #?|magic: 0
+
+# Select items using name|durability
+# Select potions with potion|potion type|level|[extended]|[splash]
+#
+#  Trigger/action          Description
+#   block source           Invoked when a block has been mined (without silk touch).
+#   bonus                  Invoked when a block has been destroyed, regardless of silk touch.
+#   smelting result        Invoked when an item or items have been smelted. The selected item is
+#                          the RESULT of the smelting (i.e. iron ingot), not the material. The given 
+#                          experience is granted for every produced item.
+#   crafting result        Invoked when an item has been crafted.
+#   brewing result         Invoked when a potion has been brewed. 
+#   placing result         Invoked when a block has been placed. Note, this can easily be abused.
+items:
+  coal ore:
+    block source: 5
+  lapis ore:
+    block source: 15
+  redstone ore:
+    block source: 20
+  glowing redstone ore:
+    block source: 20
+  diamond ore:
+    block source: 150
+  mob spawner:
+    bonus:
+      first: 250
+      last: 1000
+  coal|0:
+    smelting result: 5
+  coal|1:
+    smelting result: 1
+  wool dye|4:
+    smelting result: 15
+  redstone:
+    smelting result: 20
+  diamond:
+    smelting result: 150
+  iron ingot:
+    smelting result: 10
+  gold ingot:
+    smelting result: 40
+  stone:
+    smelting result: 1
+  diamond axe:
+    crafting result: 150
+  diamond boots:
+    crafting result: 200
+  diamond chestplate:
+    crafting result: 400
+  diamond helmet:
+    crafting result: 250
+  diamond hoe:
+    crafting result: 100
+  diamond leggings:
+    crafting result: 350
+  diamond pickaxe:
+    crafting result: 150
+  diamond spade:
+    crafting result: 50
+  diamond sword:
+    crafting result: 100
+  enchantment table:
+    crafting result: 100
+  jukebox:
+    crafting result: 50
+  potion|regen|1:
+    brewing result: 50
+  potion|fire resistance|1:
+    brewing result: 60
+  potion|instant damage|1:
+    brewing result: 75
+  potion|instant heal|1:
+    brewing result: 75
+  potion|poison|1:
+    brewing result: 20
+  potion|speed|1:
+    brewing result: 20
+  potion|weakness|1:
+    brewing result: 20
+  potion|strength|1:
+    brewing result: 50
