@@ -41,9 +41,13 @@ public class MobQuery implements Query {
 	public MobQuery(EntityType type, DamageCause deathCause, SpawnReason reason, Boolean baby, Boolean tamed) {
 		this.type = type;
 		this.deathCause = deathCause;
-		this.spawner = reason == SpawnReason.SPAWNER;
 		this.baby = baby;
 		this.tamed = tamed;
+		
+		if (reason != null) 
+			this.spawner = reason == SpawnReason.SPAWNER;
+		else
+			this.spawner = null;
 	}
 	
 	public MobQuery(LivingEntity entity, SpawnReason reason) {
