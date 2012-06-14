@@ -14,7 +14,7 @@ commands:
       permission-message: You don't have <permission>
    spawnexp:
       description: Spawn experience at the pointed location of the cursor.
-      usage: /<command> exp [xp_per_orb]
+      usage: /<command> exp
       permission: experiencemod.admin
       permission-message: You don't have <permission>   
 

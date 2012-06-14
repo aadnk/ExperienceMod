@@ -126,20 +126,14 @@ public class ExperienceMod extends JavaPlugin {
 			return false;
 		}
 		
-		if ((args.length == 1 || args.length == 2) && !Parsing.isNullOrIgnoreable(args[0])) {
+		if (args.length == 1 && !Parsing.isNullOrIgnoreable(args[0])) {
 			
 			Integer experience = Integer.parseInt(args[0]);
-			Integer xpSplit = Parsing.tryParse(args, 2);
 			Player player = (Player) sender;
 			
 			if (experience == null) {
 				respond(sender, "Error: Parameter must be a valid integer.");
 				return false;
-			}
-			
-			// Use the default amount
-			if (xpSplit == null) {
-				xpSplit = Helper.getXPSplit(experience);
 			}
 			
 			Block startBlock = player.getEyeLocation().getBlock();
@@ -157,7 +151,7 @@ public class ExperienceMod extends JavaPlugin {
 				
 				// Spawn experience at this location
 				printDebug(String.format("Spawning %d experience at %b.", experience, loc));
-				Helper.spawnExperienceAtBlock(target, experience, xpSplit);
+				Helper.spawnExperienceAtBlock(target, experience);
 				return true;
 			}
 				

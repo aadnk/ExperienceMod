@@ -17,49 +17,31 @@ package com.comphenix.xp;
  *  02111-1307 USA
  */
 
-import java.util.Random;
-
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.ExperienceOrb;
-import org.bukkit.util.Vector;
 
 public class Helper {
 	private static final int[] threshhold = { 2477, 1237, 617, 307, 149, 73, 37, 17, 7, 3, 1 };
 	
-	// Not thread safe
-	private static Random rnd = new Random();
-	
 	public static void spawnExperienceAtBlock(Block block, int amount) {
-		// Use default XP splitting behavior
-		spawnExperienceAtBlock(block, amount, getXPSplit(amount));
-	}
-	
-	public static void spawnExperience(World world, Location center, int amount) {	
-		spawnExperience(world, center, amount, getXPSplit(amount));
-	}
-	
-	public static void spawnExperienceAtBlock(Block block, int amount, int xpSplit) {
 		
 		// Create experience at this location
-        spawnExperience(block.getWorld(), block.getLocation(), amount, xpSplit);
+        spawnExperience(block.getWorld(), block.getLocation(), amount);
 	}
 	
-	public static void spawnExperience(World world, Location corner, int amount, int xpSplit) {
+	public static void spawnExperience(World world, Location corner, int amount) {
 
+		int xpSplit = getXPSplit(amount);
+		
 		// Split into n pieces
 		for (int current = 0; current < amount; current += xpSplit) {
-	        ExperienceOrb orb = world.spawn(corner.add(getRandom()), ExperienceOrb.class);
+	        ExperienceOrb orb = world.spawn(corner, ExperienceOrb.class);
 	        orb.setExperience(Math.min(amount - current, xpSplit));
-
 		}
 	}
-	
-	private static Vector getRandom() {
-		return new Vector(rnd.nextDouble(), rnd.nextDouble(), rnd.nextDouble());
-	}
-	
+
     public static int getXPSplit(int xp) {	
     	
     	// Determine the split
