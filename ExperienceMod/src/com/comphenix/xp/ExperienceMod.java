@@ -79,6 +79,7 @@ public class ExperienceMod extends JavaPlugin {
     			if (Parsing.getEnumName(args[0]).equals(toggleDebug)) {
     				debugEnabled = !debugEnabled;
     				respond(sender, "Debug " + (debugEnabled ? " enabled " : " disabled"));
+    				return true;
     			} else {
     				respond(sender, "Error: Unknown subcommand.");
     			}
