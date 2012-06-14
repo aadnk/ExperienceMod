@@ -18,11 +18,15 @@ package com.comphenix.xp;
  */
 
 import java.io.File;
+import java.util.List;
 import java.util.logging.Logger;
 
+import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
+import org.bukkit.block.Block;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -31,7 +35,11 @@ import com.comphenix.xp.lookup.Parsing;
 public class ExperienceMod extends JavaPlugin {
 	// Mod command(s)
 	private final String commandReload = "experiencemod";
-	private final String toggleDebug = "DEBUG";
+	private final String commandSpawnExp = "spawnexp";
+	private final String toggleDebug = "debug";
+	
+	// Constants
+	private final int spawnExpMaxDistance = 50;
 	
 	private Logger currentLogger;
 	private ExperienceListener listener;
@@ -74,32 +82,93 @@ public class ExperienceMod extends JavaPlugin {
 	}
 	
 	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args){
-    	if(cmd.getName().equalsIgnoreCase(commandReload)) {
-    		
-    		// Undocumented.
-    		if (args.length > 0) {
-    			
-    			// Toggle debugging
-    			if (Parsing.getEnumName(args[0]).equals(toggleDebug)) {
-    				debugEnabled = !debugEnabled;
-    				respond(sender, "Debug " + (debugEnabled ? " enabled " : " disabled"));
-    				return true;
-    			} else {
-    				respond(sender, "Error: Unknown subcommand.");
-    			}
-    
-    		} else {
-    			
-    			loadDefaults();
-	    		listener.setConfiguration(configuration);
-	    		respond(sender, "Reloaded ExperienceMod.");
-	    		return true;
-    		}
-    	}
-  
-    	return false; 
+		
+		String cmdName = cmd != null ? cmd.getName() : "";
+		
+		// Execute the correct command
+		if (cmdName.equalsIgnoreCase(commandReload))
+			return handleMainCommand(sender, args);
+		else if (cmdName.equalsIgnoreCase(commandSpawnExp))
+			return handleSpawnExp(sender, args);
+		else
+			return false;
     }
+
+	private boolean handleMainCommand(CommandSender sender, String[] args) {
+		
+		if (args.length > 0) {
+			
+			// Toggle debugging
+			if (args[0].equalsIgnoreCase(toggleDebug)) {
+				debugEnabled = !debugEnabled;
+				respond(sender, "Debug " + (debugEnabled ? " enabled " : " disabled"));
+				return true;
+			} else {
+				respond(sender, "Error: Unknown subcommand.");
+				return false; 
+			}
+
+		} else {
+			
+			loadDefaults();
+    		listener.setConfiguration(configuration);
+    		
+    		respond(sender, "Reloaded ExperienceMod.");
+    		return true;
+		}
+	}
 	
+	private boolean handleSpawnExp(CommandSender sender, String[] args) {
+
+		// We don't support console yet
+		if (sender == null || !(sender instanceof Player)) {
+			respond(sender, "This command can only be sent by a player");
+			return false;
+		}
+		
+		if ((args.length == 1 || args.length == 2) && !Parsing.isNullOrIgnoreable(args[0])) {
+			
+			Integer experience = Integer.parseInt(args[0]);
+			Integer xpSplit = Parsing.tryParse(args, 2);
+			Player player = (Player) sender;
+			
+			if (experience == null) {
+				respond(sender, "Error: Parameter must be a valid integer.");
+				return false;
+			}
+			
+			// Use the default amount
+			if (xpSplit == null) {
+				xpSplit = Helper.getXPSplit(experience);
+			}
+			
+			Block startBlock = player.getEyeLocation().getBlock();
+			List<Block> list = player.getLastTwoTargetBlocks(null, spawnExpMaxDistance);
+			
+			// Remember the start location
+			list.add(0, startBlock);
+			
+			// We want to spawn the experience at the surface of the block.
+			list.remove(list.size() - 1);
+			
+			if (list.size() > 0) {
+				Block target = list.get(list.size() - 1);
+				Location loc = target.getLocation();
+				
+				// Spawn experience at this location
+				printDebug(String.format("Spawning %d experience at %b.", experience, loc));
+				Helper.spawnExperienceAtBlock(target, experience, xpSplit);
+				return true;
+			}
+				
+
+		} else {
+			respond(sender, "Error: Incorrect number of parameters.");
+		}
+		
+		return false;
+	}
+
 	public boolean isDebugEnabled() {
 		return debugEnabled;
 	}
