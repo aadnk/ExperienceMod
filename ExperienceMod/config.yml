@@ -1,30 +1,11 @@
 multiplier: 1
-
-# Set this to TRUE to completely remove the default experience drop
 default rewards disabled: false
 
-# Mobs can be selected by name|death_case|[spawner]|[baby]|[tamed]:
 mobs:
   enderman:
     first: 1
     last: 10
-  # Matches all mobs that have spawned from a monster spawner
   ?|spawner: 0
-  # Disable XP from mobs that are killed with splash potions
-  #?|magic: 0
-
-# Select items using name|durability
-# Select potions with potion|potion type|level|[extended]|[splash]
-#
-#  Trigger/action          Description
-#   block source           Invoked when a block has been mined (without silk touch).
-#   bonus                  Invoked when a block has been destroyed, regardless of silk touch.
-#   smelting result        Invoked when an item or items have been smelted. The selected item is
-#                          the RESULT of the smelting (i.e. iron ingot), not the material. The given 
-#                          experience is granted for every produced item.
-#   crafting result        Invoked when an item has been crafted.
-#   brewing result         Invoked when a potion has been brewed. 
-#   placing result         Invoked when a block has been placed. Note, this can easily be abused.
 items:
   coal ore:
     block source: 5

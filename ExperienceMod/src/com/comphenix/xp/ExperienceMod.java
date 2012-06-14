@@ -17,6 +17,7 @@ package com.comphenix.xp;
  *  02111-1307 USA
  */
 
+import java.io.File;
 import java.util.logging.Logger;
 
 import org.bukkit.command.Command;
@@ -44,7 +45,7 @@ public class ExperienceMod extends JavaPlugin {
 		
 		currentLogger = this.getLogger();
 		
-		// Intialize configuration and listeners
+		// Initialize configuration and listeners
 		loadDefaults();
 		listener = new ExperienceListener(this, configuration);
 		
@@ -54,11 +55,14 @@ public class ExperienceMod extends JavaPlugin {
 	
 	private void loadDefaults() {
 		FileConfiguration config = getConfig();
+		File path = new File(getDataFolder(), "config.yml");
 
-		// Supply default values if empty
-		if (!config.contains("multiplier")) {
+		// See if we need to create the file
+		if (!path.exists()) {
+			// Supply default values if empty
 			config.options().copyDefaults(true);
 			saveConfig();
+			currentLogger.info("Creating default configuration file.");
 		}
 		
 		// Load it
@@ -75,7 +79,7 @@ public class ExperienceMod extends JavaPlugin {
     		// Undocumented.
     		if (args.length > 0) {
     			
-    			// Toggle debuging
+    			// Toggle debugging
     			if (Parsing.getEnumName(args[0]).equals(toggleDebug)) {
     				debugEnabled = !debugEnabled;
     				respond(sender, "Debug " + (debugEnabled ? " enabled " : " disabled"));
