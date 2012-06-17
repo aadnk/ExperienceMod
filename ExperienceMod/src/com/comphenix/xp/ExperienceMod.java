@@ -42,6 +42,8 @@ public class ExperienceMod extends JavaPlugin {
 	private final int spawnExpMaxDistance = 50;
 	
 	private Logger currentLogger;
+	private PluginManager manager;
+	
 	private ExperienceListener listener;
 	private Configuration configuration;
 	
@@ -49,16 +51,11 @@ public class ExperienceMod extends JavaPlugin {
 	
 	@Override
 	public void onEnable() {
-		PluginManager manager = getServer().getPluginManager();
-		
+		manager = getServer().getPluginManager();
 		currentLogger = this.getLogger();
 		
 		// Initialize configuration and listeners
 		loadDefaults();
-		listener = new ExperienceListener(this, configuration);
-		
-		// Begin changing stuff
-		manager.registerEvents(listener, this);
 	}
 	
 	private void loadDefaults() {
@@ -75,7 +72,7 @@ public class ExperienceMod extends JavaPlugin {
 		
 		// Load it
 		configuration = new Configuration(config, currentLogger);
-		listener.setConfiguration(configuration);
+		setConfiguration(configuration);
 		
 		// Set reward type
 		switch (configuration.getRewardType()) {
@@ -84,6 +81,17 @@ public class ExperienceMod extends JavaPlugin {
 		default:
 			currentLogger.warning("Unknown reward manager.");
 			break;
+		}
+	}
+	
+	private void setConfiguration(Configuration configuration) {
+		
+		// Create a new listener if necessary
+		if (listener == null) {
+			listener = new ExperienceListener(this, configuration);
+			manager.registerEvents(listener, this);
+		} else {
+			listener.setConfiguration(configuration);
 		}
 	}
 	
