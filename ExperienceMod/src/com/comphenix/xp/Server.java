@@ -33,13 +33,16 @@ public class Server {
 	
 	public static void spawnExperience(World world, Location corner, int amount) {
 
-		int xpSplit = getXPSplit(Math.abs(amount));
-		int sign = amount > 0 ? 1 : -1;
+		int xpSplit = getXPSplit(amount);
+
+		// Experience orbs cannot give negative experience
+		if (amount < 0)
+			return;
 		
 		// Split into n pieces
 		for (int current = 0; current < amount; current += xpSplit) {
 	        ExperienceOrb orb = world.spawn(corner, ExperienceOrb.class);
-	        orb.setExperience(sign * Math.min(amount - current, xpSplit));
+	        orb.setExperience(Math.min(amount - current, xpSplit));
 		}
 	}
 

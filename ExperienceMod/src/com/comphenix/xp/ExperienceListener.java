@@ -76,6 +76,18 @@ public class ExperienceListener implements Listener {
 	public void setConfiguration(Configuration configuration) {
 		this.configuration = configuration;
 	}
+	
+	public Rewardable getRewardManager() {
+		return rewardManager;
+	}
+
+	public void setRewardManager(Rewardable rewardManager) {
+		this.rewardManager = rewardManager;
+	}
+
+	public String getPermissionRewardPlacing() {
+		return permissionRewardPlacing;
+	}
 
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockBreakEvent(BlockBreakEvent event) {

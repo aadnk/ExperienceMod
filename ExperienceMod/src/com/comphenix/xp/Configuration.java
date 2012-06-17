@@ -28,7 +28,7 @@ import com.comphenix.xp.lookup.*;
 import com.comphenix.xp.lookup.Query.Types;
 
 public class Configuration {
-
+	
 	// Quick lookup of action types
 	private static HashMap<String, ActionTypes> lookup = 
 			new HashMap<String, ActionTypes>();
@@ -52,13 +52,20 @@ public class Configuration {
 		}
 	}
 	
+	public enum RewardTypes {
+		EXPERIENCE,
+		VIRTUAL
+	}
+	
 	private static final String multiplierSetting = "multiplier";
 	private static final String defaultRewardsSetting = "default rewards disabled";
+	private static final String rewardTypeSetting = "reward type";
 	
 	private Logger logger;
 	
 	private double multiplier;
 	private boolean defaultRewardsDisabled;
+	private RewardTypes rewardType;
 	
 	private MobTree experienceDrop;
 	private ItemTree simpleBlockReward;
@@ -97,9 +104,23 @@ public class Configuration {
 		
 		defaultRewardsDisabled = config.getBoolean(defaultRewardsSetting, true);
 		
+		// Load reward type
+		rewardType = loadReward(config.getString(rewardTypeSetting));
+		
 		// Load mob experience
 		loadMobs(config.getConfigurationSection("mobs"));
 		loadItemActions(config.getConfigurationSection("items"));
+	}
+	
+	private RewardTypes loadReward(String text) {
+	
+		try {
+			return RewardTypes.valueOf(Parsing.getEnumName(text));
+
+		} catch (IllegalArgumentException e) {
+			logger.warning("Cannot parse reward type: " + text);
+			return RewardTypes.EXPERIENCE;
+		}
 	}
 	
 	private void loadMobs(ConfigurationSection config) {
@@ -261,5 +282,9 @@ public class Configuration {
 
 	public boolean isDefaultRewardsDisabled() {
 		return defaultRewardsDisabled;
+	}
+	
+	public RewardTypes getRewardType() {
+		return rewardType;
 	}
 }

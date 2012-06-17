@@ -75,6 +75,16 @@ public class ExperienceMod extends JavaPlugin {
 		
 		// Load it
 		configuration = new Configuration(config, currentLogger);
+		listener.setConfiguration(configuration);
+		
+		// Set reward type
+		switch (configuration.getRewardType()) {
+		case EXPERIENCE:
+			listener.setRewardManager(new RewardExperience());
+		default:
+			currentLogger.warning("Unknown reward manager.");
+			break;
+		}
 	}
 	
 	@Override
