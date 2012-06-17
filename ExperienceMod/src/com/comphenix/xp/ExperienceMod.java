@@ -78,6 +78,8 @@ public class ExperienceMod extends JavaPlugin {
 		switch (configuration.getRewardType()) {
 		case EXPERIENCE:
 			listener.setRewardManager(new RewardExperience());
+		case VIRTUAL:
+			listener.setRewardManager(new RewardVirtual());
 		default:
 			currentLogger.warning("Unknown reward manager.");
 			break;
