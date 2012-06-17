@@ -151,7 +151,7 @@ public class ExperienceMod extends JavaPlugin {
 				
 				// Spawn experience at this location
 				printDebug(String.format("Spawning %d experience at %b.", experience, loc));
-				Helper.spawnExperienceAtBlock(target, experience);
+				Server.spawnExperienceAtBlock(target, experience);
 				return true;
 			}
 				

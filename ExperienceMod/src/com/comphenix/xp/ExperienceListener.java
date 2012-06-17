@@ -96,7 +96,7 @@ public class ExperienceListener implements Listener {
 			if (blockReward.containsKey(retrieveKey) && allowBlockReward) {
 				int exp = blockReward.get(retrieveKey).sampleInt(random);
 				
-				Helper.spawnExperienceAtBlock(block, exp);
+				Server.spawnExperienceAtBlock(block, exp);
 				parentPlugin.printDebug(String.format("Block mined by %s: Spawned %d xp for item %s.", 
 									    player.getName(), exp, block.getType()));
 			}
@@ -104,7 +104,7 @@ public class ExperienceListener implements Listener {
 			if (bonusReward.containsKey(retrieveKey) && allowBonusReward) {
 				int exp = bonusReward.get(retrieveKey).sampleInt(random);
 				
-				Helper.spawnExperienceAtBlock(block, exp);
+				Server.spawnExperienceAtBlock(block, exp);
 				parentPlugin.printDebug(String.format("Block destroyed by %s: Spawned %d xp for item %s.", 
 					    player.getName(), exp, block.getType()));
 			}
@@ -135,7 +135,7 @@ public class ExperienceListener implements Listener {
 			
 			if (placeReward.containsKey(retrieveKey) && allowPlacingReward) {
 				int exp = placeReward.get(retrieveKey).sampleInt(random);
-				Helper.spawnExperience(player.getWorld(), player.getLocation(), exp);
+				Server.spawnExperience(player.getWorld(), player.getLocation(), exp);
 			}
 		}
 	}
@@ -237,7 +237,7 @@ public class ExperienceListener implements Listener {
 				int exp = rewards.get(matchKey).sampleInt(random) * Math.max(factor, 1);
 				
 				// Give the experience straight to the user
-				Helper.spawnExperience(player.getWorld(), player.getLocation(), exp);
+				Server.spawnExperience(player.getWorld(), player.getLocation(), exp);
 				
 				parentPlugin.printDebug(String.format("User %s has %s permission. Spawned %d xp for item %s.", 
 						player.getName(), permission, exp, toRetrieve.getType()));
@@ -274,7 +274,7 @@ public class ExperienceListener implements Listener {
 					int exp = toCraft.getAmount() * expPerItem;
 					
 					// Give the experience straight to the user
-					Helper.spawnExperience(player.getWorld(), player.getLocation(), exp);
+					Server.spawnExperience(player.getWorld(), player.getLocation(), exp);
 					
 					// Like above
 					parentPlugin.printDebug(String.format("User %s has %s permission. Spawned %d xp for item %s.", 
@@ -312,7 +312,7 @@ public class ExperienceListener implements Listener {
 				}
 				
 				if (newItemsCount > 0) {
-					Helper.spawnExperience(player.getWorld(), player.getLocation(), expPerItem * newItemsCount);
+					Server.spawnExperience(player.getWorld(), player.getLocation(), expPerItem * newItemsCount);
 				
 					// We know this is from crafting
 					parentPlugin.printDebug(String.format("User %s has %s permission. Spawned %d xp for %d items of %s.", 

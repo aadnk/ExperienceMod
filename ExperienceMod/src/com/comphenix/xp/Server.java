@@ -22,7 +22,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.ExperienceOrb;
 
-public class Helper {
+public class Server {
 	private static final int[] threshhold = { 2477, 1237, 617, 307, 149, 73, 37, 17, 7, 3, 1 };
 	
 	public static void spawnExperienceAtBlock(Block block, int amount) {
