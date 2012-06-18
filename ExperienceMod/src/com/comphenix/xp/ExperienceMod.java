@@ -21,6 +21,8 @@ import java.io.File;
 import java.util.List;
 import java.util.logging.Logger;
 
+import net.milkbowl.vault.economy.Economy;
+
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -28,6 +30,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.block.Block;
 import org.bukkit.plugin.PluginManager;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.comphenix.xp.lookup.Parsing;
@@ -43,6 +46,7 @@ public class ExperienceMod extends JavaPlugin {
 	
 	private Logger currentLogger;
 	private PluginManager manager;
+	private Economy economy;
 	
 	private ExperienceListener listener;
 	private Configuration configuration;
@@ -53,6 +57,10 @@ public class ExperienceMod extends JavaPlugin {
 	public void onEnable() {
 		manager = getServer().getPluginManager();
 		currentLogger = this.getLogger();
+		
+		// Load economy, if it exists
+		if (!hasEconomy())
+			setupEconomy();
 		
 		// Initialize configuration and listeners
 		loadDefaults();
@@ -84,6 +92,19 @@ public class ExperienceMod extends JavaPlugin {
 			currentLogger.warning("Unknown reward manager.");
 			break;
 		}
+	}
+	
+	private void setupEconomy()
+    {
+        RegisteredServiceProvider<Economy> economyProvider = getServer().getServicesManager().getRegistration(Economy.class);
+        
+        if (economyProvider != null) {
+            economy = economyProvider.getProvider();
+        }
+    }
+	
+	private boolean hasEconomy() {
+		return economy != null;
 	}
 	
 	private void setConfiguration(Configuration configuration) {
