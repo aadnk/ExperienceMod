@@ -81,6 +81,10 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		// Read from disk again
 		if (reload) {
 			reloadConfig();
+			
+			// Reload internal representation
+			configuration = null;
+			config = getConfig();
 		}
 		
 		// Load it
