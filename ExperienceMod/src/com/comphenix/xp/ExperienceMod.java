@@ -33,6 +33,7 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.comphenix.xp.Configuration.RewardTypes;
 import com.comphenix.xp.lookup.Parsing;
 
 public class ExperienceMod extends JavaPlugin implements Debugger {
@@ -69,7 +70,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	private void loadDefaults(boolean reload) {
 		FileConfiguration config = getConfig();
 		File path = new File(getDataFolder(), "config.yml");
-
+		
 		// See if we need to create the file
 		if (!path.exists()) {
 			// Supply default values if empty
@@ -92,9 +93,17 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			configuration = new Configuration(config, currentLogger);
 			setConfiguration(configuration);
 		}
+		
+		RewardTypes reward = configuration.getRewardType();
+		
+		// See if we actually can enable the economy
+		if (economy == null && reward == RewardTypes.ECONOMY) {
+			currentLogger.warning("Cannot enable economy. VAULT plugin was not found.");
+			reward = RewardTypes.EXPERIENCE;
+		}
 
 		// Set reward type
-		switch (configuration.getRewardType()) {
+		switch (reward) {
 		case EXPERIENCE:
 			listener.setRewardManager(new RewardExperience());
 			currentLogger.info("Using experience as reward.");
@@ -115,11 +124,17 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	
 	private void setupEconomy()
     {
-        RegisteredServiceProvider<Economy> economyProvider = getServer().getServicesManager().getRegistration(Economy.class);
+		try {
+	        RegisteredServiceProvider<Economy> economyProvider = getServer().getServicesManager().getRegistration(Economy.class);
+	        
+	        if (economyProvider != null) {
+	            economy = economyProvider.getProvider();
+	        }
         
-        if (economyProvider != null) {
-            economy = economyProvider.getProvider();
-        }
+		} catch (NoClassDefFoundError e) {
+			// No vault
+			return;
+		}
     }
 	
 	private boolean hasEconomy() {
