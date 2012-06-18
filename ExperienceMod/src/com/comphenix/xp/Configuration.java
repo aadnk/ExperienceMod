@@ -54,7 +54,8 @@ public class Configuration {
 	
 	public enum RewardTypes {
 		EXPERIENCE,
-		VIRTUAL
+		VIRTUAL,
+		ECONOMY
 	}
 	
 	private static final String multiplierSetting = "multiplier";
