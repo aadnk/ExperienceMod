@@ -63,10 +63,10 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			setupEconomy();
 		
 		// Initialize configuration and listeners
-		loadDefaults();
+		loadDefaults(false);
 	}
 	
-	private void loadDefaults() {
+	private void loadDefaults(boolean reload) {
 		FileConfiguration config = getConfig();
 		File path = new File(getDataFolder(), "config.yml");
 
@@ -78,10 +78,17 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			currentLogger.info("Creating default configuration file.");
 		}
 		
-		// Load it
-		configuration = new Configuration(config, currentLogger);
-		setConfiguration(configuration);
+		// Read from disk again
+		if (reload) {
+			reloadConfig();
+		}
 		
+		// Load it
+		if (configuration == null) {
+			configuration = new Configuration(config, currentLogger);
+			setConfiguration(configuration);
+		}
+
 		// Set reward type
 		switch (configuration.getRewardType()) {
 		case EXPERIENCE:
@@ -159,9 +166,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 
 		} else {
 			
-			loadDefaults();
-    		listener.setConfiguration(configuration);
-    		
+			loadDefaults(true);
     		respond(sender, "Reloaded ExperienceMod.");
     		return true;
 		}
