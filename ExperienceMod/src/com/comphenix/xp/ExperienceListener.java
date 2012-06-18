@@ -39,6 +39,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType.SlotType;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import com.comphenix.xp.lookup.*;
 import com.google.common.base.Objects;
@@ -53,7 +54,8 @@ public class ExperienceListener implements Listener {
 	private final String permissionRewardBlock = "experiencemod.rewards.block";
 	private final String permissionRewardPlacing = "experiencemod.rewards.placing";
 
-	private ExperienceMod parentPlugin;
+	private JavaPlugin parentPlugin;
+	private Debugger debugger;
 	private Configuration configuration;
 	
 	private Rewardable rewardManager = new RewardExperience();
@@ -64,8 +66,9 @@ public class ExperienceListener implements Listener {
 	// Random source
 	private Random random = new Random();
 	
-	public ExperienceListener(ExperienceMod parentPlugin, Configuration configuration) {
+	public ExperienceListener(JavaPlugin parentPlugin, Debugger debugger, Configuration configuration) {
 		this.parentPlugin = parentPlugin;
+		this.debugger = debugger;
 		setConfiguration(configuration);
 	}
 	
@@ -111,16 +114,16 @@ public class ExperienceListener implements Listener {
 				int exp = blockReward.get(retrieveKey).sampleInt(random);
 				
 				rewardManager.reward(player, block.getLocation(), exp);
-				parentPlugin.printDebug(String.format("Block mined by %s: Spawned %d xp for item %s.", 
-									    player.getName(), exp, block.getType()));
+				debugger.printDebug(this, "Block mined by %s: Spawned %d xp for item %s.", 
+									    player.getName(), exp, block.getType());
 			}
 			
 			if (bonusReward.containsKey(retrieveKey) && allowBonusReward) {
 				int exp = bonusReward.get(retrieveKey).sampleInt(random);
 
 				rewardManager.reward(player, block.getLocation(), exp);
-				parentPlugin.printDebug(String.format("Block destroyed by %s: Spawned %d xp for item %s.", 
-					    player.getName(), exp, block.getType()));
+				debugger.printDebug(this, "Block destroyed by %s: Spawned %d xp for item %s.", 
+					    player.getName(), exp, block.getType());
 			}
 		}
 	}
@@ -172,13 +175,13 @@ public class ExperienceListener implements Listener {
 				int xp = reward.sampleInt(random);
 				
 				event.setDroppedExp(xp);
-				parentPlugin.printDebug("Entity " + id + ": Changed experience drop to " + xp);
+				debugger.printDebug(this, "Entity %d: Changed experience drop to %d", id, xp);
 			
 			} else if (configuration.isDefaultRewardsDisabled() && hasKiller) {
 				
 				// Disable all mob XP
 				event.setDroppedExp(0);
-				parentPlugin.printDebug("Entity " + id + ": Default mob experience disabled.");
+				debugger.printDebug(this, "Entity %d: Default mob experience disabled.", id);
 	
 			} else if (!configuration.isDefaultRewardsDisabled() && hasKiller) {
 				
@@ -189,7 +192,7 @@ public class ExperienceListener implements Listener {
 					Range increase = new Range(expDropped * configuration.getMultiplier());
 					int expChanged = increase.sampleInt(random);
 					
-					parentPlugin.printDebug("Entity " + id + ": Changed experience drop to " + expChanged);
+					debugger.printDebug(this, "Entity %d: Changed experience drop to %d", id, expChanged);
 					event.setDroppedExp(expChanged);
 				}
 			}
@@ -252,8 +255,8 @@ public class ExperienceListener implements Listener {
 				
 				// Give the experience straight to the user
 				rewardManager.reward((Player) player, exp);
-				parentPlugin.printDebug(String.format("User %s has %s permission. Spawned %d xp for item %s.", 
-						player.getName(), permission, exp, toRetrieve.getType()));
+				debugger.printDebug(this, "User %s has %s permission. Spawned %d xp for item %s.", 
+						player.getName(), permission, exp, toRetrieve.getType());
 			}
 		}
 	}
@@ -290,8 +293,8 @@ public class ExperienceListener implements Listener {
 					rewardManager.reward((Player) player, exp);
 				
 					// Like above
-					parentPlugin.printDebug(String.format("User %s has %s permission. Spawned %d xp for item %s.", 
-							player.getName(), permission, exp, toCraft.getType()));
+					debugger.printDebug(this, "User %s has %s permission. Spawned %d xp for item %s.", 
+							player.getName(), permission, exp, toCraft.getType());
 				}
 			}
 		}
@@ -328,9 +331,9 @@ public class ExperienceListener implements Listener {
 					rewardManager.reward((Player) player, expPerItem * newItemsCount);
 					
 					// We know this is from crafting
-					parentPlugin.printDebug(String.format("User %s has %s permission. Spawned %d xp for %d items of %s.", 
+					debugger.printDebug(this, "User %s has %s permission. Spawned %d xp for %d items of %s.", 
 							player.getName(), permissionRewardCrafting, expPerItem * newItemsCount, 
-							newItemsCount, compareItem.getType()));
+							newItemsCount, compareItem.getType());
 				}
 			}
 		}, ticks);

@@ -1,6 +1,7 @@
 package com.comphenix.xp;
 
 import net.milkbowl.vault.economy.Economy;
+import net.milkbowl.vault.economy.EconomyResponse;
 
 import org.apache.commons.lang.NullArgumentException;
 import org.bukkit.Location;
@@ -9,10 +10,14 @@ import org.bukkit.entity.Player;
 public class RewardEconomy implements Rewardable {
 
 	private Economy economy;
+	private Debugger debugger;
 	
-	public RewardEconomy(Economy economy) {
+	public RewardEconomy(Economy economy, Debugger debugger) {
 		if (economy == null)
 			throw new IllegalArgumentException("Vault (Economy) was not found.");
+		if (debugger == null)
+			throw new NullArgumentException("debugger");
+		
 		this.economy = economy;
 	}
 
@@ -29,6 +34,7 @@ public class RewardEconomy implements Rewardable {
 			throw new NullArgumentException("player");
 		
 		String name = player.getName();
+		EconomyResponse response = null;
 		
 		if (amount < 0) {
 			
@@ -36,12 +42,23 @@ public class RewardEconomy implements Rewardable {
 			int removeable = (int) Math.min(economy.getBalance(name), amount);
 			
 			if (removeable > 0)
-				economy.withdrawPlayer(name, removeable);
+				response = economy.withdrawPlayer(name, removeable);
+			else
+				debugger.printDebug(this, "Could not withdraw %d: Player %s is broke", amount, name);
 			
-			// ToDo: Add logging.
-			
+			// Other error
+			if (response != null && !response.transactionSuccess())
+				debugger.printDebug(this, "Coult not withdraw %d from player %s: %s", 
+								    amount, name, response.errorMessage);
+
 		} else {
-			economy.depositPlayer(name, amount);
+			
+			// Deposit money (shouldn't really fail)
+			response = economy.depositPlayer(name, amount);
+			
+			if (response != null && !response.transactionSuccess())
+				debugger.printDebug(this, "Could not deposit %d to player %s: %s", 
+									amount, name, response.errorMessage);
 		}
 	}
 }

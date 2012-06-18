@@ -35,7 +35,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.comphenix.xp.lookup.Parsing;
 
-public class ExperienceMod extends JavaPlugin {
+public class ExperienceMod extends JavaPlugin implements Debugger {
 	// Mod command(s)
 	private final String commandReload = "experiencemod";
 	private final String commandSpawnExp = "spawnexp";
@@ -89,7 +89,7 @@ public class ExperienceMod extends JavaPlugin {
 		case VIRTUAL:
 			listener.setRewardManager(new RewardVirtual());
 		case ECONOMY:
-			listener.setRewardManager(new RewardEconomy(economy));
+			listener.setRewardManager(new RewardEconomy(economy, this));
 		default:
 			currentLogger.warning("Unknown reward manager.");
 			break;
@@ -113,7 +113,7 @@ public class ExperienceMod extends JavaPlugin {
 		
 		// Create a new listener if necessary
 		if (listener == null) {
-			listener = new ExperienceListener(this, configuration);
+			listener = new ExperienceListener(this, this, configuration);
 			manager.registerEvents(listener, this);
 		} else {
 			listener.setConfiguration(configuration);
@@ -193,7 +193,7 @@ public class ExperienceMod extends JavaPlugin {
 				Location loc = target.getLocation();
 				
 				// Spawn experience at this location
-				printDebug(String.format("Spawning %d experience at %b.", experience, loc));
+				printDebug(this, "Spawning %d experience at %b.", experience, loc);
 				Server.spawnExperienceAtBlock(target, experience);
 				return true;
 			}
@@ -206,15 +206,17 @@ public class ExperienceMod extends JavaPlugin {
 		return false;
 	}
 
+	@Override	
 	public boolean isDebugEnabled() {
 		return debugEnabled;
 	}
 	
-	public void printDebug(String message) {
+	@Override
+	public void printDebug(Object sender, String message, Object... params) {
 		if (debugEnabled)
-			currentLogger.info("DEBUG: " + message);
+			currentLogger.info(String.format("Debug: " + message, params));
 	}
-	
+
 	private void respond(CommandSender sender, String message) {
 		if (sender == null) // Sent by the console
 			currentLogger.info(message);
