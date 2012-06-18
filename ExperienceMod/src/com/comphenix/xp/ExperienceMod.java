@@ -86,12 +86,15 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		switch (configuration.getRewardType()) {
 		case EXPERIENCE:
 			listener.setRewardManager(new RewardExperience());
+			printDebug(this, "Using experience as reward.");
 			break;
 		case VIRTUAL:
 			listener.setRewardManager(new RewardVirtual());
+			printDebug(this, "Using virtual experience as reward.");
 			break;
 		case ECONOMY:
 			listener.setRewardManager(new RewardEconomy(economy, this));
+			printDebug(this, "Using the economy as reward.");
 			break;
 		default:
 			currentLogger.warning("Unknown reward manager.");
