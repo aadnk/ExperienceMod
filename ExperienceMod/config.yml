@@ -1,5 +1,6 @@
 multiplier: 1
 default rewards disabled: false
+reward type: experience
 
 mobs:
   enderman:
