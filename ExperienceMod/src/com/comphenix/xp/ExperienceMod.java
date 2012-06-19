@@ -23,6 +23,7 @@ import java.util.logging.Logger;
 
 import net.milkbowl.vault.economy.Economy;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -37,6 +38,7 @@ import com.comphenix.xp.Configuration.RewardTypes;
 import com.comphenix.xp.lookup.Parsing;
 
 public class ExperienceMod extends JavaPlugin implements Debugger {
+	
 	// Mod command(s)
 	private final String commandReload = "experiencemod";
 	private final String commandSpawnExp = "spawnexp";
@@ -98,7 +100,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		
 		// See if we actually can enable the economy
 		if (economy == null && reward == RewardTypes.ECONOMY) {
-			currentLogger.warning("Cannot enable economy. VAULT plugin was not found.");
+			currentLogger.warning(ChatColor.RED + "Cannot enable economy. VAULT plugin was not found.");
 			reward = RewardTypes.EXPERIENCE;
 		}
 
@@ -117,7 +119,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			currentLogger.info("Using the economy as reward.");
 			break;
 		default:
-			currentLogger.warning("Unknown reward manager.");
+			currentLogger.warning(ChatColor.RED + "Unknown reward manager.");
 			break;
 		}
 	}
@@ -176,17 +178,17 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			// Toggle debugging
 			if (args[0].equalsIgnoreCase(toggleDebug)) {
 				debugEnabled = !debugEnabled;
-				respond(sender, "Debug " + (debugEnabled ? " enabled " : " disabled"));
+				respond(sender, ChatColor.DARK_BLUE + "Debug " + (debugEnabled ? " enabled " : " disabled"));
 				return true;
 			} else {
-				respond(sender, "Error: Unknown subcommand.");
+				respond(sender, ChatColor.RED + "Error: Unknown subcommand.");
 				return false; 
 			}
 
 		} else {
 			
 			loadDefaults(true);
-    		respond(sender, "Reloaded ExperienceMod.");
+    		respond(sender, ChatColor.DARK_BLUE + "Reloaded ExperienceMod.");
     		return true;
 		}
 	}
@@ -195,7 +197,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 
 		// We don't support console yet
 		if (sender == null || !(sender instanceof Player)) {
-			respond(sender, "This command can only be sent by a player");
+			respond(sender, ChatColor.RED + "This command can only be sent by a player");
 			return false;
 		}
 		
@@ -205,7 +207,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			Player player = (Player) sender;
 			
 			if (experience == null) {
-				respond(sender, "Error: Parameter must be a valid integer.");
+				respond(sender, ChatColor.RED + "Error: Parameter must be a valid integer.");
 				return false;
 			}
 			
@@ -230,7 +232,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 				
 
 		} else {
-			respond(sender, "Error: Incorrect number of parameters.");
+			respond(sender, ChatColor.RED + "Error: Incorrect number of parameters.");
 		}
 		
 		return false;

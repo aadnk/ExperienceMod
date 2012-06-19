@@ -371,10 +371,12 @@ public class ExperienceListener implements Listener {
 		if (player != null) {
 			// Permission check
 	        if(player.hasPermission(permissionKeepExp)){
+				debugger.printDebug(this, "Prevented experience loss for %s.", player.getName());
+				
 	            event.setDroppedExp(0);
 	            event.setKeepLevel(true);
 	        } else {
-	            event.setKeepLevel(false);
+	        	event.setKeepLevel(false);
 	        }
 		}
 	}
