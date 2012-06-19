@@ -52,4 +52,8 @@ public class ExperienceInformer implements Listener {
 	public void clearMessages() {
 		warningMessages.clear();
 	}
+	
+	public boolean hasWarnings() {
+		return !warningMessages.isEmpty();
+	}
 }

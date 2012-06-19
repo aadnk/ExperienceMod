@@ -139,7 +139,7 @@ public class Configuration {
 					logger.printWarning(this, "Unable to parse range/value on entity %s.", key);
 				
 			} catch (ParsingException ex) {
-				logger.printWarning(this, "Cannot parse mob %s: %s", key, ex.getMessage());
+				logger.printWarning(this, "Parsing error - %s", ex.getMessage());
 			}
 		}
 	}
@@ -185,7 +185,7 @@ public class Configuration {
 				}
 
 			} catch (ParsingException ex) {
-				logger.printWarning(this, "Cannot parse item %s: %s", key, ex.getMessage());
+				logger.printWarning(this, "Cannot parse item %s - %s", key, ex.getMessage());
 			}
 		}
 	}

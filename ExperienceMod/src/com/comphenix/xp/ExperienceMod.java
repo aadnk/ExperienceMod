@@ -46,6 +46,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	private final String commandSpawnExp = "spawnexp";
 	private final String subCommandToggleDebug = "debug";
 	private final String subCommandWarnings = "warnings";
+	private final String subCommandReload = "reload";
 	
 	// Constants
 	private final int spawnExpMaxDistance = 50;
@@ -190,27 +191,33 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			return true;
 		}
 		
-		if (args.length > 0) {
+		String sub = args.length > 0 ? args[0] : "";
+		
+		// Toggle debugging
+		if (sub.equalsIgnoreCase(subCommandToggleDebug)) {
 			
-			// Toggle debugging
-			if (args[0].equalsIgnoreCase(subCommandToggleDebug)) {
-				debugEnabled = !debugEnabled;
-				respond(sender, ChatColor.DARK_BLUE + "Debug " + (debugEnabled ? " enabled " : " disabled"));
-				return true;
-			} else if (args[0].equalsIgnoreCase(subCommandWarnings)) {
-				if (sender != null)
-					informer.displayWarnings(sender);
-				return true;
-			} else {
-				respond(sender, ChatColor.RED + "Error: Unknown subcommand.");
-				return false; 
-			}
-
-		} else {
+			debugEnabled = !debugEnabled;
+			respond(sender, ChatColor.DARK_BLUE + "Debug " + (debugEnabled ? " enabled " : " disabled"));
+			return true;
+			
+		// Display the parse warnings during the last configuration load
+		} else if (sub.equalsIgnoreCase(subCommandWarnings)) {
+			
+			if (sender != null && informer.hasWarnings())
+				informer.displayWarnings(sender);
+			else
+				sender.sendMessage(ChatColor.GREEN + "No warnings found.");
+			return true;
+			
+		} else if (sub.equalsIgnoreCase(subCommandReload) || sub.length() == 0) {
 			
 			loadDefaults(true);
-    		respond(sender, ChatColor.DARK_BLUE + "Reloaded ExperienceMod.");
+    		respond(sender, ChatColor.BLUE + "Reloaded ExperienceMod.");
     		return true;
+    		
+		} else {
+			respond(sender, ChatColor.RED + "Error: Unknown subcommand.");
+			return false; 
 		}
 	}
 	
