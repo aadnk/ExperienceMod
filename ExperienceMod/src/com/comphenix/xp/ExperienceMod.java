@@ -39,6 +39,8 @@ import com.comphenix.xp.lookup.Parsing;
 
 public class ExperienceMod extends JavaPlugin implements Debugger {
 	
+	private final String permissionAdmin = "experiencemod.admin";
+	
 	// Mod command(s)
 	private final String commandReload = "experiencemod";
 	private final String commandSpawnExp = "spawnexp";
@@ -103,7 +105,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			currentLogger.warning(ChatColor.RED + "Cannot enable economy. VAULT plugin was not found.");
 			reward = RewardTypes.EXPERIENCE;
 		}
-
+		
 		// Set reward type
 		switch (reward) {
 		case EXPERIENCE:
@@ -173,6 +175,11 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 
 	private boolean handleMainCommand(CommandSender sender, String[] args) {
 		
+		// Make sure the sender has permissions
+		if (!hasCommandPermission(sender, permissionAdmin)) {
+			return true;
+		}
+		
 		if (args.length > 0) {
 			
 			// Toggle debugging
@@ -199,6 +206,11 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		if (sender == null || !(sender instanceof Player)) {
 			respond(sender, ChatColor.RED + "This command can only be sent by a player");
 			return false;
+		}
+		
+		// Make sure the sender has permissions
+		if (!hasCommandPermission(sender, permissionAdmin)) {
+			return true;
 		}
 		
 		if (args.length == 1 && !Parsing.isNullOrIgnoreable(args[0])) {
@@ -236,6 +248,18 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		}
 		
 		return false;
+	}
+	
+	private boolean hasCommandPermission(CommandSender sender, String permission) {
+		
+		// Make sure the sender has permissions
+		if (sender != null && !sender.hasPermission(permission)) {
+			respond(sender, ChatColor.RED + "WARNING: You haven't got permission to execute this command.");
+			return false;
+		} else {
+			// We have permission
+			return true;
+		}
 	}
 
 	@Override	
