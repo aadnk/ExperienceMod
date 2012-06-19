@@ -139,7 +139,7 @@ public class Configuration {
 				else
 					logger.warning(String.format("Unable to parse range/value on entity %s.", key));
 				
-			} catch (IllegalArgumentException ex) {
+			} catch (ParsingException ex) {
 				logger.warning(String.format("Cannot parse mob %s: %s", key, ex.getMessage()));
 			}
 		}
@@ -184,8 +184,8 @@ public class Configuration {
 						logger.warning("Unrecogized action " + action + " under item " + key);
 					}
 				}
-				
-			} catch (IllegalArgumentException ex) {
+
+			} catch (ParsingException ex) {
 				logger.warning(String.format("Cannot parse item %s: %s", key, ex.getMessage()));
 			}
 		}

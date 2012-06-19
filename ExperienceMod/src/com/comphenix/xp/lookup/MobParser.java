@@ -23,7 +23,7 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
 public class MobParser {
 	
-	public MobQuery fromString(String text) {
+	public MobQuery fromString(String text) throws ParsingException {
 		
 		String[] components = Parsing.getParameterArray(text);
 		String mobName = components[0];
@@ -31,9 +31,9 @@ public class MobParser {
 		EntityType type = EntityType.fromName(mobName);
 		
 		if (type == null && !Parsing.isNullOrIgnoreable(mobName)) {
-			throw new IllegalArgumentException(String.format("Unable to find a mob with the name %s.", mobName));
+			throw ParsingException.fromFormat("Unable to find a mob with the name %s.", mobName);
 		} else if (type != null && !type.isAlive()) {
-			throw new IllegalArgumentException(String.format("%s is not a mob.", mobName));
+			throw ParsingException.fromFormat("%s is not a mob.", mobName);
 		} else {
 			
 			DamageCause cause = getDamageCause(components, 1);
