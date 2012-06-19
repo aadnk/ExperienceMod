@@ -40,6 +40,7 @@ import com.comphenix.xp.lookup.Parsing;
 public class ExperienceMod extends JavaPlugin implements Debugger {
 	
 	private final String permissionAdmin = "experiencemod.admin";
+	private final String permissionInfo = "experiencemod.info";
 	
 	// Mod command(s)
 	private final String commandReload = "experiencemod";
@@ -290,8 +291,16 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	
 	@Override
 	public void printDebug(Object sender, String message, Object... params) {
-		if (debugEnabled)
-			currentLogger.info(String.format("Debug: " + message, params));
+		if (debugEnabled) {
+			
+			String formattedMessage = String.format("Debug: " + message, params);
+			
+			// Print to console
+			currentLogger.info(formattedMessage);
+		
+			// Every player with the info permission will also see this message
+			getServer().broadcast(formattedMessage, permissionInfo);
+		}
 	}
 
 	private void respond(CommandSender sender, String message) {
