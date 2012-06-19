@@ -14,7 +14,7 @@ import org.bukkit.event.player.PlayerLoginEvent;
 public class ExperienceInformer implements Listener {
 
 	// Whether or not to display warning messages
-	private final String permissionInfo = "experiencemod.admin";
+	private final String permissionInfo = "experiencemod.info";
 
 	private List<String> warningMessages = new ArrayList<String>();
 
@@ -24,7 +24,7 @@ public class ExperienceInformer implements Listener {
 		Player player = event.getPlayer();
 		
 		// Automatically display warning messages
-		if (event != null && player != null) {
+		if (player != null) {
 			displayWarnings(player);
 		}
 	}

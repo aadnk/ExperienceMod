@@ -17,7 +17,6 @@ package com.comphenix.xp;
  *  02111-1307 USA
  */
 
-import java.awt.Color;
 import java.io.File;
 import java.util.List;
 import java.util.logging.Logger;
@@ -297,7 +296,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 
 	@Override
 	public void printWarning(Object sender, String message, Object... params) {
-		String warningMessage = Color.RED + "Warning: " + message;
+		String warningMessage = ChatColor.RED + "Warning: " + message;
 		
 		// Print immediately
 		currentLogger.warning(String.format(warningMessage, params));
