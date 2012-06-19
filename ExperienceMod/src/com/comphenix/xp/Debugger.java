@@ -15,4 +15,12 @@ public interface Debugger {
 	 * @param params The parameters to include in the debug message.
 	 */
 	public void printDebug(Object sender, String message, Object... params);
+	
+	/**
+	 * Prints or logs a warning.
+	 * @param sender The object that sent this message.
+	 * @param message The format of the warning message to send.
+	 * @param params The parameters to include in the warning message.
+	 */
+	public void printWarning(Object sender, String message, Object... params);
 }

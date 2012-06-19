@@ -17,6 +17,7 @@ package com.comphenix.xp;
  *  02111-1307 USA
  */
 
+import java.awt.Color;
 import java.io.File;
 import java.util.List;
 import java.util.logging.Logger;
@@ -44,7 +45,8 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	// Mod command(s)
 	private final String commandReload = "experiencemod";
 	private final String commandSpawnExp = "spawnexp";
-	private final String toggleDebug = "debug";
+	private final String subCommandToggleDebug = "debug";
+	private final String subCommandWarnings = "warnings";
 	
 	// Constants
 	private final int spawnExpMaxDistance = 50;
@@ -54,6 +56,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	private Economy economy;
 	
 	private ExperienceListener listener;
+	private ExperienceInformer informer;
 	private Configuration configuration;
 	
 	private boolean debugEnabled;
@@ -61,19 +64,28 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	@Override
 	public void onEnable() {
 		manager = getServer().getPluginManager();
+		
 		currentLogger = this.getLogger();
+		informer = new ExperienceInformer();
 		
 		// Load economy, if it exists
 		if (!hasEconomy())
 			setupEconomy();
 		
-		// Initialize configuration and listeners
+		// Initialize configuration
 		loadDefaults(false);
+		
+		// Register listeners
+		manager.registerEvents(listener, this);
+		manager.registerEvents(informer, this);
 	}
 	
 	private void loadDefaults(boolean reload) {
 		FileConfiguration config = getConfig();
 		File path = new File(getDataFolder(), "config.yml");
+		
+		// Reset warnings
+		informer.clearMessages();
 		
 		// See if we need to create the file
 		if (!path.exists()) {
@@ -94,7 +106,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		
 		// Load it
 		if (configuration == null) {
-			configuration = new Configuration(config, currentLogger);
+			configuration = new Configuration(config, this);
 			setConfiguration(configuration);
 		}
 		
@@ -102,7 +114,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		
 		// See if we actually can enable the economy
 		if (economy == null && reward == RewardTypes.ECONOMY) {
-			currentLogger.warning(ChatColor.RED + "Cannot enable economy. VAULT plugin was not found.");
+			printWarning(this, "Cannot enable economy. VAULT plugin was not found.");
 			reward = RewardTypes.EXPERIENCE;
 		}
 		
@@ -121,7 +133,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			currentLogger.info("Using the economy as reward.");
 			break;
 		default:
-			currentLogger.warning(ChatColor.RED + "Unknown reward manager.");
+			printWarning(this, "Unknown reward manager.");
 			break;
 		}
 	}
@@ -150,7 +162,6 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		// Create a new listener if necessary
 		if (listener == null) {
 			listener = new ExperienceListener(this, this, configuration);
-			manager.registerEvents(listener, this);
 		} else {
 			listener.setConfiguration(configuration);
 		}
@@ -183,9 +194,13 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		if (args.length > 0) {
 			
 			// Toggle debugging
-			if (args[0].equalsIgnoreCase(toggleDebug)) {
+			if (args[0].equalsIgnoreCase(subCommandToggleDebug)) {
 				debugEnabled = !debugEnabled;
 				respond(sender, ChatColor.DARK_BLUE + "Debug " + (debugEnabled ? " enabled " : " disabled"));
+				return true;
+			} else if (args[0].equalsIgnoreCase(subCommandWarnings)) {
+				if (sender != null)
+					informer.displayWarnings(sender);
 				return true;
 			} else {
 				respond(sender, ChatColor.RED + "Error: Unknown subcommand.");
@@ -254,7 +269,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		
 		// Make sure the sender has permissions
 		if (sender != null && !sender.hasPermission(permission)) {
-			respond(sender, ChatColor.RED + "WARNING: You haven't got permission to execute this command.");
+			respond(sender, ChatColor.RED + "You haven't got permission to execute this command.");
 			return false;
 		} else {
 			// We have permission
@@ -278,5 +293,16 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			currentLogger.info(message);
 		else
 			sender.sendMessage(message);
+	}
+
+	@Override
+	public void printWarning(Object sender, String message, Object... params) {
+		String warningMessage = Color.RED + "Warning: " + message;
+		
+		// Print immediately
+		currentLogger.warning(String.format(warningMessage, params));
+		
+		// Add to list of warnings
+	    informer.addWarningMessage(message);
 	}
 }

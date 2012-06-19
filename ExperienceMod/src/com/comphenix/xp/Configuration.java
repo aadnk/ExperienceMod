@@ -19,7 +19,6 @@ package com.comphenix.xp;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.logging.Logger;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -62,7 +61,7 @@ public class Configuration {
 	private static final String defaultRewardsSetting = "default rewards disabled";
 	private static final String rewardTypeSetting = "reward type";
 	
-	private Logger logger;
+	private Debugger logger;
 	
 	private double multiplier;
 	private boolean defaultRewardsDisabled;
@@ -80,8 +79,8 @@ public class Configuration {
 	private ItemParser itemParser = new ItemParser();
 	private MobParser mobParser = new MobParser();
 	
-	public Configuration(FileConfiguration config, Logger logger) {
-		this.logger = logger;
+	public Configuration(FileConfiguration config, Debugger debugger) {
+		this.logger = debugger;
 		loadFromConfig(config);
 	}
 	
@@ -119,7 +118,7 @@ public class Configuration {
 			return RewardTypes.valueOf(Parsing.getEnumName(text));
 
 		} catch (IllegalArgumentException e) {
-			logger.warning("Cannot parse reward type: " + text);
+			logger.printWarning(this, "Cannot parse reward type: %s", text);
 			return RewardTypes.EXPERIENCE;
 		}
 	}
@@ -137,10 +136,10 @@ public class Configuration {
 				if (value != null)
 					experienceDrop.put(query, value.multiply(multiplier));
 				else
-					logger.warning(String.format("Unable to parse range/value on entity %s.", key));
+					logger.printWarning(this, "Unable to parse range/value on entity %s.", key);
 				
 			} catch (ParsingException ex) {
-				logger.warning(String.format("Cannot parse mob %s: %s", key, ex.getMessage()));
+				logger.printWarning(this, "Cannot parse mob %s: %s", key, ex.getMessage());
 			}
 		}
 	}
@@ -181,12 +180,12 @@ public class Configuration {
 							isItemType ? Query.Types.Items : Query.Types.Potions);
 						break;
 					default:
-						logger.warning("Unrecogized action " + action + " under item " + key);
+						logger.printWarning(this, "Unrecogized action %s under item %s.", action, key);
 					}
 				}
 
 			} catch (ParsingException ex) {
-				logger.warning(String.format("Cannot parse item %s: %s", key, ex.getMessage()));
+				logger.printWarning(this, "Cannot parse item %s: %s", key, ex.getMessage());
 			}
 		}
 	}
@@ -206,7 +205,7 @@ public class Configuration {
 		if (range != null) {
 			destination.put(item, range.multiply(multiplier));
 		} else {
-			logger.warning(String.format("Unable to read range on %s.", key));
+			logger.printWarning(this, "Unable to read range on %s.", key);
 		}
 	}
 

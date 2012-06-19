@@ -11,7 +11,7 @@ softdepend: [Vault]
 commands:
    experiencemod:
       description: Reloads configuration OR toggles debug mode.
-      usage: /<command> [debug]
+      usage: /<command> [debug]|[warnings]
       permission: experiencemod.admin
       permission-message: You don't have <permission>
    spawnexp:
@@ -25,6 +25,7 @@ permissions:
     description: Gives access to everything.
     children:
       experiencemod.admin: true
+      experiencemod.info: true
       experiencemod.keepexp: true
       experiencemod.rewards.smelting: true
       experiencemod.rewards.brewing: true
@@ -43,9 +44,12 @@ permissions:
       experiencemod.rewards.placing: true
   experiencemod.keepexp:
     description: Prevents the loss of experience upon death.
-    default: op
+    default: false
   experiencemod.admin:
     description: Allows administrators to configure ExperienceMod.
+    default: op
+  experiencemod.info:
+    description: Allows access to warning and debug messages.
     default: op
   experiencemod.rewards.smelting:
     description: Rewards smelting of ores with experience.
