@@ -38,6 +38,7 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType.SlotType;
+import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -53,6 +54,7 @@ public class ExperienceListener implements Listener {
 	private final String permissionRewardBonus = "experiencemod.rewards.bonus";
 	private final String permissionRewardBlock = "experiencemod.rewards.block";
 	private final String permissionRewardPlacing = "experiencemod.rewards.placing";
+	private final String permissionRewardFishing = "experiencemod.rewards.fishing";
 
 	private JavaPlugin parentPlugin;
 	private Debugger debugger;
@@ -135,6 +137,41 @@ public class ExperienceListener implements Listener {
 								  event.getSpawnReason());
 		}
 	}
+	
+	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+	public void onPlayerFishEvent(PlayerFishEvent event) {
+		
+		PlayerRewards playerReward = configuration.getPlayerRewards();
+		Player player = event.getPlayer();
+		
+		String message = null;
+		Range reward = null;
+
+		if (player != null && player.hasPermission(permissionRewardFishing)) {
+			
+			// Reward type
+			switch (event.getState()) {
+			case CAUGHT_FISH:
+				reward = playerReward.getFishingSuccess();
+				message = "Fish caught by %s: Spawned %d xp.";
+				break;
+
+			case FAILED_ATTEMPT:
+				reward = playerReward.getFishingFailure();
+				message = "Fishing failed for %s: Spawned %d xp.";
+				break;
+			}
+			
+			// Has a reward been set?
+			if (reward != null) {
+				int exp = reward.sampleInt(random);
+				
+				rewardManager.reward(player, player.getLocation(), exp);
+				debugger.printDebug(this, message, player.getName(), exp);
+			}
+		}
+	}
+	
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockPlaceEvent(BlockPlaceEvent event) {

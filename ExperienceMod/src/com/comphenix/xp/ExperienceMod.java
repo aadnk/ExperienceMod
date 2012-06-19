@@ -198,14 +198,14 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		if (sub.equalsIgnoreCase(subCommandToggleDebug)) {
 			
 			debugEnabled = !debugEnabled;
-			respond(sender, ChatColor.DARK_BLUE + "Debug " + (debugEnabled ? " enabled " : " disabled"));
+			respond(sender, ChatColor.BLUE + "Debug " + (debugEnabled ? " enabled " : " disabled"));
 			return true;
 			
 		// Display the parse warnings during the last configuration load
 		} else if (sub.equalsIgnoreCase(subCommandWarnings)) {
 			
 			if (sender != null && informer.hasWarnings())
-				informer.displayWarnings(sender);
+				informer.displayWarnings(sender, true);
 			else
 				sender.sendMessage(ChatColor.GREEN + "No warnings found.");
 			return true;
@@ -293,11 +293,8 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	public void printDebug(Object sender, String message, Object... params) {
 		if (debugEnabled) {
 			
-			String formattedMessage = String.format("Debug: " + message, params);
+			String formattedMessage = String.format("[ExperienceMod] " + message, params);
 			
-			// Print to console
-			currentLogger.info(formattedMessage);
-		
 			// Every player with the info permission will also see this message
 			getServer().broadcast(formattedMessage, permissionInfo);
 		}

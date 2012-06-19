@@ -3,6 +3,7 @@ version: 1.3.1
 description: This plugin recreates the new experience rewards in 1.3 for 1.2.5. 
 author: Comphenix
 website: http://www.comphenix.net/ExperienceMod
+dev-url: http://dev.bukkit.org/server-mods/experiencemod/
 
 main: com.comphenix.xp.ExperienceMod
 database: false
@@ -33,6 +34,7 @@ permissions:
       experiencemod.rewards.bonus: true
       experiencemod.rewards.block: true
       experiencemod.rewards.placing: true
+      experiencemod.rewards.fishing: true
   experiencemod.rewards.*:
     description: Gives access to all experience rewards.
     children:
@@ -42,6 +44,7 @@ permissions:
       experiencemod.rewards.bonus: true
       experiencemod.rewards.block: true
       experiencemod.rewards.placing: true
+      experiencemod.rewards.fishing: true
   experiencemod.keepexp:
     description: Prevents the loss of experience upon death.
     default: false
@@ -68,4 +71,7 @@ permissions:
     default: false
   experiencemod.rewards.placing:
     description: Rewards placing blocks in the world.
+    default: false
+  experiencemod.rewards.fishing:
+    description: Rewards fishing after fish.
     default: false

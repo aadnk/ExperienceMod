@@ -75,6 +75,7 @@ public class Configuration {
 	private ItemTree simpleCraftingReward;
 	private ItemTree simpleBrewingReward;
 	private PotionTree complexBrewingReward;
+	private PlayerRewards playerRewards;
 	
 	private ItemParser itemParser = new ItemParser();
 	private MobParser mobParser = new MobParser();
@@ -95,6 +96,7 @@ public class Configuration {
 		simpleCraftingReward = new ItemTree();
 		simpleBrewingReward = new ItemTree();
 		complexBrewingReward = new PotionTree();
+		playerRewards = new PlayerRewards();
 		
 		// Load scalar values
 		if (config.isDouble(multiplierSetting))
@@ -110,6 +112,7 @@ public class Configuration {
 		// Load mob experience
 		loadMobs(config.getConfigurationSection("mobs"));
 		loadItemActions(config.getConfigurationSection("items"));
+		loadGenericRewards(config.getConfigurationSection("player"));
 	}
 	
 	private RewardTypes loadReward(String text) {
@@ -186,6 +189,28 @@ public class Configuration {
 
 			} catch (ParsingException ex) {
 				logger.printWarning(this, "Cannot parse item %s - %s", key, ex.getMessage());
+			}
+		}
+	}
+	
+	private void loadGenericRewards(ConfigurationSection config) {
+		// Guard against null
+		if (config == null)
+			return;
+		
+		for (String key : config.getKeys(false)) {
+			
+			try {
+				Range value = readRange(config, key, null);
+				
+				if (value != null)
+					playerRewards.put(key, value.multiply(multiplier));
+				else
+					logger.printWarning(this, "Unable to parse range on player reward %s.", key);
+				
+				
+			} catch (ParsingException ex) {
+				logger.printWarning(this, "Parsing error - %s", key, ex.getMessage());
 			}
 		}
 	}
@@ -282,6 +307,10 @@ public class Configuration {
 
 	public boolean isDefaultRewardsDisabled() {
 		return defaultRewardsDisabled;
+	}
+	
+	public PlayerRewards getPlayerRewards() {
+		return playerRewards;
 	}
 	
 	public RewardTypes getRewardType() {

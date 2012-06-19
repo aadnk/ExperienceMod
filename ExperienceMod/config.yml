@@ -7,6 +7,11 @@ mobs:
     first: 1
     last: 10
   ?|spawner: 0
+
+player:
+  fishing success: [3, 5]
+  fishing failure: 0
+
 items:
   coal ore:
     block source: 5

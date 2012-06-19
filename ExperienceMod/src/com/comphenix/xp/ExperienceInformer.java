@@ -25,14 +25,14 @@ public class ExperienceInformer implements Listener {
 		
 		// Automatically display warning messages
 		if (player != null) {
-			displayWarnings(player);
+			displayWarnings(player, false);
 		}
 	}
 	
-	public boolean displayWarnings(CommandSender sender) {
+	public boolean displayWarnings(CommandSender sender, boolean ignorePermission) {
 		
 		// Player or console
-		if (sender.hasPermission(permissionInfo)) {
+		if (ignorePermission || sender.hasPermission(permissionInfo)) {
 			// Print warning messages
 			for (String message : warningMessages) {
 				sender.sendMessage(ChatColor.RED + "[ExperienceMod] Warning: " + message);
