@@ -303,6 +303,6 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		currentLogger.warning(String.format(warningMessage, params));
 		
 		// Add to list of warnings
-	    informer.addWarningMessage(message);
+	    informer.addWarningMessage(String.format(message, params));
 	}
 }
