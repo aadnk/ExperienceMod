@@ -7,19 +7,8 @@ public class ParsingException extends Exception {
 	 */
 	private static final long serialVersionUID = 343348850011666848L;
 
-	private int lineNumber;
-	
 	public ParsingException() {
 		super();
-	}
-	
-	public ParsingException(ParsingException reason, int lineNumber) {
-		this(reason.getMessage(), reason.getCause(), lineNumber);
-	}
-
-	public ParsingException(String message, Throwable cause, int lineNumber) {
-		super("Config error at " + lineNumber + ": " + message, cause);
-		this.lineNumber = lineNumber;
 	}
 	
 	public ParsingException(String message, Throwable cause) {
@@ -36,9 +25,5 @@ public class ParsingException extends Exception {
 	
 	public static ParsingException fromFormat(String message, Object... params) {
 		return new ParsingException(String.format(message, params));
-	}
-	
-	public int getLineNumber() {
-		return lineNumber;
 	}
 }
