@@ -17,6 +17,8 @@ package com.comphenix.xp.lookup;
  *  02111-1307 USA
  */
 
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.inventory.ItemStack;
@@ -91,6 +93,30 @@ public class ItemQuery implements Query {
 		return durability != null;
 	}
 	
+	@Override
+	public int hashCode() {
+		return new HashCodeBuilder(17, 31).
+	            append(itemID).
+	            append(durability).
+	            toHashCode();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null)
+            return false;
+        if (obj == this)
+            return true;
+        if (obj.getClass() != getClass())
+            return false;
+
+        ItemQuery other = (ItemQuery) obj;
+        return new EqualsBuilder().
+            append(itemID, other.itemID).
+            append(durability, other.durability).
+            isEquals();
+	}
+
 	@Override
 	public String toString() {
 		Material material = null;

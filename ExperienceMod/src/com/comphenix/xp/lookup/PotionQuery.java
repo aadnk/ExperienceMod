@@ -17,6 +17,8 @@ package com.comphenix.xp.lookup;
  *  02111-1307 USA
  */
 
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.bukkit.Material;
 import org.bukkit.potion.Potion;
 import org.bukkit.potion.PotionType;
@@ -101,6 +103,34 @@ public class PotionQuery implements Query {
 	
 	public boolean hasSplash() {
 		return splash != null;
+	}
+	
+	@Override
+	public int hashCode() {
+		return new HashCodeBuilder(17, 31).
+	            append(type).
+	            append(level).
+	            append(extended).
+	            append(splash).
+	            toHashCode();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null)
+            return false;
+        if (obj == this)
+            return true;
+        if (obj.getClass() != getClass())
+            return false;
+
+        PotionQuery other = (PotionQuery) obj;
+        return new EqualsBuilder().
+            append(type, other.type).
+            append(level, other.level).
+            append(extended, other.extended).
+            append(splash, other.splash).
+            isEquals();
 	}
 
 	@Override

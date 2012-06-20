@@ -17,6 +17,8 @@ package com.comphenix.xp.lookup;
  *  02111-1307 USA
  */
 
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.bukkit.entity.Ageable;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
@@ -107,6 +109,36 @@ public class MobQuery implements Query {
 	
 	public boolean hasTamed() {
 		return tamed != null;
+	}
+	
+	@Override
+	public int hashCode() {
+		return new HashCodeBuilder(17, 31).
+	            append(type).
+	            append(deathCause).
+	            append(spawner).
+	            append(baby).
+	            append(tamed).
+	            toHashCode();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null)
+            return false;
+        if (obj == this)
+            return true;
+        if (obj.getClass() != getClass())
+            return false;
+
+        MobQuery other = (MobQuery) obj;
+        return new EqualsBuilder().
+            append(type, other.type).
+            append(deathCause, other.deathCause).
+            append(spawner, other.spawner).
+            append(baby, other.baby).
+            append(tamed, other.tamed).
+            isEquals();
 	}
 	
 	@Override

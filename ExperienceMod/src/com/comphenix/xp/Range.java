@@ -19,6 +19,9 @@ package com.comphenix.xp;
 
 import java.util.Random;
 
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+
 public class Range {
 	private double start;
 	private double end;
@@ -122,28 +125,26 @@ public class Range {
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		long temp;
-		temp = Double.doubleToLongBits(end);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		temp = Double.doubleToLongBits(start);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		return result;
+		return new HashCodeBuilder(17, 31).
+	            append(start).
+	            append(end).
+	            toHashCode();
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
 		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		
-		Range other = (Range) obj;
-		return Double.compare(start, other.start) == 0 &&
-		       Double.compare(end, other.end) == 0;
+            return false;
+        if (obj == this)
+            return true;
+        if (obj.getClass() != getClass())
+            return false;
+
+        Range other = (Range) obj;
+        return new EqualsBuilder().
+            append(start, other.start).
+            append(end, other.end).
+            isEquals();
 	}
 
 	@Override
