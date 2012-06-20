@@ -83,7 +83,7 @@ public class Parsing {
 		
 		// Consume the element if it is ignoreable
 		if (isNullOrIgnoreable(tokens.peek())) {
-			tokens.remove();
+			tokens.poll();
 			return true;
 		} else {
 			return false;

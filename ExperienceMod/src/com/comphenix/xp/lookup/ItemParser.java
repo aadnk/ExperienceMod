@@ -130,6 +130,11 @@ public class ItemParser {
 		
 		if (durability == null) {
 			
+			// ToDo: Make it possible to use named durabilities without the correct item ID
+			if (itemID == null) {
+				throw ParsingException.fromFormat("Cannot parse %s - named durabilities only works with known item ids.", tokens.peek());
+			}
+			
 			// Special cases
 			if (itemID == Material.WOOD.getId() || itemID == Material.LEAVES.getId() || 
 				itemID == WOODEN_STEPS || itemID == WOODEN_DOUBLE_STEPS) {

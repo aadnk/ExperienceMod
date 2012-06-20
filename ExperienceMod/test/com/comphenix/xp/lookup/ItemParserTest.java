@@ -23,6 +23,6 @@ public class ItemParserTest {
 		assertEquals(stoneQuery, parser.fromItemString("1"));
 		assertEquals(redWool, parser.fromItemString("wool|14"));
 		assertEquals(redWool, parser.fromItemString("wool|red"));
-		assertEquals(blueStuff, parser.fromItemString("?|blue"));
+		assertEquals(blueStuff, parser.fromItemString("?|11"));
 	}
 }
