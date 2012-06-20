@@ -25,12 +25,19 @@ public class Range {
 	
 	public static Range Default = new Range(0);
 	
+	/**
+	 * Constructs a range of the form [0, value] (inclusive).
+	 * @param value The end value.
+	 */
 	public Range(double value) {
-		this.start = value;
+		this.start = 0;
 		this.end = value;
 	}
 	
 	public Range(double start, double end) {
+		if (end < start)
+			throw new IllegalArgumentException("Illegal range. The first value must be less than the last.");
+		
 		this.start = start;
 		this.end = end;
 	}
@@ -55,14 +62,62 @@ public class Range {
 			return start + (end - start) * rnd.nextDouble();
 	}
 	
+	public int getMinimum() {
+		return (int) Math.floor(start);
+	}
+	
+	public int getMaximum() {
+		return (int) Math.ceil(end);
+	}
+	
 	public int sampleInt(Random rnd) {
-		double value = sampleDouble(rnd);
+
+		/*
+		 * Imagine our range is 0.7 - 5.3:
+		 *
+		 * 0.7  1          2          3          4          5  5.3
+	     *	
+		 *  |---|----------|----------|----------|----------|---|
+		 *  |   |          |          |          |          |   |
+		 *  |   |          |          |          |          |   |
+		 *  |---|----------|----------|----------|----------|---|
+		 *
+		 * The integer part, 1 - 5, is easy. To get a random number between and
+		 * including 1 and 5, we simply get a random number between 0 and 4 
+		 * and add one.
+	 	 * 
+		 * The beginning, 0.7 - 1.0, covers 30% of an integer. One interpretation is
+		 * that this indicates the probability of getting that integer. 
+		 *
+		 * So, we end up with a 30% probability of getting 0 and 5.3 - 5 = 30% 
+		 * probability of getting 4.
+		 */
 		
-		// Probability of adding the fraction
-		double fraction = value - Math.floor(value);
-		double toAdd = rnd.nextDouble() < fraction ? Math.signum(value) : 0;
+		int value = 0;
 		
-		return (int)value + (int)toAdd;
+		// Convert the range to an integer equivalent. 
+		// Notice that we round to shrink the range.
+		int a = (int) Math.ceil(start); 
+		int b = (int) Math.floor(end);
+		
+		// The decimal leftover
+		double dA = a - start;
+		double dB = end - b;
+		
+		// Sample an integer from the range [a, b] (inclusive)
+		if (b > a) {
+			value = a + rnd.nextInt(b - a + 1); // Add one since nextInt is exclusive
+		}
+		
+		// The remainder is the probability of choosing the previous value
+		if (dA > 0 && rnd.nextDouble() < dA)
+			value--;
+		
+		// And here it is the probability of choosing the next value
+		if (dB > 0 && rnd.nextDouble() < dB)
+			value++;
+		
+		return value;
 	}
 
 	@Override
