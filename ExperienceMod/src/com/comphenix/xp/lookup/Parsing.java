@@ -90,6 +90,8 @@ public class Parsing {
 			
 			if (!input.isEmpty() && !isNullOrIgnoreable(peek)) {
 				int result = Integer.parseInt(peek);
+				
+				input.remove();
 				return result;
 			} else {
 				return defaultValue;
