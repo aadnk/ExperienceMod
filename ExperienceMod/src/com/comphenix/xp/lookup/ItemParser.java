@@ -18,6 +18,7 @@ package com.comphenix.xp.lookup;
  */
 
 import java.util.HashMap;
+import java.util.Queue;
 
 import org.bukkit.DyeColor;
 import org.bukkit.GrassSpecies;
@@ -62,46 +63,65 @@ public class ItemParser {
 			// Empty names are not legal in YAML, so this shouldn't be possible 
 			throw new IllegalArgumentException("Key must have some characters.");
 		
-		String[] components = Parsing.getParameterArray(text);
+		Queue<String> tokens = Parsing.getParameterQueue(text);
 
-		Material material = Material.matchMaterial(components[0]);
-		Integer itemID = Parsing.tryParse(components, 0);
-		Integer durability = null;
-		
-		// Is this an item?
-		if (itemID == null && !Parsing.isNullOrIgnoreable(components[0])) {
-			if (material != null) {
-				itemID = material.getId();
+		Integer itemID = parseMaterial(tokens);
+		Integer durability = parseDurability(itemID, tokens);
 
-			} else {
-				// Try some additional values
-				String filtered = Parsing.getEnumName(components[0]);
-
-				if (alternativeNames.containsKey(filtered))
-					itemID = alternativeNames.get(filtered).getId();
-				else
-					throw new ParsingException("Unable to find item.");
-			}
-		}
-		
-		// Empty means DON'T CARE
-		if (components.length > 1 && !Parsing.isNullOrIgnoreable(components[1])) {
-			durability = parseDurability(itemID, components[1]);
-			
-			// Special parsing rules
-			if (itemID == Material.POTION.getId() && durability == null) {
-				return parsePotion(components, 1);
-			}
+		// Special parsing rules
+		if (itemID == Material.POTION.getId() && durability == null) {
+			return parsePotion(tokens);
 		}
 		
 		return (Query) new ItemQuery(itemID, durability);
 	}
 	
-	private Integer parseDurability(Integer itemID, String text) throws ParsingException {
+	/**
+	 * Determines the item, either by ID or name, at the top of the queue. Only consumes the element 
+	 * if the parsing was successful. 
+	 * @param tokens Queue of elements to use.
+	 * @return ID of the item parsed, of NULL if no item could be read.
+	 * @throws ParsingException Invoked when an unrecognized item name is given.
+	 */
+	private Integer parseMaterial(Queue<String> tokens) throws ParsingException {
 		
-		// Get the durability value
-		Integer durability = Parsing.tryParse(text);
-		String filtered = Parsing.getEnumName(text);
+		String current = Parsing.peekOrEmpty(tokens);
+		Material material = Material.matchMaterial(current);
+		Integer itemID = Parsing.tryParse(tokens);
+		
+		// Is this an item?
+		if (itemID == null && !Parsing.isNullOrIgnoreable(current)) {
+			
+			if (material != null) {
+				itemID = material.getId();
+
+			} else {
+				// Try some additional values
+				String filtered = Parsing.getEnumName(current);
+
+				if (alternativeNames.containsKey(filtered))
+					itemID = alternativeNames.get(filtered).getId();
+				else
+					throw ParsingException.fromFormat("Unable to find item %s.", current);
+			}
+			
+			// Element has been used
+			tokens.remove();
+		}
+		
+		// May be null
+		return itemID;
+	}
+	
+	private Integer parseDurability(Integer itemID, Queue<String> tokens) throws ParsingException {
+		
+		// Empty means DON'T CARE
+		if (Parsing.isNullOrIgnoreable(tokens.peek())) {
+			return null;
+		}
+		
+		String filtered = Parsing.getEnumName(tokens.peek());
+		Integer durability = Parsing.tryParse(tokens);
 		
 		if (durability == null) {
 			
@@ -109,43 +129,37 @@ public class ItemParser {
 			if (itemID == Material.WOOD.getId() || itemID == Material.LEAVES.getId() || 
 				itemID == WOODEN_STEPS || itemID == WOODEN_DOUBLE_STEPS) {
 				
-				return getTreeSpecies(text, filtered);
+				return getTreeSpecies(tokens, filtered);
 
 			} else if (itemID == Material.WOOL.getId()) {
 				
 				// Convert color values
-				return getDyeColor(text, filtered);
+				return getDyeColor(tokens, filtered);
 				
 			} else if (itemID == Material.GRASS.getId()) { 
 				
 				// Grass types
-				return getGrassSpecies(text, filtered);
+				return getGrassSpecies(tokens, filtered);
 
 			} else if (itemID == Material.STEP.getId() || itemID == Material.DOUBLE_STEP.getId()) {
 				
-				return getStepMaterial(text);
+				return getStepMaterial(tokens);
 				
 			} else if (itemID == Material.SANDSTONE.getId()) {
 		
-				return getSandstoneType(text, filtered);
+				return getSandstoneType(tokens, filtered);
 			
 			} else if (itemID == Material.SMOOTH_BRICK.getId() || itemID == Material.SMOOTH_STAIRS.getId()) {
 				
-				return getSmoothstoneType(text, filtered);
+				return getSmoothstoneType(tokens, filtered);
 				
 			} else if (itemID == Material.MONSTER_EGGS.getId()) {
 				
-				return getMonsterEgg(text, filtered);
+				return getMonsterEgg(tokens, filtered);
 				
 			} else if (itemID == Material.COAL.getId()) {
 				
-				// No corresponding constants in Bukkit
-				if (filtered.equals("NORMAL") || filtered.equals("COAL_NORMAL"))
-					return COAL_NORMAL;
-				else if (filtered.equals("CHARCOAL") || filtered.equals("CHAR_COAL"))
-					return COAL_CHARCOAL;
-				else
-					ParsingException.fromFormat("Unable to find coal type %s", text);
+				return getCoalData(tokens, filtered);
 				
 			} else if (itemID == Material.POTION.getId()) {
 				// Let the caller figure this out
@@ -153,132 +167,187 @@ public class ItemParser {
 			}
 			
 			// Cannot parse durability
-			throw ParsingException.fromFormat("Invalid durability value %s.", text);
+			throw ParsingException.fromFormat("Invalid durability value %s.", tokens.peek());
 		}
 		
 		return durability;
 	}
 
-	private int getTreeSpecies(String originalText, String filtered) throws ParsingException {
+	private int getCoalData(Queue<String> tokens, String filtered) throws ParsingException {
+		
+		Integer data = null;
+		
+		// No corresponding constants in Bukkit
+		if (filtered.equals("NORMAL") || filtered.equals("COAL_NORMAL"))
+			data = COAL_NORMAL;
+		else if (filtered.equals("CHARCOAL") || filtered.equals("CHAR_COAL"))
+			data = COAL_CHARCOAL;
+		else
+			ParsingException.fromFormat("Unable to find coal type %s", tokens.peek());
+		
+		tokens.remove();
+		return data;
+	}
+	
+	private int getTreeSpecies(Queue<String> tokens, String filtered) throws ParsingException {
 
 		try {
+			Integer data = null;
+		
+			// Hard coded names
 			if (filtered.equals("OAK"))
-				return (int) 0;
+				data = 0;
 			else
-				return (int) TreeSpecies.valueOf(filtered).getData();
+				data = (int) TreeSpecies.valueOf(filtered).getData();
+			
+			tokens.remove();
+			return data;
 			
 		} catch (IllegalArgumentException e) {
-			throw ParsingException.fromFormat("Unable to find tree species %s.", originalText);
+			throw ParsingException.fromFormat("Unable to find tree species %s.", tokens.peek());
 		}
 	}
 	
-	private int getStepMaterial(String originalText) throws ParsingException {
+	private int getStepMaterial(Queue<String> tokens) throws ParsingException {
 		
-		Material material = getMaterial(originalText);
+		Material material = getMaterial(tokens.peek());
 		Step step = new Step();
 		
 		// Get texture durability value
 		if (step.getTextures().contains(material)) {
+			tokens.remove();
 			return (int) new Step(material).getData();	
 		} else {
-			throw ParsingException.fromFormat("Unable to parse texture material %s.", originalText);
+			throw ParsingException.fromFormat("Unable to parse texture material %s.", tokens.peek());
 		}
 	}
 	
-	private int getSandstoneType(String originalText, String filtered) throws ParsingException {
+	private int getSandstoneType(Queue<String> tokens, String filtered) throws ParsingException {
+		
+		Integer data = null;
 		
 		// Extra types
 		if (filtered.equals("NORMAL"))
-			return 0;
+			data = 0;
 		if (filtered.equals("CHISELED"))
-			return 1;
+			data = 1;
 
 		// Note: Like many enums, this doesn't correspond to MinecraftWiki
 		try {
-			return (int) SandstoneType.valueOf(filtered).getData();
+			data = (int) SandstoneType.valueOf(filtered).getData();
 		} catch (IllegalArgumentException e) {
-			throw ParsingException.fromFormat("Unable to find sandstone type %s.", originalText);
+			throw ParsingException.fromFormat("Unable to find sandstone type %s.", tokens.peek());
 		}
+		
+		tokens.remove();
+		return data;
 	}
 	
-	private int getMonsterEgg(String originalText, String filtered) throws ParsingException {
+	private int getMonsterEgg(Queue<String> tokens, String filtered) throws ParsingException {
 		
-		Material material = getMaterial(originalText);
+		Material material = getMaterial(tokens.peek());
 		MonsterEggs monsterEgg = new MonsterEggs();
 		
 		// Get texture durability value
 		if (monsterEgg.getTextures().contains(material)) {
+			tokens.remove();
 			return (int) new MonsterEggs(material).getData();	
 		} else {
-			throw ParsingException.fromFormat("Unable to parse texture material %s", originalText);
+			throw ParsingException.fromFormat("Unable to parse texture material %s", tokens.peek());
 		}
 	}
 	
-	private int getSmoothstoneType(String originalText, String filtered) throws ParsingException {
+	private int getSmoothstoneType(Queue<String> tokens, String filtered) throws ParsingException {
+		
+		Integer data = null;
 		
 		// Alternatives
 		if (filtered.equals("CHISELED"))
-			return 3;
+			data = 3;
 		
 		try {
-			return (int) SmoothBrickType.valueOf(filtered).getData();
+			data = (int) SmoothBrickType.valueOf(filtered).getData();
 		} catch (IllegalArgumentException e) {
-			throw ParsingException.fromFormat("Unable to find smoothstone type %s.", originalText);
+			throw ParsingException.fromFormat("Unable to find smoothstone type %s.", tokens.peek());
 		}
+		
+		tokens.remove();
+		return data;
 	}
 	
-	private int getDyeColor(String originalText, String filtered) throws ParsingException {
+	private int getDyeColor(Queue<String> tokens, String filtered) throws ParsingException {
 		
 		try {
 			// Look up value directly
-			return (int) DyeColor.valueOf(filtered).getData();
+			Integer data = (int) DyeColor.valueOf(filtered).getData();
+			
+			tokens.remove();
+			return data;
+			
 		} catch (IllegalArgumentException e) {
-			throw ParsingException.fromFormat("Unable to find dye color %s.", originalText);
+			throw ParsingException.fromFormat("Unable to find dye color %s.", tokens.peek());
 		}
 	}
 	
-	private int getGrassSpecies(String originalText, String filtered) throws ParsingException {
+	private int getGrassSpecies(Queue<String> tokens, String filtered) throws ParsingException {
 		
 		try {
-			return (int) GrassSpecies.valueOf(filtered).getData();
+			Integer data = (int) GrassSpecies.valueOf(filtered).getData();
+			
+			tokens.remove();
+			return data;
+			
 		} catch (IllegalArgumentException e) {
-			throw ParsingException.fromFormat("Unable to grass species %s.", originalText);
+			throw ParsingException.fromFormat("Unable to grass species %s.", tokens.peek());
 		}
 	}
 	
 	// Special potion parser
-	private PotionQuery parsePotion(String[] components, int offset) throws ParsingException {
+	private PotionQuery parsePotion(Queue<String> tokens) throws ParsingException {
 		
-		Integer potionID = Parsing.tryParse(components, offset);
-		Integer tier = Parsing.tryParse(components, offset + 1, 1);
-		
-		// Increment (consider using a stack instead)
-		if (tier != null)
-			offset += 2;
-		else if (potionID != null)
-			offset += 1;
+		Integer tier = Parsing.tryParse(tokens);
+		PotionType type = parsePotionType(tokens);
 		
 		// Scan all unused parameters for these options
-		Boolean extended = Parsing.hasElementPrefix(components, offset, "extended");
-		Boolean splash = Parsing.hasElementPrefix(components, offset, "splash");
-		PotionType potionType = null;
+		Boolean extended = Parsing.hasElementPrefix(tokens, "extended");
+		Boolean splash = Parsing.hasElementPrefix(tokens, "splash");
 		
-		// Parse the potion type
-		if (potionID != null) {
-			potionType = PotionType.getByDamageValue(potionID);
-		} else {
-			potionType = PotionType.valueOf(Parsing.getEnumName(components[1]));
-		}
-		
-		if (potionType == null)
-			throw new ParsingException("Unable to parse potion type.");
-		if (tier > potionType.getMaxLevel())
+		if (type != null && tier > type.getMaxLevel())
 			throw ParsingException.fromFormat("Potion level %d is too high.", tier);
 		else if (tier < 1)
 			throw ParsingException.fromFormat("Potion level %d is too low.", tier);
 		
 		// Create the query
-		return new PotionQuery(potionType, tier, extended, splash);
+		return new PotionQuery(type, tier, extended, splash);
+	}
+	
+	private PotionType parsePotionType(Queue<String> tokens) throws ParsingException {
+		
+		String current = tokens.peek();
+		Integer potionID = Parsing.tryParse(tokens);
+		
+		try {
+			PotionType potionType = null;
+			
+			// Parse the potion type
+			if (potionID != null) {
+				potionType = PotionType.getByDamageValue(potionID);
+				// Token has already been removed
+			} else if (current != null) {
+				potionType = PotionType.valueOf(Parsing.getEnumName(current));
+				tokens.remove();
+			}
+			
+			return potionType;
+			
+		} catch (IllegalArgumentException e) {
+			
+			// Handle ID failure and name failure
+			if (potionID == null)
+				throw ParsingException.fromFormat("Unrecognized potion id: %d", potionID);
+			else
+				throw ParsingException.fromFormat("Unrecognized potion name: %s.", current);
+		}
 	}
 	
 	private Material getMaterial(String text) throws ParsingException {

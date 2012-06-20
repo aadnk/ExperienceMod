@@ -17,6 +17,8 @@ package com.comphenix.xp.lookup;
  *  02111-1307 USA
  */
 
+import java.util.Queue;
+
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
@@ -25,43 +27,52 @@ public class MobParser {
 	
 	public MobQuery fromString(String text) throws ParsingException {
 		
-		String[] components = Parsing.getParameterArray(text);
-		String mobName = components[0];
+		Queue<String> components = Parsing.getParameterQueue(text);
+		EntityType type = parseEntityType(components);	
+		DamageCause cause = getDamageCause(components);
 		
+		Boolean spawner = Parsing.hasElementPrefix(components, "spawner");
+		Boolean baby = Parsing.hasElementPrefix(components, "baby");
+		Boolean tamed = Parsing.hasElementPrefix(components, "tamed");
+		SpawnReason reason = spawner != null ? (spawner ? SpawnReason.SPAWNER : SpawnReason.NATURAL) : null;
+		
+		return new MobQuery(type, cause, reason , baby, tamed);
+	}
+	
+	private EntityType parseEntityType(Queue<String> components) throws ParsingException {
+		
+		String mobName = Parsing.peekOrEmpty(components);
 		EntityType type = EntityType.fromName(mobName);
 		
 		if (type == null && !Parsing.isNullOrIgnoreable(mobName)) {
 			throw ParsingException.fromFormat("Unable to find a mob with the name %s.", mobName);
-		} else if (type != null && !type.isAlive()) {
-			throw ParsingException.fromFormat("%s is not a mob.", mobName);
-		} else {
 			
-			DamageCause cause = getDamageCause(components, 1);
-			int offset = 0;
+		} else if (type != null) {
+			if (!type.isAlive())
+				throw ParsingException.fromFormat("%s is not a mob.", mobName);
 			
-			// ToDo: Parse using a stack instead.
-			if (cause != null)
-				offset = 2;
-			else if (mobName != null)
-				offset = 1;
-			
-			Boolean spawner = Parsing.hasElementPrefix(components, offset, "spawner");
-			Boolean baby = Parsing.hasElementPrefix(components, offset, "baby");
-			Boolean tamed = Parsing.hasElementPrefix(components, offset, "tamed");
-			SpawnReason reason = spawner != null ? (spawner ? SpawnReason.SPAWNER : SpawnReason.NATURAL) : null;
-			
-			return new MobQuery(type, cause, reason , baby, tamed);
+			components.remove();
 		}
+		
+		return type;
 	}
 	
-	private DamageCause getDamageCause(String[] components, int index) {
+	private DamageCause getDamageCause(Queue<String> components) {
 		
 		try {
-			if (index < components.length && !Parsing.isNullOrIgnoreable(components[index]))
-				return DamageCause.valueOf(Parsing.getEnumName(components[index]));
-			else
+			String current = Parsing.peekOrEmpty(components);
+			
+			if (!Parsing.isNullOrIgnoreable(current)) {
+				DamageCause cause = DamageCause.valueOf(Parsing.getEnumName(current));
+			
+				components.remove();
+				return cause;
+				
+			} else {
 				 // Empty = ignore parameter
 				return null;
+			}	
+			
 		} catch (IllegalArgumentException e) {
 			return null;
 		}

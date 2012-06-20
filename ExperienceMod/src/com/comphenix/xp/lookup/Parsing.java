@@ -1,5 +1,10 @@
 package com.comphenix.xp.lookup;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.Queue;
+
 /**
  *  ExperienceMod - Bukkit server plugin for modifying the experience system in Minecraft.
  *  Copyright (C) 2012 Kristian S. Stangeland
@@ -19,23 +24,24 @@ package com.comphenix.xp.lookup;
 
 public class Parsing {
 	
-	public static String[] getParameterArray(String text) {
+	public static Queue<String> getParameterQueue(String text) {
 		
 		String[] components = text.split("\\||:");
 		
 		// Clean up
 		for (int i = 0; i < components.length; i++) 
 			components[i] = components[i].trim().toLowerCase();
-		return components;
+		
+		return toQueue(components);
 	}
 	
-	public static Boolean hasElementPrefix(String[] values, int startIndex, String element) {
+	public static Boolean hasElementPrefix(Collection<String> values, String element) {
 		
 		// See if this element exists
-		for (int i = startIndex; i < values.length; i++) {
-			boolean value = !values[i].startsWith("!"); // Negative prefix
+		for (String current : values) {
+			boolean value = !current.startsWith("!"); // Negative prefix
 	
-			if (element.startsWith(values[i], value ? 0 : 1))
+			if (element.startsWith(current, value ? 0 : 1))
 				return value;
 		}
 		
@@ -44,6 +50,9 @@ public class Parsing {
 	}
 	
     public static String getEnumName(String text) {
+    	if (text == null)
+    		return "";
+    	
 		String filtered = text.toUpperCase();
 		return filtered.replaceAll("\\s+", "_").replaceAll("\\W", "");
 	}
@@ -65,24 +74,47 @@ public class Parsing {
 	    return param == null || param.trim().length() == 0 || param.trim().equals("?"); 
 	}
 	
-	// Attempt to parse integer
-	public static Integer tryParse(String[] values, int index) {
-		return tryParse(values, index, null);
-	}
-	
 	public static Integer tryParse(String value) {
-		return tryParse(new String[] { value }, 0);
+		return tryParse(toQueue(new String[] { value }), 0);
 	}
 	
 	// Attempt to parse integer
-	public static Integer tryParse(String[] values, int index, Integer defaultValue) {
+	public static Integer tryParse(Queue<String> input) {
+		return tryParse(input, null);
+	}
+	
+	// Attempt to parse integer
+	public static Integer tryParse(Queue<String> input, Integer defaultValue) {
 		try { 
-			if (index < values.length && !isNullOrIgnoreable(values[index]))
-				return Integer.parseInt(values[index]);
-			else
+			String peek = input.peek();
+			
+			if (!input.isEmpty() && !isNullOrIgnoreable(peek)) {
+				int result = Integer.parseInt(peek);
+				return result;
+			} else {
 				return defaultValue;
+			}
+				
 		} catch (NumberFormatException e) {
 			return defaultValue;
 		}
+	}
+	
+	/**
+	 * Copies the content of a string array into a queue.
+	 * @param input - String array to copy.
+	 * @return The resulting queue.
+	 */
+	public static Queue<String> toQueue(String[] input) {
+		return new LinkedList<String>(Arrays.asList(input));
+	}
+	
+	/**
+	 * Retrieves the head of the queue. If the queue is empty, returns an empty string.
+	 * @param components Queue to retrieve from.
+	 * @return Head of the queue OR an empty string.
+	 */
+	public static String peekOrEmpty(Queue<String> components) {
+		return !components.isEmpty() ? components.peek() : "";
 	}
 }
