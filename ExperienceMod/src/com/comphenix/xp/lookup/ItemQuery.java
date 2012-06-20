@@ -60,7 +60,7 @@ public class ItemQuery implements Query {
 	 * @param material material to create from.
 	 */
 	public ItemQuery(Material material) {
-		this(material.getId(), 0);
+		this(material.getId(), null);
 	}
 	
 	/**

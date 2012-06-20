@@ -69,7 +69,7 @@ public class ItemParser {
 		Integer durability = parseDurability(itemID, tokens);
 
 		// Special parsing rules
-		if (itemID == Material.POTION.getId() && durability == null) {
+		if (itemID != null && itemID == Material.POTION.getId() && durability == null) {
 			return parsePotion(tokens);
 		}
 		
