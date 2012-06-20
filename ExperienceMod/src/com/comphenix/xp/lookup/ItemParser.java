@@ -312,10 +312,15 @@ public class ItemParser {
 		Boolean extended = Parsing.hasElementPrefix(tokens, "extended");
 		Boolean splash = Parsing.hasElementPrefix(tokens, "splash");
 		
-		if (type != null && tier > type.getMaxLevel())
-			throw ParsingException.fromFormat("Potion level %d is too high.", tier);
-		else if (tier < 1)
-			throw ParsingException.fromFormat("Potion level %d is too low.", tier);
+		// Check tier
+		if (tier != null) {
+			
+			if (type != null && tier > type.getMaxLevel()) {
+				throw ParsingException.fromFormat("Potion level %d is too high.", tier);
+			} else if (tier < 1) {
+				throw ParsingException.fromFormat("Potion level %d is too low.", tier);
+			}
+		}
 		
 		// Create the query
 		return new PotionQuery(type, tier, extended, splash);
@@ -323,7 +328,7 @@ public class ItemParser {
 	
 	private PotionType parsePotionType(Queue<String> tokens) throws ParsingException {
 		
-		String current = tokens.peek();
+		String current = Parsing.peekOrEmpty(tokens);
 		Integer potionID = Parsing.tryParse(tokens);
 		
 		try {
