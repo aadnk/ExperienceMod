@@ -74,6 +74,22 @@ public class Parsing {
 	    return param == null || param.trim().length() == 0 || param.trim().equals("?"); 
 	}
 	
+	/**
+	 * Determines if the head of the queue can be ignored. If it can, it will be removed.
+	 * @param param Queue to test.
+	 * @return TRUE if the head of the queue is null, blank or equal to '?', FALSE otherwise.
+	 */
+	public static boolean isNullOrIgnoreable(Queue<String> tokens) {
+		
+		// Consume the element if it is ignoreable
+		if (isNullOrIgnoreable(tokens.peek())) {
+			tokens.remove();
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
 	public static Integer tryParse(String value) {
 		return tryParse(toQueue(new String[] { value }), 0);
 	}

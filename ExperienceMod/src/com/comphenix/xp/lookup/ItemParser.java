@@ -85,12 +85,17 @@ public class ItemParser {
 	 */
 	private Integer parseMaterial(Queue<String> tokens) throws ParsingException {
 		
+		// Check for DON'T CARE
+		if (Parsing.isNullOrIgnoreable(tokens)) {
+			return null;
+		}
+		
 		String current = Parsing.peekOrEmpty(tokens);
 		Material material = Material.matchMaterial(current);
 		Integer itemID = Parsing.tryParse(tokens);
 		
 		// Is this an item?
-		if (itemID == null && !Parsing.isNullOrIgnoreable(current)) {
+		if (itemID == null) {
 			
 			if (material != null) {
 				itemID = material.getId();
@@ -115,8 +120,8 @@ public class ItemParser {
 	
 	private Integer parseDurability(Integer itemID, Queue<String> tokens) throws ParsingException {
 		
-		// Empty means DON'T CARE
-		if (Parsing.isNullOrIgnoreable(tokens.peek())) {
+		// Check for DON'T CARE
+		if (Parsing.isNullOrIgnoreable(tokens)) {
 			return null;
 		}
 		
@@ -327,6 +332,11 @@ public class ItemParser {
 	}
 	
 	private PotionType parsePotionType(Queue<String> tokens) throws ParsingException {
+		
+		// Check for DON'T CARE
+		if (Parsing.isNullOrIgnoreable(tokens)) {
+			return null;
+		}
 		
 		String current = Parsing.peekOrEmpty(tokens);
 		Integer potionID = Parsing.tryParse(tokens);

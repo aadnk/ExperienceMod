@@ -41,10 +41,15 @@ public class MobParser {
 	
 	private EntityType parseEntityType(Queue<String> components) throws ParsingException {
 		
-		String mobName = Parsing.peekOrEmpty(components);
+		// Check for DON'T CARE
+		if (Parsing.isNullOrIgnoreable(components)) {
+			return null;
+		}
+		
+		String mobName = components.peek();
 		EntityType type = EntityType.fromName(mobName);
 		
-		if (type == null && !Parsing.isNullOrIgnoreable(mobName)) {
+		if (type == null) {
 			throw ParsingException.fromFormat("Unable to find a mob with the name %s.", mobName);
 			
 		} else if (type != null) {
@@ -59,19 +64,17 @@ public class MobParser {
 	
 	private DamageCause getDamageCause(Queue<String> components) {
 		
+		// Check for DON'T CARE
+		if (Parsing.isNullOrIgnoreable(components)) {
+			return null;
+		}
+		
 		try {
-			String current = Parsing.peekOrEmpty(components);
-			
-			if (!Parsing.isNullOrIgnoreable(current)) {
-				DamageCause cause = DamageCause.valueOf(Parsing.getEnumName(current));
-			
-				components.remove();
-				return cause;
-				
-			} else {
-				 // Empty = ignore parameter
-				return null;
-			}	
+			String current = components.peek();
+			DamageCause cause = DamageCause.valueOf(Parsing.getEnumName(current));
+		
+			components.remove();
+			return cause;
 			
 		} catch (IllegalArgumentException e) {
 			return null;
