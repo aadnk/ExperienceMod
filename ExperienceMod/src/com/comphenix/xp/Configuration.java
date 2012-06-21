@@ -17,6 +17,7 @@ package com.comphenix.xp;
  *  02111-1307 USA
  */
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
@@ -113,6 +114,35 @@ public class Configuration {
 		loadMobs(config.getConfigurationSection("mobs"));
 		loadItemActions(config.getConfigurationSection("items"));
 		loadGenericRewards(config.getConfigurationSection("player"));
+		
+		// Are any rewards negative
+		if (rewardType == RewardTypes.EXPERIENCE && hasNegativeRewards()) {
+			logger.printWarning(this, "Cannot use negative rewards with the experience reward type.");
+		}
+	}
+	
+	private boolean hasNegativeRewards() {
+		
+		return hasNegativeRewards(experienceDrop.getValues()) ||
+				hasNegativeRewards(simpleBlockReward.getValues()) ||
+				hasNegativeRewards(simpleBonusReward.getValues()) ||
+				hasNegativeRewards(simplePlacingReward.getValues()) ||
+				hasNegativeRewards(simpleSmeltingReward.getValues()) ||
+				hasNegativeRewards(simpleCraftingReward.getValues()) ||
+				hasNegativeRewards(simpleBrewingReward.getValues()) ||
+				hasNegativeRewards(complexBrewingReward.getValues()) ||
+				hasNegativeRewards(playerRewards.getValues());
+	}
+	
+	private boolean hasNegativeRewards(Collection<Range> values) {
+		
+		// Check every range
+		for (Range range : values) {
+			if (range.getStart() < 0 || range.getEnd() < 0)
+				return true;
+		}
+		
+		return false;
 	}
 	
 	private RewardTypes loadReward(String text) {

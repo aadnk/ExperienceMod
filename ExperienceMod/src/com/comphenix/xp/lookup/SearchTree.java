@@ -17,6 +17,7 @@ package com.comphenix.xp.lookup;
  *  02111-1307 USA
  */
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -77,6 +78,14 @@ public abstract class SearchTree<TKey, TValue> {
 	
 	public boolean containsKey(TKey element) {
 		return getIndex(element) != null;
+	}
+	
+	/**
+	 * Returns a list of every stored value in this search tree.
+	 * @return Every stored value.
+	 */
+	public Collection<TValue> getValues() {
+		return flatten.values();
 	}
 	
 	protected abstract Integer putFromParameters(TKey source, Integer id);

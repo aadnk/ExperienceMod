@@ -1,5 +1,6 @@
 package com.comphenix.xp.lookup;
 
+import java.util.Collection;
 import java.util.HashMap;
 
 import com.comphenix.xp.Range;
@@ -47,6 +48,14 @@ public class PlayerRewards {
 	
 		// Return result or default value
 		return result != null ? result : defaultValue;
+	}
+	
+	/**
+	 * Retrieve every reward stored.
+	 * @return Every reward.
+	 */
+	public Collection<Range> getValues() {
+		return values.values();
 	}
 	
 	public Range getFishingSuccess() {
