@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
+import org.bukkit.potion.PotionType;
 import org.junit.Test;
 
 public class ItemParserTest {
@@ -16,6 +17,10 @@ public class ItemParserTest {
 		ItemQuery redWool = new ItemQuery(Material.WOOL, (int) DyeColor.RED.getData());
 		ItemQuery blueStuff = new ItemQuery((Material) null, (int) DyeColor.BLUE.getData());
 		
+		PotionQuery universalPotion = new PotionQuery(null, null, null, null);
+		PotionQuery levelTwoPotion = new PotionQuery(null, 2, null, null);
+		PotionQuery specificPotion = new PotionQuery(PotionType.FIRE_RESISTANCE, 1, true, true);
+		
 		ItemParser parser = new ItemParser();
 		
 		assertEquals(universal, parser.fromItemString("?"));
@@ -24,5 +29,9 @@ public class ItemParserTest {
 		assertEquals(redWool, parser.fromItemString("wool|14"));
 		assertEquals(redWool, parser.fromItemString("wool|red"));
 		assertEquals(blueStuff, parser.fromItemString("?|11"));
+		
+		assertEquals(universalPotion, parser.fromItemString("potion|?"));
+		assertEquals(levelTwoPotion, parser.fromItemString("potion|?|2"));
+		assertEquals(specificPotion, parser.fromItemString("potion|fire resistance|1|extended|splash"));
 	}
 }

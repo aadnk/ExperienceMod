@@ -120,19 +120,27 @@ public class ItemParser {
 	
 	private Integer parseDurability(Integer itemID, Queue<String> tokens) throws ParsingException {
 		
-		// Check for DON'T CARE
-		if (Parsing.isNullOrIgnoreable(tokens)) {
-			return null;
-		}
-		
-		String filtered = Parsing.getEnumName(tokens.peek());
+		String current = Parsing.peekOrEmpty(tokens);
+		String filtered = Parsing.getEnumName(current);
 		Integer durability = Parsing.tryParse(tokens);
 		
 		if (durability == null) {
 			
+			if (isItem(itemID, Material.POTION)) {
+				// Let the caller figure this out. The token are to be processed further,
+				// so we'll keep it in.
+				return null; 
+			}
+			
+			// Treat any other item types normally. Token is removed.
+			if (Parsing.isNullOrIgnoreable(tokens)) {
+				return null;
+			}
+			
 			// ToDo: Make it possible to use named durabilities without the correct item ID
 			if (itemID == null) {
-				throw ParsingException.fromFormat("Cannot parse %s - named durabilities only works with known item ids.", tokens.peek());
+				throw ParsingException.fromFormat(
+						"Cannot parse %s - named durabilities only works with known item ids.", tokens.peek());
 			}
 			
 			// Special cases
@@ -171,10 +179,7 @@ public class ItemParser {
 				
 				return getCoalData(tokens, filtered);
 				
-			} else if (itemID == Material.POTION.getId()) {
-				// Let the caller figure this out
-				return null; 
-			}
+			} 
 			
 			// Cannot parse durability
 			throw ParsingException.fromFormat("Invalid durability value %s.", tokens.peek());
@@ -315,8 +320,8 @@ public class ItemParser {
 	// Special potion parser
 	private PotionQuery parsePotion(Queue<String> tokens) throws ParsingException {
 		
-		Integer tier = Parsing.tryParse(tokens);
 		PotionType type = parsePotionType(tokens);
+		Integer tier = Parsing.tryParse(tokens);
 		
 		// Scan all unused parameters for these options
 		Boolean extended = Parsing.hasElementPrefix(tokens, "extended");
@@ -368,6 +373,15 @@ public class ItemParser {
 			else
 				throw ParsingException.fromFormat("Unrecognized potion name: %s.", current);
 		}
+	}
+	
+	private boolean isItem(Integer itemID, Material material) {
+		
+		// Check for equality
+		if (itemID == null)
+			return false;
+		else
+			return itemID == material.getId();
 	}
 	
 	private Material getMaterial(String text) throws ParsingException {
