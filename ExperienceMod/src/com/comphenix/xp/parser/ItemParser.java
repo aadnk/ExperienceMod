@@ -1,4 +1,4 @@
-package parser;
+package com.comphenix.xp.parser;
 
 /**
  *  ExperienceMod - Bukkit server plugin for modifying the experience system in Minecraft.
@@ -29,7 +29,7 @@ import org.bukkit.material.MonsterEggs;
 import org.bukkit.material.Step;
 import org.bukkit.potion.PotionType;
 
-import com.comphenix.extra.SmoothBrickType;
+import com.comphenix.xp.extra.SmoothBrickType;
 import com.comphenix.xp.lookup.ItemQuery;
 import com.comphenix.xp.lookup.PotionQuery;
 import com.comphenix.xp.lookup.Query;

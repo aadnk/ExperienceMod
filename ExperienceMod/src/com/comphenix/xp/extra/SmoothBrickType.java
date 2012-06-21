@@ -1,4 +1,4 @@
-package com.comphenix.extra;
+package com.comphenix.xp.extra;
 
 /**
  *  ExperienceMod - Bukkit server plugin for modifying the experience system in Minecraft.

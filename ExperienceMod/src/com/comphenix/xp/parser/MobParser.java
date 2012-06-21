@@ -1,4 +1,4 @@
-package parser;
+package com.comphenix.xp.parser;
 
 /**
  *  ExperienceMod - Bukkit server plugin for modifying the experience system in Minecraft.

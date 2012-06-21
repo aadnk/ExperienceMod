@@ -23,7 +23,8 @@ import org.bukkit.Material;
 import org.bukkit.potion.Potion;
 import org.bukkit.potion.PotionType;
 
-import parser.Parsing;
+import com.comphenix.xp.parser.Parsing;
+
 
 public class PotionQuery implements Query {
 

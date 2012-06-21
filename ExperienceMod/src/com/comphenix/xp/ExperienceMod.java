@@ -34,9 +34,9 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import parser.Parsing;
 
 import com.comphenix.xp.Configuration.RewardTypes;
+import com.comphenix.xp.parser.Parsing;
 
 public class ExperienceMod extends JavaPlugin implements Debugger {
 	

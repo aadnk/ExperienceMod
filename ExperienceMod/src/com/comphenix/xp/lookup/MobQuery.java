@@ -27,7 +27,8 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
-import parser.Parsing;
+import com.comphenix.xp.parser.Parsing;
+
 
 public class MobQuery implements Query {
 

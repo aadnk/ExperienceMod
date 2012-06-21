@@ -7,8 +7,9 @@ import org.bukkit.Material;
 import org.bukkit.potion.PotionType;
 import org.junit.Test;
 
-import parser.ItemParser;
-import parser.ParsingException;
+import com.comphenix.xp.parser.ItemParser;
+import com.comphenix.xp.parser.ParsingException;
+
 
 public class ItemParserTest {
 

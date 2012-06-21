@@ -1,4 +1,4 @@
-package parser;
+package com.comphenix.xp.parser;
 
 public class ParsingException extends Exception {
 
