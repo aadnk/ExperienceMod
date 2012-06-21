@@ -201,7 +201,7 @@ public class ExperienceListener implements Listener {
 		boolean hasKiller = entity.getKiller() != null;
 		
 		// Only drop experience from mobs
-		if (entity != null) {
+		if (entity != null && !(entity instanceof Player)) {
 			
 			Integer id = entity.getEntityId();
 			MobQuery query = new MobQuery(entity, spawnReasonLookup.get(id));
