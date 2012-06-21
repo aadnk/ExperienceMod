@@ -33,7 +33,7 @@ public class Range {
 	 * @param value The end value.
 	 */
 	public Range(double value) {
-		this.start = 0;
+		this.start = value;
 		this.end = value;
 	}
 	
@@ -95,13 +95,18 @@ public class Range {
 		 * So, we end up with a 30% probability of getting 0 and 5.3 - 5 = 30% 
 		 * probability of getting 4.
 		 */
-		
+
 		int value = 0;
 		
 		// Convert the range to an integer equivalent. 
 		// Notice that we round to shrink the range.
 		int a = (int) Math.ceil(start); 
 		int b = (int) Math.floor(end);
+		
+		// Special case
+		if ((int)start == (int)end) {
+			return sampleIntReduced(rnd);
+		}
 		
 		// The decimal leftover
 		double dA = a - start;
@@ -121,6 +126,16 @@ public class Range {
 			value++;
 		
 		return value;
+	}
+	
+	private int sampleIntReduced(Random rnd) {
+		double value = sampleDouble(rnd);
+		
+		// Probability of adding the fraction
+		double fraction = value - Math.floor(value);
+		double toAdd = rnd.nextDouble() < fraction ? Math.signum(value) : 0;
+		
+		return (int)value + (int)toAdd;
 	}
 
 	@Override

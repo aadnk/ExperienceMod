@@ -149,7 +149,7 @@ public class ItemParser {
 				
 				return getTreeSpecies(tokens, filtered);
 
-			} else if (itemID == Material.WOOL.getId()) {
+			} else if (itemID == Material.WOOL.getId() || itemID == Material.INK_SACK.getId()) {
 				
 				// Convert color values
 				return getDyeColor(tokens, filtered);
