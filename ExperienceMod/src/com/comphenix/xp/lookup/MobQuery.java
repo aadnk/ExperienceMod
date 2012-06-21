@@ -36,6 +36,12 @@ public class MobQuery implements Query {
 	private Boolean baby;
 	private Boolean tamed;
 	
+	/**
+	 * Universal query.
+	 */
+	public MobQuery() {
+	}
+	
 	public MobQuery(EntityType type) {
 		this(type, null, null, null, null);
 	}
