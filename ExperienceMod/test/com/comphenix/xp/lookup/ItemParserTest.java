@@ -7,6 +7,9 @@ import org.bukkit.Material;
 import org.bukkit.potion.PotionType;
 import org.junit.Test;
 
+import parser.ItemParser;
+import parser.ParsingException;
+
 public class ItemParserTest {
 
 	@Test

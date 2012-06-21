@@ -1,4 +1,4 @@
-package com.comphenix.xp.lookup;
+package parser;
 
 /**
  *  ExperienceMod - Bukkit server plugin for modifying the experience system in Minecraft.
@@ -30,6 +30,9 @@ import org.bukkit.material.Step;
 import org.bukkit.potion.PotionType;
 
 import com.comphenix.extra.SmoothBrickType;
+import com.comphenix.xp.lookup.ItemQuery;
+import com.comphenix.xp.lookup.PotionQuery;
+import com.comphenix.xp.lookup.Query;
 
 public class ItemParser {
 	

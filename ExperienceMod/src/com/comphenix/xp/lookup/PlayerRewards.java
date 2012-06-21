@@ -3,6 +3,9 @@ package com.comphenix.xp.lookup;
 import java.util.Collection;
 import java.util.HashMap;
 
+import parser.Parsing;
+import parser.ParsingException;
+
 import com.comphenix.xp.Range;
 
 public class PlayerRewards {

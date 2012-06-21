@@ -23,6 +23,8 @@ import org.bukkit.Material;
 import org.bukkit.potion.Potion;
 import org.bukkit.potion.PotionType;
 
+import parser.Parsing;
+
 public class PotionQuery implements Query {
 
 	// DON'T CARE fields are marked with NULL

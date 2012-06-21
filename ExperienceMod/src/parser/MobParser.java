@@ -1,4 +1,4 @@
-package com.comphenix.xp.lookup;
+package parser;
 
 /**
  *  ExperienceMod - Bukkit server plugin for modifying the experience system in Minecraft.
@@ -22,6 +22,8 @@ import java.util.Queue;
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
+
+import com.comphenix.xp.lookup.MobQuery;
 
 public class MobParser {
 	
