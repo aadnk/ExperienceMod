@@ -9,7 +9,7 @@ import org.junit.Test;
 
 public class RangeTest {
 
-	private static final int REPEAT_COUNT = 10000;
+	private static final int REPEAT_COUNT = 1000000;
 	
 	private static Random rnd;
 	
@@ -54,11 +54,11 @@ public class RangeTest {
 	public void testUnbiased() {
 
 		Range range = new Range(0.1, 0.5);
-		int[] results = SampleValues(range, REPEAT_COUNT);
+		int[] counts = SampleValues(range, REPEAT_COUNT);
 		
 		// The expected value (average)
 		double expected = (range.getStart() + range.getEnd()) / 2.0;
-		double average = getAverage(results) / (double)REPEAT_COUNT;
+		double average = counts[1] / (double) REPEAT_COUNT; // results[0] * 0
 
 		if (Math.abs(expected - average) > 0.1) {
 			fail("Expected value differs too much.");

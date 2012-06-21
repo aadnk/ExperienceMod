@@ -33,7 +33,7 @@ public class Range {
 	 * @param value The end value.
 	 */
 	public Range(double value) {
-		this.start = value;
+		this.start = 0;
 		this.end = value;
 	}
 	
