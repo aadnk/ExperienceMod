@@ -24,6 +24,7 @@ import java.util.Random;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -201,7 +202,7 @@ public class ExperienceListener implements Listener {
 		boolean hasKiller = entity.getKiller() != null;
 		
 		// Only drop experience from mobs
-		if (entity != null && !(entity instanceof Player)) {
+		if (entity != null && isMob(entity)) {
 			
 			Integer id = entity.getEntityId();
 			MobQuery query = new MobQuery(entity, spawnReasonLookup.get(id));
@@ -237,6 +238,15 @@ public class ExperienceListener implements Listener {
 			// Remove it from the lookup
 			spawnReasonLookup.remove(id);
 		}
+	}
+	
+	private boolean isMob(LivingEntity entity) {
+		
+		EntityType type = entity.getType();
+		
+		// Exclude players
+		return type != null &&
+			   type != EntityType.PLAYER;
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
