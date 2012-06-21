@@ -29,11 +29,11 @@ public class Range {
 	public static Range Default = new Range(0);
 	
 	/**
-	 * Constructs a range of the form [0, value] (inclusive).
+	 * Constructs a range of the form [value, value].
 	 * @param value The end value.
 	 */
 	public Range(double value) {
-		this.start = 0;
+		this.start = value;
 		this.end = value;
 	}
 	
