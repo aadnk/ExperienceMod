@@ -1,8 +1,10 @@
 package com.comphenix.xp.parser;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 
 /**
@@ -57,12 +59,22 @@ public class Parsing {
 		return filtered.replaceAll("\\s+", "_").replaceAll("\\W", "");
 	}
     
-	public static String formatBoolean(String booleanName, Boolean value) {
+	public static String formatBoolean(String booleanName, List<Boolean> value) {
 		// Mirror the query syntax
-		if (value == null)
+		if (value == null || value.isEmpty())
 			return "";
 		else 
-			return value ? booleanName : "!" + booleanName;
+			return value.get(0) ? booleanName : "!" + booleanName;
+	}
+	
+	public static <T> List<T> getElementList(T value) {
+
+		List<T> items = new ArrayList<T>();
+		
+		if (value != null)
+			items.add(value);
+		
+		return items;
 	}
 	
 	/**

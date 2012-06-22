@@ -21,7 +21,7 @@ public class ItemParserTest {
 		ItemQuery redWool = new ItemQuery(Material.WOOL, (int) DyeColor.RED.getData());
 		ItemQuery blueStuff = new ItemQuery((Material) null, (int) DyeColor.BLUE.getData());
 		
-		PotionQuery universalPotion = new PotionQuery(null, null, null, null);
+		PotionQuery universalPotion = new PotionQuery();
 		PotionQuery levelTwoPotion = new PotionQuery(null, 2, null, null);
 		PotionQuery specificPotion = new PotionQuery(PotionType.FIRE_RESISTANCE, 1, true, true);
 		

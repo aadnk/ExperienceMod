@@ -9,7 +9,7 @@ import org.junit.Test;
 
 public class RangeTest {
 
-	private static final int REPEAT_COUNT = 1000000;
+	private static final int REPEAT_COUNT = 100000;
 	
 	private static Random rnd;
 	

@@ -20,6 +20,7 @@ package com.comphenix.xp.lookup;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public abstract class SearchTree<TKey, TValue> {
@@ -103,8 +104,16 @@ public abstract class SearchTree<TKey, TValue> {
 			return reverseLookup.size();
 		}
 		
-		public void put(TParam param, Integer id) {
+		public void put(List<TParam> params, Integer id) {
 
+			// Associate every parameter
+			for (TParam param : params) {
+				putSingle(param, id);
+			}
+		}
+
+		private void putSingle(TParam param, Integer id) {
+			
 			Set<Integer> list = reverseLookup.get(param);
 			
 			// Initialize the list
@@ -118,32 +127,36 @@ public abstract class SearchTree<TKey, TValue> {
 				throw new IllegalArgumentException(
 						String.format("Duplicate parameter %s at index %i", id, param));
 		}
-
-		private Set<Integer> get(TParam param) {
-			Set<Integer> result = reverseLookup.get(param);
+		
+		public Set<Integer> getCopy(List<TParam> params) {
 			
-			if (result == null)
-				return new HashSet<Integer>();
-			else
-				return result;
+			Set<Integer> copy = new HashSet<Integer>();
+			
+			// Union of all parameter sets
+			for (TParam param : params) {
+				Set<Integer> result = reverseLookup.get(param);
+				
+				if (result != null)
+					copy.addAll(result);
+			}
+			
+			return copy;
 		}
 		
-		public Set<Integer> getCopy(TParam param) {
-			return new HashSet<Integer>(get(param));
-		}
-		
-		public void retain(Set<Integer> current, TParam param) {
+		public void retain(Set<Integer> current, List<TParam> param) {
 			
 			// Save some time
 			if (current.size() == 0)
 				return;
 			
+			// Set subtraction
+			Set<TParam> keys = new HashSet<TParam>(reverseLookup.keySet());
+			keys.removeAll(param);
+			
 			// Remove everything but the items with the given parameter
-			for (TParam key : reverseLookup.keySet()) {
-				if (!key.equals(param)) {
-					current.removeAll(reverseLookup.get(key));
-				}
-				
+			for (TParam key : keys) {
+				current.removeAll(reverseLookup.get(key));
+
 				if (current.size() == 0) {
 					break;
 				}

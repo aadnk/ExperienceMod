@@ -17,6 +17,11 @@ package com.comphenix.xp.lookup;
  *  02111-1307 USA
  */
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.bukkit.entity.Ageable;
@@ -29,20 +34,22 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
 import com.comphenix.xp.parser.Parsing;
 
-
 public class MobQuery implements Query {
 
-	// DON'T CARE fields are marked with NULL
-	private EntityType type;
-	private DamageCause deathCause;
-	private Boolean spawner;
-	private Boolean baby;
-	private Boolean tamed;
+	// DON'T CARE fields are empty
+	private List<EntityType> type;
+	private List<DamageCause> deathCause;
+	private List<Boolean> spawner;
+	private List<Boolean> baby;
+	private List<Boolean> tamed;
 	
 	/**
 	 * Universal query.
 	 */
 	public MobQuery() {
+		this(new ArrayList<EntityType>(),
+		     new ArrayList<DamageCause>(),
+		     null, null, null);
 	}
 	
 	public MobQuery(EntityType type) {
@@ -50,74 +57,93 @@ public class MobQuery implements Query {
 	}
 	
 	public MobQuery(EntityType type, DamageCause deathCause, SpawnReason reason, Boolean baby, Boolean tamed) {
-		this.type = type;
-		this.deathCause = deathCause;
-		this.baby = baby;
-		this.tamed = tamed;
-		
-		if (reason != null) 
-			this.spawner = reason == SpawnReason.SPAWNER;
-		else
-			this.spawner = null;
+		setSingles(type, deathCause, reason, baby, tamed);
 	}
 	
+	public MobQuery(List<EntityType> type, List<DamageCause> deathCause,
+			Boolean spawner, Boolean baby, Boolean tamed) {
+		this.type = type;
+		this.deathCause = deathCause;
+		this.spawner = Parsing.getElementList(spawner);
+		this.baby = Parsing.getElementList(baby);
+		this.tamed = Parsing.getElementList(tamed);
+	}
+
 	public MobQuery(LivingEntity entity, SpawnReason reason) {
 		
 		EntityDamageEvent cause = entity.getLastDamageCause();
+		DamageCause deathCause = null;
 		
-		this.type = entity.getType();
-		this.spawner = reason == SpawnReason.SPAWNER;
+		Boolean paramBaby = null;
+		Boolean paramTamed = null;
 		
 		if (cause != null) {
-			this.deathCause = cause.getCause();
+			deathCause = cause.getCause();
 		}
+		
 		// Check age and tame status
 		if (entity instanceof Ageable) {
-			this.baby = !((Ageable) entity).isAdult();
+			paramBaby = !((Ageable) entity).isAdult();
 		}
+		
 		if (entity instanceof Tameable) {
-			this.tamed = ((Tameable)entity).isTamed();
+			paramTamed = ((Tameable)entity).isTamed();
 		}
+
+		// Load from singles
+		setSingles(entity.getType(), deathCause, reason, paramBaby, paramTamed);
 	}
 	
-	public DamageCause getDeathCause() {
+	private void setSingles(EntityType type, DamageCause deathCause, SpawnReason reason, Boolean baby, Boolean tamed) {
+		this.type = Parsing.getElementList(type);
+		this.deathCause = Parsing.getElementList(deathCause);
+		this.baby = Parsing.getElementList(baby);
+		this.tamed = Parsing.getElementList(tamed);
+		
+		if (reason != null) 
+			this.spawner = Arrays.asList(reason == SpawnReason.SPAWNER);
+		else
+			this.spawner = new ArrayList<Boolean>();
+	}
+
+	public List<DamageCause> getDeathCause() {
 		return deathCause;
 	}
 	
-	public EntityType getType() {
+	public List<EntityType> getType() {
 		return type;
 	}
 	
-	public Boolean getSpawner() {
+	public List<Boolean> getSpawner() {
 		return spawner;
 	}
 	
-	public Boolean getBaby() {
+	public List<Boolean> getBaby() {
 		return baby;
 	}
 	
-	public Boolean getTamed() {
+	public List<Boolean> getTamed() {
 		return tamed;
 	}
 	
 	public boolean hasType() {
-		return type != null;
+		return type != null && !type.isEmpty();
 	}
 	
 	public boolean hasDeathCause() {
-		return deathCause != null;
+		return deathCause != null && !deathCause.isEmpty();
 	}
 	
 	public boolean hasSpawner() {
-		return spawner != null;
+		return spawner != null && !spawner.isEmpty();
 	}
 	
 	public boolean hasBaby() {
-		return baby != null;
+		return baby != null && !baby.isEmpty();
 	}
 	
 	public boolean hasTamed() {
-		return tamed != null;
+		return tamed != null && !tamed.isEmpty();
 	}
 	
 	@Override
@@ -154,8 +180,8 @@ public class MobQuery implements Query {
 	public String toString() {
 		// TODO Auto-generated method stub
 		return String.format("%s|%s|%s|%s|%s", 
-							hasType() ? type : "",
-							hasDeathCause() ? deathCause : "",
+							hasType() ? StringUtils.join(type, ", ") : "",
+							hasDeathCause() ? StringUtils.join(deathCause, ", ") : "",
 						    Parsing.formatBoolean("spawner", spawner),
 							Parsing.formatBoolean("baby", baby),
 							Parsing.formatBoolean("tamed", tamed));

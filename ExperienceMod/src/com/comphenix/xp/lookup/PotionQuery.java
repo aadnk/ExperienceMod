@@ -17,6 +17,11 @@ package com.comphenix.xp.lookup;
  *  02111-1307 USA
  */
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.bukkit.Material;
@@ -28,15 +33,17 @@ import com.comphenix.xp.parser.Parsing;
 
 public class PotionQuery implements Query {
 
-	// DON'T CARE fields are marked with NULL
-	private PotionType type;
-	private Integer level;
-	private Boolean extended;
-	private Boolean splash;
+	// DON'T CARE fields are empty
+	private List<PotionType> type;
+	private List<Integer> level;
+	private List<Boolean> extended;
+	private List<Boolean> splash;
 	
 	public PotionQuery() {
 		// Match all potions
-		this(null, null, null, null);
+		this(new ArrayList<PotionType>(), 
+			 new ArrayList<Integer>(),
+			 null, null);
 	}
 	
 	public PotionQuery(PotionType type) {
@@ -48,64 +55,90 @@ public class PotionQuery implements Query {
 	}
 	
 	public PotionQuery(PotionType type, Integer level, Boolean extended, Boolean splash) {
+		this.type = Parsing.getElementList(type);
+		this.level = Parsing.getElementList(level);
+		this.extended = Parsing.getElementList(extended);
+		this.splash = Parsing.getElementList(splash);
+	}
+	
+	public PotionQuery(List<PotionType> type, List<Integer> level, Boolean extended, Boolean splash) {
 		this.type = type;
 		this.level = level;
-		this.extended = extended;
-		this.splash = splash;
+		this.extended = Parsing.getElementList(extended);
+		this.splash = Parsing.getElementList(splash);
 	}
 	
 	public PotionQuery(Potion potionObject) {
 		if (potionObject == null)
 			throw new IllegalArgumentException("Potion must be non-zero.");
 		
-		loadFromPotion(potionObject);
+		loadFromPotions(Arrays.asList(potionObject));
 	}
 	
 	public PotionQuery(ItemQuery query) {
-		if (query.getItemID() != Material.POTION.getId())
+		if (!query.hasSingleItem(Material.POTION))
 			throw new IllegalArgumentException("Can only create potion queries from potions.");
+		if (!query.hasDurability())
+			throw new IllegalArgumentException("Must contain a durability value.");
 		
-		Potion potion = Potion.fromDamage(query.getDurability());
-		loadFromPotion(potion);
+		List<Potion> potions = new ArrayList<Potion>(); 
+		
+		for (Integer durability : query.getDurability()) {
+			potions.add(Potion.fromDamage(durability));
+		}
+		
+		loadFromPotions(potions);
 	}
 
-	private void loadFromPotion(Potion source) {
-		this.type = source.getType();
-		this.level = source.getLevel();
-		this.extended = source.hasExtendedDuration();
-		this.splash = source.isSplash();
+	private void loadFromPotions(List<Potion> source) {
+		reset();
+		
+		// Initialize values
+		for (Potion potion : source) {
+			type.add(potion.getType());
+			level.add(potion.getLevel());
+			extended.add(potion.hasExtendedDuration());
+			splash.add(potion.isSplash());
+		}
 	}
 	
-	public PotionType getType() {
+	private void reset() {
+		this.type = new ArrayList<PotionType>();
+		this.level = new ArrayList<Integer>();
+		this.extended = new ArrayList<Boolean>();
+		this.splash = new ArrayList<Boolean>();
+	}
+	
+	public List<PotionType> getType() {
 		return type;
 	}
 
-	public Integer getLevel() {
+	public List<Integer> getLevel() {
 		return level;
 	}
 
-	public Boolean getExtended() {
+	public List<Boolean> getExtended() {
 		return extended;
 	}
 
-	public Boolean getSplash() {
+	public List<Boolean> getSplash() {
 		return splash;
 	}
 	
 	public boolean hasType() {
-		return type != null;
+		return type != null && !type.isEmpty();
 	}
 	
 	public boolean hasLevel() {
-		return level != null;
+		return level != null && !level.isEmpty();
 	}
 	
 	public boolean hasExtended() {
-		return extended != null;
+		return extended != null && !extended.isEmpty();
 	}
 	
 	public boolean hasSplash() {
-		return splash != null;
+		return splash != null && !splash.isEmpty();
 	}
 	
 	@Override
@@ -139,8 +172,8 @@ public class PotionQuery implements Query {
 	@Override
 	public String toString() {
 		return String.format("Potion|%s|%s|%s|%s", 
-						hasType() ? type : "", 
-						hasLevel() ? level : "", 
+						hasType() ? StringUtils.join(type, ", ") : "", 
+						hasLevel() ? StringUtils.join(level, ", ") : "", 
 						Parsing.formatBoolean("extended", extended), 
 						Parsing.formatBoolean("splash", splash));
 	}

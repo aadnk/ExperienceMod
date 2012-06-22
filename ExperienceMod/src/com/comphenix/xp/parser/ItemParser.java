@@ -17,26 +17,14 @@ package com.comphenix.xp.parser;
  *  02111-1307 USA
  */
 
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Queue;
 
 import org.apache.commons.lang.StringUtils;
-import org.bukkit.DyeColor;
-import org.bukkit.GrassSpecies;
 import org.bukkit.Material;
-import org.bukkit.SandstoneType;
-import org.bukkit.TreeSpecies;
-import org.bukkit.material.MonsterEggs;
-import org.bukkit.material.Step;
-import org.bukkit.potion.PotionType;
-
-import com.comphenix.xp.extra.SmoothBrickType;
 import com.comphenix.xp.lookup.ItemQuery;
 import com.comphenix.xp.lookup.PotionQuery;
 import com.comphenix.xp.lookup.Query;
-import com.google.common.base.Strings;
 
 public class ItemParser {
 	
@@ -44,6 +32,9 @@ public class ItemParser {
 	
 	private ItemDurabilityParser elementDurability = new ItemDurabilityParser();
 	private ParameterParser<Integer> durabilityParser = new ParameterParser<Integer>(elementDurability);
+	
+	// Our potion parser
+	private PotionParser potionParser = new PotionParser();
 	
 	public Query parseItemQuery(String text) throws ParsingException {
 		
@@ -87,10 +78,14 @@ public class ItemParser {
 			durabilities = durabilityParser.parse(tokens);
 			
 			// Check for multiple items and named durabilities
-			if (sameCategory && elementDurability.isUsedName())
+			if (!sameCategory && elementDurability.isUsedName())
 				throw ParsingException.fromFormat(
 						"Cannot use named durabilities (%s) with items of different data categories.",
 						StringUtils.join(durabilities, ", "));
+			
+			// Negative items or durabilities are not legal
+			if (hasNegativeIntegers(itemIDs) || hasNegativeIntegers(durabilities)) 
+				throw new ParsingException("Item ID or durability cannot contain negative numbers");
 			
 			// Still more tokens? Something is wrong.
 			if (!tokens.isEmpty()) {
@@ -98,6 +93,11 @@ public class ItemParser {
 					return parseAsPotion(text);
 				else
 					throw ParsingException.fromFormat("Unknown item tokens: ", StringUtils.join(tokens, ", "));
+			}
+			
+			// Return universal potion query
+			if (isPotion && durabilities.isEmpty()) {
+				return new PotionQuery();
 			}
 			
 			// At this point we have all we need to know
@@ -110,15 +110,28 @@ public class ItemParser {
 				return parseAsPotion(text);
 			
 			// Check for named categories
-			if (sameCategory && elementDurability.isUsedName())
+			if (!sameCategory && elementDurability.isUsedName())
 				throw new ParsingException("Named durabilities with different data categories.");
 			else
 				throw ex;
 		}
 	}
 	
-	private PotionQuery parseAsPotion(String text) throws ParsingException {
-		return null;
+	private boolean hasNegativeIntegers(List<Integer> values) {
 		
+		// See if any of the values are negative
+		for (Integer value : values) {
+			if (value != null && value < 0) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	private PotionQuery parseAsPotion(String text) throws ParsingException {
+		
+		// Delegate this task to the potion parser
+		return potionParser.parsePotion(text);
 	}
 }

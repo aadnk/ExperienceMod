@@ -17,11 +17,17 @@ package com.comphenix.xp.lookup;
  *  02111-1307 USA
  */
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.inventory.ItemStack;
+
+import com.comphenix.xp.parser.Parsing;
 
 /**
  * Generic immutable representation of an item/block query.
@@ -30,13 +36,15 @@ import org.bukkit.inventory.ItemStack;
  */
 public class ItemQuery implements Query {
 	
-	private Integer itemID;
-	private Integer durability;
+	private List<Integer> itemID;
+	private List<Integer> durability;
 
 	/**
 	 * Universal query.
 	 */
 	public ItemQuery() {
+		itemID = new ArrayList<Integer>();
+		durability = new ArrayList<Integer>();
 	}
 	
 	/**
@@ -73,24 +81,35 @@ public class ItemQuery implements Query {
 	}
 	
 	public ItemQuery(Integer itemID, Integer durability) {
-		this.itemID = asPositiveInt(itemID);
-		this.durability = asPositiveInt(durability);
+		this.itemID = Parsing.getElementList(itemID);
+		this.durability = Parsing.getElementList(durability);
+	}
+	
+	public ItemQuery(List<Integer> itemID, List<Integer> durability) {
+		this.itemID = itemID;
+		this.durability = durability;
 	}
 
-	public Integer getItemID() {
+	public List<Integer> getItemID() {
 		return itemID;
 	}
 
-	public Integer getDurability() {
+	public List<Integer> getDurability() {
 		return durability;
 	}
 
 	public boolean hasItemID() {
-		return itemID != null;
+		return itemID != null && !itemID.isEmpty();
 	}
 	
 	public boolean hasDurability() {
-		return durability != null;
+		return durability != null && !durability.isEmpty();
+	}
+	
+	public boolean hasSingleItem(Material item) {
+		
+		// See if the item list contains this item only
+		return hasItemID() && itemID.size() == 1 && itemID.contains(item.getId());
 	}
 	
 	@Override
@@ -116,18 +135,41 @@ public class ItemQuery implements Query {
             append(durability, other.durability).
             isEquals();
 	}
+	
+	// We're only interested in the String representation
+	private List<Object> getMaterials() {
+		
+		List<Object> materials = new ArrayList<Object>();
+	
+		if (itemID == null)
+			return materials;
+		
+		// Map each integer to its corresponding material
+		for (Integer id : itemID) {
+			if (id != null) {
+			
+				Material material = Material.getMaterial(id);
+				
+				if (material != null) 
+					materials.add(material);
+				else
+					materials.add(id);
+			}
+		}
+	
+		return materials;
+	}
 
 	@Override
 	public String toString() {
-		Material material = null;
-
-		if (hasItemID())
-			material = Material.getMaterial(itemID);
 		
+		String itemsText = StringUtils.join(getMaterials(), ", ");
+		String durabilityText = StringUtils.join(durability, ", ");
+
 		if (hasDurability())
-			return String.format("%s|%d", material == null ? itemID : material, durability);
+			return String.format("%s|%d", itemsText, durabilityText);
 		else
-			return String.format("%s", material == null ? itemID : material);
+			return String.format("%s", itemsText);
 	}
 	
 	public static ItemQuery fromStack(ItemStack stack) {
@@ -135,13 +177,6 @@ public class ItemQuery implements Query {
 			return null;
 		else
 			return new ItemQuery(stack);
-	}
-
-	private Integer asPositiveInt(Integer value) {
-		if (value == null)
-			return null;
-		else
-			return value >= 0 ? value : null;
 	}
 	
 	@Override

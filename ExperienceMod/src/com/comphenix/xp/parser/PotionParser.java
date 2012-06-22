@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Queue;
 
 import org.apache.commons.lang.StringUtils;
+import org.bukkit.Material;
 import org.bukkit.potion.PotionType;
 
 import com.comphenix.xp.lookup.PotionQuery;
@@ -37,6 +38,10 @@ public class PotionParser {
 			reason = ex;
 		}
 	
+		// Possibly a double check
+		if (items.isEmpty() || !items.contains(Material.POTION.getId()))
+			throw new ParsingException("Can only create potion queries from potion rules.");
+		
 		// Scan all unused parameters for these options first
 		Boolean extended = extendedParser.parseAny(tokens);
 		Boolean splash = splashParser.parseAny(tokens);

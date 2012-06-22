@@ -22,12 +22,9 @@ import java.util.Queue;
 
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.entity.EntityType;
-import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
-import org.bukkit.potion.PotionType;
 
 import com.comphenix.xp.lookup.MobQuery;
-import com.comphenix.xp.lookup.PotionQuery;
 
 public class MobParser {
 	
@@ -42,7 +39,7 @@ public class MobParser {
 		
 		Queue<String> tokens = Parsing.getParameterQueue(text);
 		
-		ParsingException reason = null;
+		ParsingException errorReason = null;
 		
 		List<EntityType> types = null;
 		List<DamageCause> causes = null;
@@ -53,25 +50,24 @@ public class MobParser {
 			
 		} catch (ParsingException e) {
 			// Try more
-			reason = e;
+			errorReason = e;
 		}
 		
 		// Scan all unused parameters for these options first
 		Boolean spawner = spawnerParser.parseAny(tokens);
 		Boolean baby = babyParser.parseAny(tokens);
 		Boolean tamed = tamedParser.parseAny(tokens);
-		SpawnReason spawnReason = spawner != null ? (spawner ? SpawnReason.SPAWNER : SpawnReason.NATURAL) : null;
-		
+
 		// If there are some tokens left, a problem occured
 		if (!tokens.isEmpty()) {
 			
 			// Let the user know about the reason too
-			if (reason != null)
-				throw reason;
+			if (errorReason != null)
+				throw errorReason;
 			else
 				throw ParsingException.fromFormat("Unknown item tokens: ", StringUtils.join(tokens, ", "));
 		}
 		
-		return new MobQuery(types, causes, reason , baby, tamed);
+		return new MobQuery(types, causes, spawner, baby, tamed);
 	}
 }
