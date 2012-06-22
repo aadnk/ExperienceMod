@@ -43,13 +43,15 @@ public class MobQuery implements Query {
 	private List<Boolean> baby;
 	private List<Boolean> tamed;
 	
+	// Optimize away object creations
+	private static List<EntityType> noTypes = new ArrayList<EntityType>();
+	private static List<DamageCause> noDamages = new ArrayList<DamageCause>();
+	
 	/**
 	 * Universal query.
 	 */
 	public MobQuery() {
-		this(new ArrayList<EntityType>(),
-		     new ArrayList<DamageCause>(),
-		     null, null, null);
+		this(noTypes, noDamages, null, null, null);
 	}
 	
 	public MobQuery(EntityType type) {

@@ -36,6 +36,8 @@ import com.comphenix.xp.parser.Parsing;
  */
 public class ItemQuery implements Query {
 	
+	private static List<Integer> noNumbers = new ArrayList<Integer>();
+	
 	private List<Integer> itemID;
 	private List<Integer> durability;
 
@@ -43,8 +45,8 @@ public class ItemQuery implements Query {
 	 * Universal query.
 	 */
 	public ItemQuery() {
-		itemID = new ArrayList<Integer>();
-		durability = new ArrayList<Integer>();
+		itemID = noNumbers;
+		durability = noNumbers;
 	}
 	
 	/**

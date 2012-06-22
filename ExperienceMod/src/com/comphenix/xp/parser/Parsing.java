@@ -26,6 +26,9 @@ import java.util.Queue;
 
 public class Parsing {
 	
+	@SuppressWarnings("rawtypes")
+	private static List emptyList = new ArrayList();
+	
 	public static Queue<String> getParameterQueue(String text) {
 		
 		String[] components = text.split("\\||:");
@@ -67,14 +70,19 @@ public class Parsing {
 			return value.get(0) ? booleanName : "!" + booleanName;
 	}
 	
+	@SuppressWarnings("unchecked")
 	public static <T> List<T> getElementList(T value) {
-
-		List<T> items = new ArrayList<T>();
 		
-		if (value != null)
+		if (value == null) {
+			return emptyList;
+			
+		} else {
+			
+			List<T> items = new ArrayList<T>();
+			
 			items.add(value);
-		
-		return items;
+			return items;
+		}		
 	}
 	
 	/**

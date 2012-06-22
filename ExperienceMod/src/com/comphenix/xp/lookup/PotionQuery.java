@@ -30,7 +30,6 @@ import org.bukkit.potion.PotionType;
 
 import com.comphenix.xp.parser.Parsing;
 
-
 public class PotionQuery implements Query {
 
 	// DON'T CARE fields are empty
@@ -39,11 +38,13 @@ public class PotionQuery implements Query {
 	private List<Boolean> extended;
 	private List<Boolean> splash;
 	
+	// Optimize away object creations
+	private static List<PotionType> noTypes = new ArrayList<PotionType>();
+	private static List<Integer> noLevels = new ArrayList<Integer>();
+	
 	public PotionQuery() {
 		// Match all potions
-		this(new ArrayList<PotionType>(), 
-			 new ArrayList<Integer>(),
-			 null, null);
+		this(noTypes, noLevels, null, null);
 	}
 	
 	public PotionQuery(PotionType type) {
