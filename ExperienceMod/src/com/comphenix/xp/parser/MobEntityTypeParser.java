@@ -8,7 +8,7 @@ public class MobEntityTypeParser extends Parser<EntityType> {
 	public EntityType parse(String text) throws ParsingException {
 		
 		// Make sure we're not passed an empty element
-		if (Parsing.isNullOrIgnoreable(text))
+		if (Utility.isNullOrIgnoreable(text))
 			throw new ParsingException("Text cannot be empty or null.");
 		
 		EntityType type = EntityType.fromName(text);

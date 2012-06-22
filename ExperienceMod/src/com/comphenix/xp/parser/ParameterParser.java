@@ -24,7 +24,7 @@ public class ParameterParser<TItem> extends Parser<List<TItem>>{
 		List<TItem> elements = new ArrayList<TItem>();
 		
 		// First things first. Is this an empty sequence?
-		if (Parsing.isNullOrIgnoreable(text))
+		if (Utility.isNullOrIgnoreable(text))
 			// If so, return an empty list
 			return elements; 
 		
@@ -34,7 +34,7 @@ public class ParameterParser<TItem> extends Parser<List<TItem>>{
 		for (String token : tokens) {
 			
 			// Check validity and so on
-			if (Parsing.isNullOrIgnoreable(token))
+			if (Utility.isNullOrIgnoreable(token))
 				throw ParsingException.fromFormat(
 						"Universal matcher (%s) cannot be part of a list of values.", token);
 			

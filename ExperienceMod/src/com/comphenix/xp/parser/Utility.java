@@ -20,7 +20,7 @@ import java.util.List;
  *  02111-1307 USA
  */
 
-public class Parsing {
+public class Utility {
 	
 	@SuppressWarnings("rawtypes")
 	private static List emptyList = new ArrayList();

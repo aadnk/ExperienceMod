@@ -8,7 +8,7 @@ public class PotionTypeParser extends Parser<PotionType> {
 	public PotionType parse(String text) throws ParsingException {
 		
 		// Check for DON'T CARE
-		if (Parsing.isNullOrIgnoreable(text)) 
+		if (Utility.isNullOrIgnoreable(text)) 
 			throw new ParsingException("Text cannot be empty or null.");
 		
 		Integer potionID = tryParse(text);
@@ -18,7 +18,7 @@ public class PotionTypeParser extends Parser<PotionType> {
 			if (potionID != null) {
 				return PotionType.getByDamageValue(potionID);
 			} else {
-				return PotionType.valueOf(Parsing.getEnumName(text));
+				return PotionType.valueOf(Utility.getEnumName(text));
 			}
 			
 		} catch (IllegalArgumentException e) {

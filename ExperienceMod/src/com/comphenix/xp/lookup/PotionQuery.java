@@ -28,7 +28,7 @@ import org.bukkit.Material;
 import org.bukkit.potion.Potion;
 import org.bukkit.potion.PotionType;
 
-import com.comphenix.xp.parser.Parsing;
+import com.comphenix.xp.parser.Utility;
 
 public class PotionQuery implements Query {
 
@@ -56,17 +56,17 @@ public class PotionQuery implements Query {
 	}
 	
 	public PotionQuery(PotionType type, Integer level, Boolean extended, Boolean splash) {
-		this.type = Parsing.getElementList(type);
-		this.level = Parsing.getElementList(level);
-		this.extended = Parsing.getElementList(extended);
-		this.splash = Parsing.getElementList(splash);
+		this.type = Utility.getElementList(type);
+		this.level = Utility.getElementList(level);
+		this.extended = Utility.getElementList(extended);
+		this.splash = Utility.getElementList(splash);
 	}
 	
 	public PotionQuery(List<PotionType> type, List<Integer> level, Boolean extended, Boolean splash) {
 		this.type = type;
 		this.level = level;
-		this.extended = Parsing.getElementList(extended);
-		this.splash = Parsing.getElementList(splash);
+		this.extended = Utility.getElementList(extended);
+		this.splash = Utility.getElementList(splash);
 	}
 	
 	public PotionQuery(Potion potionObject) {
@@ -175,8 +175,8 @@ public class PotionQuery implements Query {
 		return String.format("Potion|%s|%s|%s|%s", 
 						hasType() ? StringUtils.join(type, ", ") : "", 
 						hasLevel() ? StringUtils.join(level, ", ") : "", 
-						Parsing.formatBoolean("extended", extended), 
-						Parsing.formatBoolean("splash", splash));
+						Utility.formatBoolean("extended", extended), 
+						Utility.formatBoolean("splash", splash));
 	}
 
 	@Override

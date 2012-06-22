@@ -32,7 +32,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
-import com.comphenix.xp.parser.Parsing;
+import com.comphenix.xp.parser.Utility;
 
 public class MobQuery implements Query {
 
@@ -66,9 +66,9 @@ public class MobQuery implements Query {
 			Boolean spawner, Boolean baby, Boolean tamed) {
 		this.type = type;
 		this.deathCause = deathCause;
-		this.spawner = Parsing.getElementList(spawner);
-		this.baby = Parsing.getElementList(baby);
-		this.tamed = Parsing.getElementList(tamed);
+		this.spawner = Utility.getElementList(spawner);
+		this.baby = Utility.getElementList(baby);
+		this.tamed = Utility.getElementList(tamed);
 	}
 
 	public MobQuery(LivingEntity entity, SpawnReason reason) {
@@ -97,10 +97,10 @@ public class MobQuery implements Query {
 	}
 	
 	private void setSingles(EntityType type, DamageCause deathCause, SpawnReason reason, Boolean baby, Boolean tamed) {
-		this.type = Parsing.getElementList(type);
-		this.deathCause = Parsing.getElementList(deathCause);
-		this.baby = Parsing.getElementList(baby);
-		this.tamed = Parsing.getElementList(tamed);
+		this.type = Utility.getElementList(type);
+		this.deathCause = Utility.getElementList(deathCause);
+		this.baby = Utility.getElementList(baby);
+		this.tamed = Utility.getElementList(tamed);
 		
 		if (reason != null) 
 			this.spawner = Arrays.asList(reason == SpawnReason.SPAWNER);
@@ -184,9 +184,9 @@ public class MobQuery implements Query {
 		return String.format("%s|%s|%s|%s|%s", 
 							hasType() ? StringUtils.join(type, ", ") : "",
 							hasDeathCause() ? StringUtils.join(deathCause, ", ") : "",
-						    Parsing.formatBoolean("spawner", spawner),
-							Parsing.formatBoolean("baby", baby),
-							Parsing.formatBoolean("tamed", tamed));
+						    Utility.formatBoolean("spawner", spawner),
+							Utility.formatBoolean("baby", baby),
+							Utility.formatBoolean("tamed", tamed));
 	}
 	
 	@Override

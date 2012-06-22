@@ -77,10 +77,10 @@ public class ItemDurabilityParser extends Parser<Integer> {
 	@Override
 	public Integer parse(String text) throws ParsingException {
 		
-		if (Parsing.isNullOrIgnoreable(text))
+		if (Utility.isNullOrIgnoreable(text))
 			throw new ParsingException("Text cannot be empty or null.");
 		
-		String filtered = Parsing.getEnumName(text);
+		String filtered = Utility.getEnumName(text);
 		Integer durability = tryParse(text);
 		
 		if (durability == null) {

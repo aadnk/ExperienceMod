@@ -72,7 +72,7 @@ public abstract class Parser<TResult> {
 	 */
 	public static Integer tryParse(String input, Integer defaultValue) {
 		try { 
-			if (!Parsing.isNullOrIgnoreable(input)) {
+			if (!Utility.isNullOrIgnoreable(input)) {
 				return Integer.parseInt(input);
 			} else {
 				return defaultValue;

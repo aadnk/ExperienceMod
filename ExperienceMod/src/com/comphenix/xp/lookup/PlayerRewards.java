@@ -5,7 +5,7 @@ import java.util.HashMap;
 
 
 import com.comphenix.xp.Range;
-import com.comphenix.xp.parser.Parsing;
+import com.comphenix.xp.parser.Utility;
 import com.comphenix.xp.parser.ParsingException;
 
 public class PlayerRewards {
@@ -27,7 +27,7 @@ public class PlayerRewards {
 		}
 		
 		public static Rewards matchReward(String action) {
-			return lookup.get(Parsing.getEnumName(action));
+			return lookup.get(Utility.getEnumName(action));
 		}
 	}
 	

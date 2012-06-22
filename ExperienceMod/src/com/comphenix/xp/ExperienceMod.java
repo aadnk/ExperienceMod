@@ -36,7 +36,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 
 import com.comphenix.xp.Configuration.RewardTypes;
-import com.comphenix.xp.parser.Parsing;
+import com.comphenix.xp.parser.Utility;
 
 public class ExperienceMod extends JavaPlugin implements Debugger {
 	
@@ -236,7 +236,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			return true;
 		}
 		
-		if (args.length == 1 && !Parsing.isNullOrIgnoreable(args[0])) {
+		if (args.length == 1 && !Utility.isNullOrIgnoreable(args[0])) {
 			
 			Integer experience = Integer.parseInt(args[0]);
 			Player player = (Player) sender;

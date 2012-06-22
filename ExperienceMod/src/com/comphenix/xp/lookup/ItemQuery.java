@@ -27,7 +27,7 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.inventory.ItemStack;
 
-import com.comphenix.xp.parser.Parsing;
+import com.comphenix.xp.parser.Utility;
 
 /**
  * Generic immutable representation of an item/block query.
@@ -83,8 +83,8 @@ public class ItemQuery implements Query {
 	}
 	
 	public ItemQuery(Integer itemID, Integer durability) {
-		this.itemID = Parsing.getElementList(itemID);
-		this.durability = Parsing.getElementList(durability);
+		this.itemID = Utility.getElementList(itemID);
+		this.durability = Utility.getElementList(durability);
 	}
 	
 	public ItemQuery(List<Integer> itemID, List<Integer> durability) {

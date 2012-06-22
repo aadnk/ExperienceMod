@@ -32,7 +32,7 @@ public class ItemNameParser extends Parser<Integer> {
 	@Override
 	public Integer parse(String text) throws ParsingException {
 
-		if (Parsing.isNullOrIgnoreable(text))
+		if (Utility.isNullOrIgnoreable(text))
 			throw new ParsingException("Text cannot be empty or null.");
 		
 		Material material = Material.matchMaterial(text);
@@ -46,7 +46,7 @@ public class ItemNameParser extends Parser<Integer> {
 
 			} else {
 				// Try some additional values
-				String filtered = Parsing.getEnumName(text);
+				String filtered = Utility.getEnumName(text);
 
 				if (alternativeNames.containsKey(filtered))
 					itemID = alternativeNames.get(filtered).getId();

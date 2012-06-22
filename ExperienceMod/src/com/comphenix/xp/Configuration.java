@@ -29,7 +29,7 @@ import com.comphenix.xp.lookup.*;
 import com.comphenix.xp.lookup.Query.Types;
 import com.comphenix.xp.parser.ItemParser;
 import com.comphenix.xp.parser.MobParser;
-import com.comphenix.xp.parser.Parsing;
+import com.comphenix.xp.parser.Utility;
 import com.comphenix.xp.parser.ParsingException;
 
 public class Configuration {
@@ -53,7 +53,7 @@ public class Configuration {
 		}
 		
 		public static ActionTypes matchAction(String action) {
-			return lookup.get(Parsing.getEnumName(action));
+			return lookup.get(Utility.getEnumName(action));
 		}
 	}
 	
@@ -153,7 +153,7 @@ public class Configuration {
 	private RewardTypes loadReward(String text) {
 	
 		try {
-			return RewardTypes.valueOf(Parsing.getEnumName(text));
+			return RewardTypes.valueOf(Utility.getEnumName(text));
 
 		} catch (IllegalArgumentException e) {
 			logger.printWarning(this, "Cannot parse reward type: %s", text);
