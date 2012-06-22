@@ -26,7 +26,7 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
 import com.comphenix.xp.lookup.MobQuery;
 
-public class MobParser {
+public class MobParser extends Parser<MobQuery> {
 	
 	private ParameterParser<EntityType> entityTypeParser = new ParameterParser<EntityType>(new MobEntityTypeParser());
 	private ParameterParser<DamageCause> damageCauseParser = new ParameterParser<DamageCause>(new MobDamageCauseParser());
@@ -35,9 +35,10 @@ public class MobParser {
 	private BooleanParser babyParser = new BooleanParser("baby");
 	private BooleanParser tamedParser = new BooleanParser("tamed");
 	
-	public MobQuery fromString(String text) throws ParsingException {
+	@Override
+	public MobQuery parse(String text) throws ParsingException {
 		
-		Queue<String> tokens = Parsing.getParameterQueue(text);
+		Queue<String> tokens = getParameterQueue(text);
 		
 		ParsingException errorReason = null;
 		

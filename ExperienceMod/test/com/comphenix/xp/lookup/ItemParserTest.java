@@ -34,16 +34,16 @@ public class ItemParserTest {
 		
 		ItemParser parser = new ItemParser();
 		
-		assertEquals(universal, parser.parseItemQuery("?"));
-		assertEquals(stoneQuery, parser.parseItemQuery("stone"));
-		assertEquals(stoneQuery, parser.parseItemQuery("1"));
-		assertEquals(redWool, parser.parseItemQuery("wool|14"));
-		assertEquals(redWool, parser.parseItemQuery("wool|red"));
-		assertEquals(redAndBlue, parser.parseItemQuery("wool|red,blue"));
-		assertEquals(blueStuff, parser.parseItemQuery("?|11"));
+		assertEquals(universal, parser.parse("?"));
+		assertEquals(stoneQuery, parser.parse("stone"));
+		assertEquals(stoneQuery, parser.parse("1"));
+		assertEquals(redWool, parser.parse("wool|14"));
+		assertEquals(redWool, parser.parse("wool|red"));
+		assertEquals(redAndBlue, parser.parse("wool|red,blue"));
+		assertEquals(blueStuff, parser.parse("?|11"));
 		
-		assertEquals(universalPotion, parser.parseItemQuery("potion|?"));
-		assertEquals(levelTwoPotion, parser.parseItemQuery("potion|?|2"));
-		assertEquals(specificPotion, parser.parseItemQuery("potion|fire resistance|1|extended|splash"));
+		assertEquals(universalPotion, parser.parse("potion|?"));
+		assertEquals(levelTwoPotion, parser.parse("potion|?|2"));
+		assertEquals(specificPotion, parser.parse("potion|fire resistance|1|extended|splash"));
 	}
 }

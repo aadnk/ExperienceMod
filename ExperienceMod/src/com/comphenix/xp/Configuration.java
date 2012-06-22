@@ -169,7 +169,7 @@ public class Configuration {
 		for (String key : config.getKeys(false)) {
 			try {				
 				Range value = readRange(config, key, null);
-				MobQuery query = mobParser.fromString(key);
+				MobQuery query = mobParser.parse(key);
 				
 				if (value != null)
 					experienceDrop.put(query, value.multiply(multiplier));
@@ -189,7 +189,7 @@ public class Configuration {
 		
 		for (String key : config.getKeys(false)) {
 			try {
-				Query item = itemParser.parseItemQuery(key);
+				Query item = itemParser.parse(key);
 				ConfigurationSection itemSection = config.getConfigurationSection(key);
 				boolean isItemType = item.getQueryType() == Types.Items;
 				

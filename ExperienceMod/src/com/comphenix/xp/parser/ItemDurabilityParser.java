@@ -81,7 +81,7 @@ public class ItemDurabilityParser extends Parser<Integer> {
 			throw new ParsingException("Text cannot be empty or null.");
 		
 		String filtered = Parsing.getEnumName(text);
-		Integer durability = Parsing.tryParse(text);
+		Integer durability = tryParse(text);
 		
 		if (durability == null) {
 			

@@ -26,7 +26,7 @@ import com.comphenix.xp.lookup.ItemQuery;
 import com.comphenix.xp.lookup.PotionQuery;
 import com.comphenix.xp.lookup.Query;
 
-public class ItemParser {
+public class ItemParser extends Parser<Query> {
 	
 	private ParameterParser<Integer> itemNameParser = new ParameterParser<Integer>(new ItemNameParser());
 	
@@ -36,13 +36,14 @@ public class ItemParser {
 	// Our potion parser
 	private PotionParser potionParser = new PotionParser();
 	
-	public Query parseItemQuery(String text) throws ParsingException {
+	@Override
+	public Query parse(String text) throws ParsingException {
 		
 		if (text.length() == 0)
 			// Empty names are not legal in YAML, so this shouldn't be possible 
 			throw new IllegalArgumentException("Key must have some characters.");
 		
-		Queue<String> tokens = Parsing.getParameterQueue(text);
+		Queue<String> tokens = getParameterQueue(text);
 		
 		List<Integer> itemIDs = null;
 		List<Integer> durabilities = null;
@@ -132,6 +133,6 @@ public class ItemParser {
 	private PotionQuery parseAsPotion(String text) throws ParsingException {
 		
 		// Delegate this task to the potion parser
-		return potionParser.parsePotion(text);
+		return potionParser.parse(text);
 	}
 }

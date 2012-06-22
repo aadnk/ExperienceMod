@@ -1,11 +1,7 @@
 package com.comphenix.xp.parser;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 
 /**
  *  ExperienceMod - Bukkit server plugin for modifying the experience system in Minecraft.
@@ -28,31 +24,6 @@ public class Parsing {
 	
 	@SuppressWarnings("rawtypes")
 	private static List emptyList = new ArrayList();
-	
-	public static Queue<String> getParameterQueue(String text) {
-		
-		String[] components = text.split("\\||:");
-		
-		// Clean up
-		for (int i = 0; i < components.length; i++) 
-			components[i] = components[i].trim().toLowerCase();
-		
-		return new LinkedList<String>(Arrays.asList(components));
-	}
-	
-	public static Boolean hasElementPrefix(Collection<String> values, String element) {
-		
-		// See if this element exists
-		for (String current : values) {
-			boolean value = !current.startsWith("!"); // Negative prefix
-	
-			if (element.startsWith(current, value ? 0 : 1))
-				return value;
-		}
-		
-		// No preferense either way
-		return null;
-	}
 	
     public static String getEnumName(String text) {
     	if (text == null)
@@ -92,24 +63,5 @@ public class Parsing {
 	 */
 	public static boolean isNullOrIgnoreable(String param) { 
 	    return param == null || param.trim().length() == 0 || param.trim().equals("?"); 
-	}
-
-	// Attempt to parse integer
-	public static Integer tryParse(String input) {
-		return tryParse(input, null);
-	}
-	
-	// Attempt to parse integer
-	public static Integer tryParse(String input, Integer defaultValue) {
-		try { 
-			if (!isNullOrIgnoreable(input)) {
-				return Integer.parseInt(input);
-			} else {
-				return defaultValue;
-			}
-				
-		} catch (NumberFormatException e) {
-			return defaultValue;
-		}
 	}
 }

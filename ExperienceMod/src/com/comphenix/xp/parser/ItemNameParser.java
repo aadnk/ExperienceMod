@@ -36,7 +36,7 @@ public class ItemNameParser extends Parser<Integer> {
 			throw new ParsingException("Text cannot be empty or null.");
 		
 		Material material = Material.matchMaterial(text);
-		Integer itemID = Parsing.tryParse(text);
+		Integer itemID = tryParse(text);
 		
 		// Is this an item?
 		if (itemID == null) {

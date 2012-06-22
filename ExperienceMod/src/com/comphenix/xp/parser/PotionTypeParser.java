@@ -11,7 +11,7 @@ public class PotionTypeParser extends Parser<PotionType> {
 		if (Parsing.isNullOrIgnoreable(text)) 
 			throw new ParsingException("Text cannot be empty or null.");
 		
-		Integer potionID = Parsing.tryParse(text);
+		Integer potionID = tryParse(text);
 		
 		try {
 			// Parse the potion type

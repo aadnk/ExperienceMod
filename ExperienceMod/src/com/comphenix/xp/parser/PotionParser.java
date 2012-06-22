@@ -9,7 +9,7 @@ import org.bukkit.potion.PotionType;
 
 import com.comphenix.xp.lookup.PotionQuery;
 
-public class PotionParser {
+public class PotionParser extends Parser<PotionQuery> {
 
 	private ParameterParser<Integer> itemNameParser = new ParameterParser<Integer>(new ItemNameParser());
 	private ParameterParser<PotionType> potionTypeParser = new ParameterParser<PotionType>(new PotionTypeParser());
@@ -19,9 +19,10 @@ public class PotionParser {
 	private BooleanParser splashParser = new BooleanParser("splash");
 
 	// Special potion parser
-	public PotionQuery parsePotion(String text) throws ParsingException {
+	@Override
+	public PotionQuery parse(String text) throws ParsingException {
 
-		Queue<String> tokens = Parsing.getParameterQueue(text);
+		Queue<String> tokens = getParameterQueue(text);
 		
 		ParsingException reason = null;
 		List<Integer> items = null;

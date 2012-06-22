@@ -40,4 +40,10 @@ public class ItemTreeTest {
 		assertEquals(redValue, tree.get(new ItemQuery(Material.WOOL.getId(), blueColor)));
 		assertEquals(universalValue, tree.get(new ItemQuery(Material.WOOL.getId(), brownColor)));
 	}
+	
+	@Test
+	public void testItemSpeed() {
+		
+		
+	}
 }

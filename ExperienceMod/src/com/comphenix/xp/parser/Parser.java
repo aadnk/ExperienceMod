@@ -1,5 +1,7 @@
 package com.comphenix.xp.parser;
 
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.Queue;
 
 /**
@@ -38,34 +40,46 @@ public abstract class Parser<TResult> {
 	}
 	
 	/**
-	 * Transforms and returns the first non-null element from the left into an object. That element is removed.
-	 * @param tokens Queue of items.
-	 * @return The object that was removed OR null if no element could be found.
+	 * Reads tokens from (delimited by a vertical bar) a query rule body.
+	 * @param text Query rule body to read.
+	 * @return Queue of the tokens.
 	 */
-	public TResult parseAny(Queue<String> tokens) throws ParsingException {
-
-		String toRemove = null;
-		TResult result = null;
-				
-		for (String current : tokens ){
-			result = parse(current);
-			
-			// We have a solution
-			if (result != null) {
-				toRemove = current;
-				break;
-			}
-		}
+	protected Queue<String> getParameterQueue(String text) {
 		
-		// Return and remove token
-	    if (result != null) {
-	    	tokens.remove(toRemove);
-	    	return result;
-	    	
-	    } else {
-	    	
-	    	// Speed things up a bit
-	    	return null;
-	    }
+		String[] components = text.split("\\||:");
+		
+		// Clean up
+		for (int i = 0; i < components.length; i++) 
+			components[i] = components[i].trim().toLowerCase();
+		
+		return new LinkedList<String>(Arrays.asList(components));
+	}
+	
+	/**
+	 * Attempt to parse integer.
+	 * @param input Text of the integer to parse.
+	 * @return The parsed integer if successful, or NULL if unsuccessful.
+	 */
+	public static Integer tryParse(String input) {
+		return tryParse(input, null);
+	}
+	
+	/**
+	 * Attempt to parse integer.
+	 * @param input Text of the integer to parse.
+	 * @param defaultValue Value to return if the parsing was unsuccessful.
+	 * @return The parsed integer if successful, or defaultValue if not.
+	 */
+	public static Integer tryParse(String input, Integer defaultValue) {
+		try { 
+			if (!Parsing.isNullOrIgnoreable(input)) {
+				return Integer.parseInt(input);
+			} else {
+				return defaultValue;
+			}
+				
+		} catch (NumberFormatException e) {
+			return defaultValue;
+		}
 	}
 }
