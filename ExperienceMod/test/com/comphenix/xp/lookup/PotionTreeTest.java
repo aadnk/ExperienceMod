@@ -26,12 +26,12 @@ public class PotionTreeTest {
 		
 		// Add both to the tree
 		tree.put(universal, universalValue);
-		tree.put(regenUniversal, new Range(1));
-		tree.put(regenSplashLvl2, new Range(2));
+		tree.put(regenUniversal, regenValue);
+		tree.put(regenSplashLvl2, regenSplashValue);
 		
-		assertEquals(tree.get(new PotionQuery(PotionType.REGEN, 2, false, true)), regenSplashValue);
-		assertEquals(tree.get(new PotionQuery(PotionType.REGEN, 2, true, true)), regenSplashValue);
-		assertEquals(tree.get(new PotionQuery(PotionType.REGEN, 1, true, true)), regenValue);
-		assertEquals(tree.get(new PotionQuery(PotionType.INSTANT_HEAL, 1, false, true)), universalValue);
+		assertEquals(regenSplashValue, tree.get(new PotionQuery(PotionType.REGEN, 2, false, true)));
+		assertEquals(regenSplashValue, tree.get(new PotionQuery(PotionType.REGEN, 2, true, true)));
+		assertEquals(regenValue, tree.get(new PotionQuery(PotionType.REGEN, 1, true, true)));
+		assertEquals(universalValue, tree.get(new PotionQuery(PotionType.INSTANT_HEAL, 1, false, true)));
 	}
 }

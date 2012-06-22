@@ -169,7 +169,7 @@ public class ItemQuery implements Query {
 		String durabilityText = StringUtils.join(durability, ", ");
 
 		if (hasDurability())
-			return String.format("%s|%d", itemsText, durabilityText);
+			return String.format("%s|%s", itemsText, durabilityText);
 		else
 			return String.format("%s", itemsText);
 	}

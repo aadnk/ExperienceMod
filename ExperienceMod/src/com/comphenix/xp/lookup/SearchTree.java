@@ -143,18 +143,21 @@ public abstract class SearchTree<TKey, TValue> {
 			return copy;
 		}
 		
-		public void retain(Set<Integer> current, List<TParam> param) {
+		public void retain(Set<Integer> current, List<TParam> params) {
 			
 			// Save some time
 			if (current.size() == 0)
 				return;
 			
 			// Set subtraction
-			Set<TParam> keys = new HashSet<TParam>(reverseLookup.keySet());
-			keys.removeAll(param);
+			Set<TParam> blacklist = new HashSet<TParam>(reverseLookup.keySet());
+			blacklist.removeAll(params);
+			
+			// Queries WITH this parameter will not be removed in this phase
+			Set<Integer> whitelist = getWhitelist(current, params);
 			
 			// Remove everything but the items with the given parameter
-			for (TParam key : keys) {
+			for (TParam key : blacklist) {
 				current.removeAll(reverseLookup.get(key));
 
 				if (current.size() == 0) {
@@ -162,8 +165,30 @@ public abstract class SearchTree<TKey, TValue> {
 				}
 			}
 			
+			// Add back the whitelist
+			if (whitelist.size() > 0) {
+				current.addAll(whitelist);
+			}
+				
 			// Optimize idea: Store the negative (all elements NOT in the given lookup), 
 			//                instead of a loop.
+		}
+		
+		private Set<Integer> getWhitelist(Set<Integer> current, List<TParam> params) {
+			
+			Set<Integer> whitelist = new HashSet<Integer>();
+			
+			// Add every query that qualify
+			for (TParam param : params) {
+				Set<Integer> result = reverseLookup.get(param);
+				
+				if (result != null)
+					whitelist.addAll(result);
+			}
+			
+			// But remove those previously eliminated
+			whitelist.retainAll(current);
+			return whitelist;
 		}
 	}
 }

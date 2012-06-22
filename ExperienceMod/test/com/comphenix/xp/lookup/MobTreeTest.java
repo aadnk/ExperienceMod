@@ -30,10 +30,10 @@ public class MobTreeTest {
 		tree.put(noSpawnXP, noSpawnValue);
 		tree.put(fallGib, fallValue);
 		
-		assertEquals(queryTree(tree, EntityType.ZOMBIE, DamageCause.ENTITY_ATTACK, SpawnReason.NATURAL), zombieValue);
-		assertEquals(queryTree(tree, EntityType.ZOMBIE, DamageCause.MAGIC, SpawnReason.NATURAL), magicValue);
-		assertEquals(queryTree(tree, EntityType.ZOMBIE, DamageCause.MAGIC, SpawnReason.SPAWNER), noSpawnValue);
-		assertEquals(queryTree(tree, EntityType.ZOMBIE, DamageCause.FALL, SpawnReason.SPAWNER), fallValue);
+		assertEquals(zombieValue, queryTree(tree, EntityType.ZOMBIE, DamageCause.ENTITY_ATTACK, SpawnReason.NATURAL));
+		assertEquals(magicValue, queryTree(tree, EntityType.ZOMBIE, DamageCause.MAGIC, SpawnReason.NATURAL));
+		assertEquals(noSpawnValue, queryTree(tree, EntityType.ZOMBIE, DamageCause.MAGIC, SpawnReason.SPAWNER));
+		assertEquals(fallValue, queryTree(tree, EntityType.ZOMBIE, DamageCause.FALL, SpawnReason.SPAWNER));
 	}
 	
 	private Range queryTree(MobTree tree, EntityType type, DamageCause cause, SpawnReason reason) {
