@@ -10,7 +10,6 @@ import org.junit.Test;
 import com.comphenix.xp.parser.MobParser;
 import com.comphenix.xp.parser.ParsingException;
 
-
 public class MobParserTest {
 
 	@Test
