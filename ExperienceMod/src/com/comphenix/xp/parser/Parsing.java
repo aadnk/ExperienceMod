@@ -32,7 +32,7 @@ public class Parsing {
 		for (int i = 0; i < components.length; i++) 
 			components[i] = components[i].trim().toLowerCase();
 		
-		return toQueue(components);
+		return new LinkedList<String>(Arrays.asList(components));
 	}
 	
 	public static Boolean hasElementPrefix(Collection<String> values, String element) {
@@ -73,42 +73,17 @@ public class Parsing {
 	public static boolean isNullOrIgnoreable(String param) { 
 	    return param == null || param.trim().length() == 0 || param.trim().equals("?"); 
 	}
-	
-	/**
-	 * Determines if the head of the queue can be ignored. If it can, it will be removed.
-	 * @param param Queue to test.
-	 * @return TRUE if the head of the queue is null, blank or equal to '?', FALSE otherwise.
-	 */
-	public static boolean isNullOrIgnoreable(Queue<String> tokens) {
-		
-		// Consume the element if it is ignoreable
-		if (isNullOrIgnoreable(tokens.peek())) {
-			tokens.poll();
-			return true;
-		} else {
-			return false;
-		}
-	}
-	
-	public static Integer tryParse(String value) {
-		return tryParse(toQueue(new String[] { value }), 0);
-	}
-	
+
 	// Attempt to parse integer
-	public static Integer tryParse(Queue<String> input) {
+	public static Integer tryParse(String input) {
 		return tryParse(input, null);
 	}
 	
 	// Attempt to parse integer
-	public static Integer tryParse(Queue<String> input, Integer defaultValue) {
+	public static Integer tryParse(String input, Integer defaultValue) {
 		try { 
-			String peek = input.peek();
-			
-			if (!input.isEmpty() && !isNullOrIgnoreable(peek)) {
-				int result = Integer.parseInt(peek);
-				
-				input.remove();
-				return result;
+			if (!isNullOrIgnoreable(input)) {
+				return Integer.parseInt(input);
 			} else {
 				return defaultValue;
 			}
@@ -116,23 +91,5 @@ public class Parsing {
 		} catch (NumberFormatException e) {
 			return defaultValue;
 		}
-	}
-	
-	/**
-	 * Copies the content of a string array into a queue.
-	 * @param input - String array to copy.
-	 * @return The resulting queue.
-	 */
-	public static Queue<String> toQueue(String[] input) {
-		return new LinkedList<String>(Arrays.asList(input));
-	}
-	
-	/**
-	 * Retrieves the head of the queue. If the queue is empty, returns an empty string.
-	 * @param components Queue to retrieve from.
-	 * @return Head of the queue OR an empty string.
-	 */
-	public static String peekOrEmpty(Queue<String> components) {
-		return !components.isEmpty() ? components.peek() : "";
 	}
 }

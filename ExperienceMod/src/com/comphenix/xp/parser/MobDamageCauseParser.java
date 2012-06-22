@@ -2,10 +2,10 @@ package com.comphenix.xp.parser;
 
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
-public class MobDamageCauseParser implements Parser<DamageCause> {
+public class MobDamageCauseParser extends Parser<DamageCause> {
 
 	@Override
-	public DamageCause Parse(String text) throws ParsingException {
+	public DamageCause parse(String text) throws ParsingException {
 		
 		// Extra check
 		if (Parsing.isNullOrIgnoreable(text)) 

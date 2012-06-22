@@ -189,7 +189,7 @@ public class Configuration {
 		
 		for (String key : config.getKeys(false)) {
 			try {
-				Query item = itemParser.fromItemString(key);
+				Query item = itemParser.parseItemQuery(key);
 				ConfigurationSection itemSection = config.getConfigurationSection(key);
 				boolean isItemType = item.getQueryType() == Types.Items;
 				

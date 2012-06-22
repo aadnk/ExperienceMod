@@ -2,10 +2,10 @@ package com.comphenix.xp.parser;
 
 import org.bukkit.entity.EntityType;
 
-public class MobEntityTypeParser implements Parser<EntityType> {
+public class MobEntityTypeParser extends Parser<EntityType> {
 
 	@Override
-	public EntityType Parse(String text) throws ParsingException {
+	public EntityType parse(String text) throws ParsingException {
 		
 		// Make sure we're not passed an empty element
 		if (Parsing.isNullOrIgnoreable(text))

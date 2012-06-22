@@ -1,5 +1,9 @@
 package com.comphenix.xp.parser;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.bukkit.DyeColor;
 import org.bukkit.GrassSpecies;
 import org.bukkit.Material;
@@ -10,8 +14,32 @@ import org.bukkit.material.Step;
 
 import com.comphenix.xp.extra.SmoothBrickType;
 
-public class ItemDurabilityParser implements Parser<Integer> {
+public class ItemDurabilityParser extends Parser<Integer> {
 
+	// Quick lookup of items
+	private static Map<Integer, ItemCategory> lookup = new HashMap<Integer, ItemCategory>();
+	
+	// Every item type
+	public enum ItemCategory {
+		TREE_BLOCKS(Material.WOOD.getId(), Material.LEAVES.getId(), WOODEN_STEPS, WOODEN_DOUBLE_STEPS),
+		DYED_BLOCKS(Material.WOOL.getId(), Material.INK_SACK.getId()),
+		GRASS_BLOCKS(Material.GRASS.getId()),
+		STEP_BLOCKS(Material.STEP.getId(), Material.DOUBLE_STEP.getId()),
+		SANDSTONE_BLOCKS(Material.SANDSTONE.getId()),
+		SMOOTH_BRICK_BLOCKS(Material.SMOOTH_BRICK.getId(), Material.SMOOTH_STAIRS.getId()),
+		MONSTER_EGGS_BLOCKS(Material.MONSTER_EGGS.getId()),
+		COAL_ITEMS(Material.COAL.getId());
+		
+		private ItemCategory(Integer... items) {
+			for (Integer item : items)
+				lookup.put(item, this);
+		}
+		
+		public static ItemCategory matchItem(Integer itemID) {
+			return lookup.get(itemID);
+		}
+	}
+	
 	// New blocks
 	private static final int WOODEN_STEPS = 125;
 	private static final int WOODEN_DOUBLE_STEPS = 126;
@@ -20,6 +48,11 @@ public class ItemDurabilityParser implements Parser<Integer> {
 	private static final int COAL_CHARCOAL = 1;
 
 	private Integer itemID;
+	private boolean usedName;
+	
+	public ItemDurabilityParser() {
+		this.itemID = null;
+	}
 	
 	public ItemDurabilityParser(Integer itemID) {
 		this.itemID = itemID;
@@ -33,8 +66,16 @@ public class ItemDurabilityParser implements Parser<Integer> {
 		this.itemID = itemID;
 	}
 	
+	public boolean isUsedName() {
+		return usedName;
+	}
+
+	public void setUsedName(boolean usedName) {
+		this.usedName = usedName;
+	}
+
 	@Override
-	public Integer Parse(String text) throws ParsingException {
+	public Integer parse(String text) throws ParsingException {
 		
 		if (Parsing.isNullOrIgnoreable(text))
 			throw new ParsingException("Text cannot be empty or null.");
@@ -56,49 +97,59 @@ public class ItemDurabilityParser implements Parser<Integer> {
 						"Cannot parse %s - named durabilities only works with known item ids.", text);
 			}
 			
-			// Special cases
-			if (itemID == Material.WOOD.getId() || itemID == Material.LEAVES.getId() || 
-				itemID == WOODEN_STEPS || itemID == WOODEN_DOUBLE_STEPS) {
-				
-				return getTreeSpecies(text, filtered);
-
-			} else if (itemID == Material.WOOL.getId() || itemID == Material.INK_SACK.getId()) {
-				
+			// Quickly find the correct durability list to use
+			switch (ItemCategory.matchItem(itemID)) {
+			case TREE_BLOCKS:
+				durability = getTreeSpecies(text, filtered);
+				break;
+			case DYED_BLOCKS:
 				// Convert color values
-				return getDyeColor(text, filtered);
-				
-			} else if (itemID == Material.GRASS.getId()) { 
-				
+				durability = getDyeColor(text, filtered);
+				break;
+			case GRASS_BLOCKS:
 				// Grass types
-				return getGrassSpecies(text, filtered);
+				durability = getGrassSpecies(text, filtered);
+				break;
+			case STEP_BLOCKS:
+				durability = getStepMaterial(text);
+				break;
+			case SANDSTONE_BLOCKS:
+				durability = getSandstoneType(text, filtered);
+				break;
+			case SMOOTH_BRICK_BLOCKS:
+				durability = getSmoothstoneType(text, filtered);
+				break;
+			case MONSTER_EGGS_BLOCKS:
+				durability = getMonsterEgg(text);
+				break;
+			case COAL_ITEMS:
+				durability = getCoalData(text, filtered);
+				break;
+				
+			default:
+				// Cannot parse durability
+				throw ParsingException.fromFormat("Invalid durability value %s.", text);
+			}
 
-			} else if (itemID == Material.STEP.getId() || itemID == Material.DOUBLE_STEP.getId()) {
-				
-				return getStepMaterial(text);
-				
-			} else if (itemID == Material.SANDSTONE.getId()) {
-		
-				return getSandstoneType(text, filtered);
-			
-			} else if (itemID == Material.SMOOTH_BRICK.getId() || itemID == Material.SMOOTH_STAIRS.getId()) {
-				
-				return getSmoothstoneType(text, filtered);
-				
-			} else if (itemID == Material.MONSTER_EGGS.getId()) {
-				
-				return getMonsterEgg(text);
-				
-			} else if (itemID == Material.COAL.getId()) {
-				
-				return getCoalData(text, filtered);
-				
-			} 
-			
-			// Cannot parse durability
-			throw ParsingException.fromFormat("Invalid durability value %s.", text);
+			// We used a name!
+			setUsedName(true);
 		}
 		
 		return durability;
+	}
+	
+	public static boolean inSameCategory(List<Integer> listItemID) {
+		
+		Integer first = !listItemID.isEmpty() ?  listItemID.get(0) : null;
+		ItemCategory category = ItemCategory.matchItem(first);
+		
+		// Make sure every item is in the same category
+		for (Integer item : listItemID) {
+			if (ItemCategory.matchItem(item) != category)
+				return false;
+		}
+		
+		return true;
 	}
 	
 	private int getCoalData(String text, String filtered) throws ParsingException {
@@ -216,7 +267,7 @@ public class ItemDurabilityParser implements Parser<Integer> {
 		try {
 		
 			ItemNameParser parser = new ItemNameParser();
-			Integer attempt = parser.Parse(text);
+			Integer attempt = parser.parse(text);
 			
 			// See if it succeeded
 			if (attempt != null) 

@@ -2,10 +2,10 @@ package com.comphenix.xp.parser;
 
 import org.bukkit.potion.PotionType;
 
-public class PotionTypeParser implements Parser<PotionType> {
+public class PotionTypeParser extends Parser<PotionType> {
 
 	@Override
-	public PotionType Parse(String text) throws ParsingException {
+	public PotionType parse(String text) throws ParsingException {
 		
 		// Check for DON'T CARE
 		if (Parsing.isNullOrIgnoreable(text)) 

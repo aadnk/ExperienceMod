@@ -4,7 +4,7 @@ import java.util.HashMap;
 
 import org.bukkit.Material;
 
-public class ItemNameParser implements Parser<Integer> {
+public class ItemNameParser extends Parser<Integer> {
 
 	private static HashMap<String, Material> alternativeNames = new HashMap<String, Material>();
 	
@@ -23,8 +23,14 @@ public class ItemNameParser implements Parser<Integer> {
 		alternativeNames.put("BOTTLE_O_ENCHANTING", Material.EXP_BOTTLE);
 	}
 	
+	/**
+	 * Determines the item, either by ID or name, of the given string of characters.
+	 * @param text String of characters.
+	 * @return ID of the item parsed.
+	 * @throws ParsingException Invoked when an unrecognized item name is given.
+	 */
 	@Override
-	public Integer Parse(String text) throws ParsingException {
+	public Integer parse(String text) throws ParsingException {
 
 		if (Parsing.isNullOrIgnoreable(text))
 			throw new ParsingException("Text cannot be empty or null.");
