@@ -183,7 +183,7 @@ public class CommandExperienceMod implements CommandExecutor {
 			
 			// Print every applicable range with the correct at the top
 			for (int i = 0; i < ranges.size(); i++) {
-				plugin.respond(sender, String.format(" %d. %s", i + 1, ranges.get(0)));
+				plugin.respond(sender, String.format(" %d. %s", i + 1, ranges.get(i)));
 			}
 		}
 	}
