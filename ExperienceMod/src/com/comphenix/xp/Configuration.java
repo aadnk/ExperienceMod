@@ -38,7 +38,7 @@ public class Configuration {
 	private static HashMap<String, ActionTypes> lookup = 
 			new HashMap<String, ActionTypes>();
 	
-	private enum ActionTypes {
+	public enum ActionTypes {
 		BLOCK("BLOCK", "BLOCK_SOURCE"),
 		BONUS("BONUS", "BONUS_SOURCE"),
 		PLACE("PLACE", "PLACING", "PLACING_RESULT"),

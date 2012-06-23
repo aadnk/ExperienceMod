@@ -195,6 +195,10 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		return informer;
 	}
 	
+	public Configuration getConfiguration() {
+		return configuration;
+	}
+	
 	@Override
 	public void printDebug(Object sender, String message, Object... params) {
 		if (debugEnabled) {
