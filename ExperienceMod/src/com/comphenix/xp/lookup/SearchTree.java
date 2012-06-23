@@ -17,8 +17,12 @@ package com.comphenix.xp.lookup;
  *  02111-1307 USA
  */
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 
 public abstract class SearchTree<TKey, TValue> {
@@ -26,6 +30,8 @@ public abstract class SearchTree<TKey, TValue> {
 	protected HashMap<Integer, TValue> flatten = new HashMap<Integer, TValue>();
 	protected HashMap<Integer, Integer> paramCount = new HashMap<Integer, Integer>();
 	protected int currentID;
+	
+	protected ValueComparer comparer = new ValueComparer(); 
 	
 	public Integer put(TKey element, TValue value) {
 		
@@ -50,29 +56,36 @@ public abstract class SearchTree<TKey, TValue> {
 		else
 			return null;
 	}
+	
+	public List<TValue> getAllRanked(TKey element) {
 		
+		Set<Integer> candidates = getFromParameters(element);
+		List<Integer> indexes = new ArrayList<Integer>(candidates);
+		List<TValue> values = new ArrayList<TValue>();
+		
+		// Sort indexes by priority
+		Collections.sort(indexes, comparer);
+		
+		// Get values
+		for (Integer id : indexes) {
+			if (id != null) {
+				values.add(flatten.get(id));
+			}
+		}
+		
+		return values;
+	}
+	
 	private Integer getIndex(TKey element) {
 		
 		Set<Integer> candidates = getFromParameters(element);
-		Integer bestID = null;
-		Integer bestCount = -1;
-		
+
 		// No result? Better return null.
 		if (candidates == null || candidates.size() == 0)
 			return null;
 		
 		// Return the most specified element
-		for (Integer candidate : candidates) {
-			Integer count = paramCount.get(candidate);
-			
-			// If queries are equally specified, the most recently added query will take precedence.
-			if (bestCount.compareTo(count) <= 0) {
-				bestID = candidate;
-				bestCount = count;
-			}
-		}
-		
-		return bestID;
+		return Collections.min(candidates, comparer);
 	}
 	
 	public boolean containsKey(TKey element) {
@@ -92,5 +105,39 @@ public abstract class SearchTree<TKey, TValue> {
 	
 	private int getNextID() {
 		return currentID++;
+	}
+	
+	/**
+	 * Compares values (referenced by ID) by priority. The the most specified, 
+	 * and if identical, newest value is put at the beginning.
+	 */
+	protected class ValueComparer implements Comparator<Integer> {
+
+		@Override
+		public int compare(Integer a, Integer b) {
+
+			Integer countA = paramCount.get(a);
+			Integer countB = paramCount.get(b);
+			int comparison = compareObjects(countB, countA, false);
+			
+			// Compare mainly by specificity
+			if (comparison != 0)
+				return comparison;
+			else
+				// Higher before lower
+				return compareObjects(b, a, false);
+		}
+		
+		// Taken from Apache Commons 2.6  (ObjectUtils.compare)
+		public <T extends Comparable<T>> int compareObjects(T c1, T c2, boolean nullGreater) {
+            if (c1 == c2) {
+                return 0;
+            } else if (c1 == null) {
+                return (nullGreater ? 1 : -1);
+            } else if (c2 == null) {
+                return (nullGreater ? -1 : 1);
+            }
+            return c1.compareTo(c2);
+        }
 	}
 }
