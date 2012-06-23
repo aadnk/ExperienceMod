@@ -185,6 +185,6 @@ public class CommandExperienceMod implements CommandExecutor {
 	}
 	
 	private String getSafe(String[] args, int index) {
-		return args.length > 0 ? args[0] : "";
+		return args.length > index ? args[index] : "";
 	}
 }
