@@ -104,7 +104,7 @@ public class CommandExperienceMod implements CommandExecutor {
 		Configuration config = plugin.getConfiguration();
 		
 		try {
-			String text = StringUtils.join(args, ", ", offset, args.length - 1);
+			String text = StringUtils.join(args, ", ", offset, args.length);
 			
 			MobQuery query = mobParser.parse(text);
 			List<Range> results = config.getExperienceDrop().getAllRanked(query);
@@ -130,7 +130,7 @@ public class CommandExperienceMod implements CommandExecutor {
 		}
 
 		try {
-			String text = StringUtils.join(args, ", ", offset + 1, args.length - 1);
+			String text = StringUtils.join(args, ", ", offset + 1, args.length);
 			
 			Query query = itemParser.parse(text);
 			List<Range> results = null;
@@ -163,6 +163,10 @@ public class CommandExperienceMod implements CommandExecutor {
 			// Finally, display query result
 			displayRange(sender, results);
 
+		} catch (IllegalArgumentException e) {
+			plugin.respond(sender,
+					ChatColor.RED + "Query parsing error: " + e.getMessage());
+			
 		} catch (ParsingException e) {
 			plugin.respond(sender,
 					ChatColor.RED + "Query parsing error: " + e.getMessage());
