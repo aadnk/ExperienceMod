@@ -164,6 +164,9 @@ public class Range {
 
 	@Override
 	public String toString() {
-		return "{start: " + start + ", end: " + end + "]";
+		if (start == end)
+			return "{" + start + "}";
+		else
+			return "{start: " + start + ", end: " + end + "]";
 	}
 }
