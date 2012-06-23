@@ -28,9 +28,8 @@ public class CommandExperienceMod implements CommandExecutor {
 	private final String subCommandToggleDebug = "debug";
 	private final String subCommandWarnings = "warnings";
 	private final String subCommandReload = "reload";
-	private final String subCommandQuery = "query";
-	private final String subSubCommandItem = "item";
-	private final String subSubCommandMob = "mob";
+	private final String subCommandItem = "item";
+	private final String subCommandMob = "mob";
 	
 	private ExperienceMod plugin;
 
@@ -77,21 +76,16 @@ public class CommandExperienceMod implements CommandExecutor {
 				sender.sendMessage(ChatColor.GREEN + "No warnings found.");
 			return true;
 			
-		} else if (sub.equalsIgnoreCase(subCommandQuery)) {
+		} else if (sub.equalsIgnoreCase(subCommandItem)) {
 			
-			String type = getSafe(args, 1); 
+			handleQueryItem(sender, args, 1);
+			return true;
 			
-			if (type.equalsIgnoreCase(subSubCommandItem)) {
-				handleQueryItem(sender, args, 2);
-				return true;
-			} else if (type.equalsIgnoreCase(subSubCommandMob)) {
-				handleQueryMob(sender, args, 2);
-				return true;
-			} else {
-				plugin.respond(sender, ChatColor.RED + "Unknown query type. Must be mob or item.");
-				return false;
-			}
+		} else if (sub.equalsIgnoreCase(subCommandMob)) {
 			
+			handleQueryMob(sender, args, 1);
+			return true;
+	
 		} else if (sub.equalsIgnoreCase(subCommandReload) || sub.length() == 0) {
 			
 			plugin.loadDefaults(true);
