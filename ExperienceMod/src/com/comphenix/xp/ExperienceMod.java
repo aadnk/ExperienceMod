@@ -18,40 +18,27 @@ package com.comphenix.xp;
  */
 
 import java.io.File;
-import java.util.List;
 import java.util.logging.Logger;
 
 import net.milkbowl.vault.economy.Economy;
 
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.Player;
-import org.bukkit.block.Block;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
-
 import com.comphenix.xp.Configuration.RewardTypes;
-import com.comphenix.xp.parser.Utility;
+import com.comphenix.xp.commands.CommandExperienceMod;
+import com.comphenix.xp.commands.CommandSpawnExp;
 
 public class ExperienceMod extends JavaPlugin implements Debugger {
 	
-	private final String permissionAdmin = "experiencemod.admin";
 	private final String permissionInfo = "experiencemod.info";
 	
-	// Mod command(s)
 	private final String commandReload = "experiencemod";
 	private final String commandSpawnExp = "spawnexp";
-	private final String subCommandToggleDebug = "debug";
-	private final String subCommandWarnings = "warnings";
-	private final String subCommandReload = "reload";
-	
-	// Constants
-	private final int spawnExpMaxDistance = 50;
 	
 	private Logger currentLogger;
 	private PluginManager manager;
@@ -61,6 +48,10 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	private ExperienceInformer informer;
 	private Configuration configuration;
 	
+	// Commands
+	private CommandExperienceMod commandExperienceMod;
+	private CommandSpawnExp commandSpawn;
+	
 	private boolean debugEnabled;
 	
 	@Override
@@ -69,6 +60,9 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		
 		currentLogger = this.getLogger();
 		informer = new ExperienceInformer();
+		
+		commandExperienceMod = new CommandExperienceMod(this);
+		commandSpawn = new CommandSpawnExp(this);
 		
 		// Load economy, if it exists
 		if (!hasEconomy())
@@ -80,9 +74,13 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		// Register listeners
 		manager.registerEvents(listener, this);
 		manager.registerEvents(informer, this);
+		
+		// Register commands
+		getCommand(commandReload).setExecutor(commandExperienceMod);
+		getCommand(commandSpawnExp).setExecutor(commandSpawn);
 	}
 	
-	private void loadDefaults(boolean reload) {
+	public void loadDefaults(boolean reload) {
 		FileConfiguration config = getConfig();
 		File path = new File(getDataFolder(), "config.yml");
 		
@@ -173,111 +171,10 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	public void onDisable() {
 	}
 	
-	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args){
-		
-		String cmdName = cmd != null ? cmd.getName() : "";
-		
-		// Execute the correct command
-		if (cmdName.equalsIgnoreCase(commandReload))
-			return handleMainCommand(sender, args);
-		else if (cmdName.equalsIgnoreCase(commandSpawnExp))
-			return handleSpawnExp(sender, args);
-		else
-			return false;
-    }
-
-	private boolean handleMainCommand(CommandSender sender, String[] args) {
-		
-		// Make sure the sender has permissions
-		if (!hasCommandPermission(sender, permissionAdmin)) {
-			return true;
-		}
-		
-		String sub = args.length > 0 ? args[0] : "";
-		
-		// Toggle debugging
-		if (sub.equalsIgnoreCase(subCommandToggleDebug)) {
-			
-			debugEnabled = !debugEnabled;
-			respond(sender, ChatColor.BLUE + "Debug " + (debugEnabled ? " enabled " : " disabled"));
-			return true;
-			
-		// Display the parse warnings during the last configuration load
-		} else if (sub.equalsIgnoreCase(subCommandWarnings)) {
-			
-			if (sender != null && informer.hasWarnings())
-				informer.displayWarnings(sender, true);
-			else
-				sender.sendMessage(ChatColor.GREEN + "No warnings found.");
-			return true;
-			
-		} else if (sub.equalsIgnoreCase(subCommandReload) || sub.length() == 0) {
-			
-			loadDefaults(true);
-    		respond(sender, ChatColor.BLUE + "Reloaded ExperienceMod.");
-    		return true;
-    		
-		} else {
-			respond(sender, ChatColor.RED + "Error: Unknown subcommand.");
-			return false; 
-		}
-	}
-	
-	private boolean handleSpawnExp(CommandSender sender, String[] args) {
-
-		// We don't support console yet
-		if (sender == null || !(sender instanceof Player)) {
-			respond(sender, ChatColor.RED + "This command can only be sent by a player");
-			return false;
-		}
-		
-		// Make sure the sender has permissions
-		if (!hasCommandPermission(sender, permissionAdmin)) {
-			return true;
-		}
-		
-		if (args.length == 1 && !Utility.isNullOrIgnoreable(args[0])) {
-			
-			Integer experience = Integer.parseInt(args[0]);
-			Player player = (Player) sender;
-			
-			if (experience == null) {
-				respond(sender, ChatColor.RED + "Error: Parameter must be a valid integer.");
-				return false;
-			}
-			
-			Block startBlock = player.getEyeLocation().getBlock();
-			List<Block> list = player.getLastTwoTargetBlocks(null, spawnExpMaxDistance);
-			
-			// Remember the start location
-			list.add(0, startBlock);
-			
-			// We want to spawn the experience at the surface of the block.
-			list.remove(list.size() - 1);
-			
-			if (list.size() > 0) {
-				Block target = list.get(list.size() - 1);
-				Location loc = target.getLocation();
-				
-				// Spawn experience at this location
-				printDebug(this, "Spawning %d experience at %b.", experience, loc);
-				Server.spawnExperienceAtBlock(target, experience);
-				return true;
-			}
-				
-
-		} else {
-			respond(sender, ChatColor.RED + "Error: Incorrect number of parameters.");
-		}
-		
-		return false;
-	}
-	
-	private boolean hasCommandPermission(CommandSender sender, String permission) {
+	public boolean hasCommandPermission(CommandSender sender, String permission) {
 		
 		// Make sure the sender has permissions
 		if (sender != null && !sender.hasPermission(permission)) {
-			respond(sender, ChatColor.RED + "You haven't got permission to execute this command.");
 			return false;
 		} else {
 			// We have permission
@@ -288,6 +185,14 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	@Override	
 	public boolean isDebugEnabled() {
 		return debugEnabled;
+	}
+	
+	public void toggleDebug() {
+		debugEnabled = !debugEnabled;
+	}
+	
+	public ExperienceInformer getInformer() {
+		return informer;
 	}
 	
 	@Override
@@ -301,7 +206,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		}
 	}
 
-	private void respond(CommandSender sender, String message) {
+	public void respond(CommandSender sender, String message) {
 		if (sender == null) // Sent by the console
 			currentLogger.info(message);
 		else
