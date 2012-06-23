@@ -17,7 +17,7 @@ import com.comphenix.xp.Range;
 
 public class ItemTreeTest {
 
-	private static final int REPEAT_COUNT = 100;
+	private static final int REPEAT_COUNT = 1000;
 	private static Configuration configuration;
 	
 	@BeforeClass
@@ -62,6 +62,7 @@ public class ItemTreeTest {
 		tree.put(stone, stoneValue);
 		tree.put(redWool, redValue);
 		
+		assertEquals(stoneValue, tree.get(new ItemQuery(Material.STONE.getId(), null)));
 		assertEquals(stoneValue, tree.get(new ItemQuery(Material.STONE.getId(), 1)));
 		assertEquals(universalValue, tree.get(new ItemQuery(Material.WOOD.getId(), 0)));
 		assertEquals(redValue, tree.get(new ItemQuery(Material.WOOL.getId(), redColor)));
@@ -72,7 +73,7 @@ public class ItemTreeTest {
 	@Test
 	public void testItemSpeed() {
 		
-		ItemQuery diamondQuery = new ItemQuery(Material.DIAMOND);
+		ItemQuery diamondQuery = new ItemQuery(Material.DIAMOND_ORE);
 		Range lastRange = null;
 		
 		// Assuming no errors, try searching for diamond a couple of times
