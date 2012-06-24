@@ -1,8 +1,10 @@
 package com.comphenix.xp.parser;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Queue;
 
-public class BooleanParser extends Parser<Boolean> {
+public class BooleanParser extends Parser<List<Boolean>> {
 
 	private String parameterName;
 
@@ -20,18 +22,38 @@ public class BooleanParser extends Parser<Boolean> {
 	 * @return Boolean value if parsing succeeded, or NULL otherwise.
 	 */
 	@Override
-	Boolean parse(String text) throws ParsingException {
+	List<Boolean> parse(String text) throws ParsingException {
 		
 		if (text == null)
 			return null;
 		
-		boolean value = !text.startsWith("!"); // Negative prefix
+		String[] elements = text.split(",");
+		List<Boolean> values = new ArrayList<Boolean>();
 		
-		// Use null instead of exceptions
-		if (parameterName.startsWith(text, value ? 0 : 1))
-			return value;
+		for (String element : elements) {
+			
+			boolean currentValue = !element.startsWith("!"); // Negative prefix
+			String currentName = element.substring(currentValue ? 0 : 1);
+			
+			// Permit prefixing 
+			if (parameterName.startsWith(currentName))  {
+				
+				// Be careful to handle the case !parameterName, parameterName
+				if (!values.contains(currentValue))
+					values.add(currentValue);
+				else
+					throw ParsingException.fromFormat("Duplicate value detected: %", element);
+				
+			} else  {
+				return null; 
+			}
+		}
+
+		// Null indicates any value
+		if (values.isEmpty())
+			return null;
 		else
-			return null; 
+			return values;
 	}
 	
 	/**
@@ -42,7 +64,7 @@ public class BooleanParser extends Parser<Boolean> {
 	public Boolean parseAny(Queue<String> tokens) throws ParsingException {
 
 		String toRemove = null;
-		Boolean result = null;
+		List<Boolean> result = null;
 				
 		for (String current : tokens ){
 			result = parse(current);
@@ -57,7 +79,12 @@ public class BooleanParser extends Parser<Boolean> {
 		// Return and remove token
 	    if (result != null) {
 	    	tokens.remove(toRemove);
-	    	return result;
+	    	
+	    	if (result.size() == 1)
+	    		return result.get(0);
+	    	else
+	    		// Match true and false at the same time
+	    		return null;
 	    	
 	    } else {
 	    	

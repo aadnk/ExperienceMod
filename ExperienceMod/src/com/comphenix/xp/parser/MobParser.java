@@ -66,7 +66,7 @@ public class MobParser extends Parser<MobQuery> {
 			if (errorReason != null)
 				throw errorReason;
 			else
-				throw ParsingException.fromFormat("Unknown item tokens: ", StringUtils.join(tokens, ", "));
+				throw ParsingException.fromFormat("Unknown item tokens: %s", StringUtils.join(tokens, ", "));
 		}
 		
 		return new MobQuery(types, causes, spawner, baby, tamed);

@@ -25,6 +25,8 @@ public class MobParserTest {
 		assertEquals(universal, parser.parse("?"));
 		assertEquals(allZombies, parser.parse("zombie"));
 		assertEquals(fallingZombies, parser.parse("zombie|fall"));
+		assertEquals(fallingZombies, parser.parse("zombie|fall|spawner,!spawner"));
 		assertEquals(spawnedMobs, parser.parse("?|?|spawner"));
+		assertNotSame(universal, parser.parse("?|?|spawner"));
 	}
 }
