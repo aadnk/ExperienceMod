@@ -100,6 +100,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	public YamlConfiguration loadConfig(String name, String createMessage) throws IOException {
 		
 		File savedFile = new File(getDataFolder(), name);
+		File directory = savedFile.getParentFile();
 		
 		// Reload the saved configuration
 		if (!savedFile.exists()) {
@@ -108,8 +109,11 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			InputStream input = ExperienceMod.class.getResourceAsStream("/" + name);
 			
 			// Make sure the directory exists 
-			if (!savedFile.getParentFile().mkdirs()) {
-				throw new IOException("Could not create the directory " + savedFile.getParent());
+			if (!directory.exists()) {
+				directory.mkdirs();
+				
+				if (!directory.exists())
+					throw new IOException("Could not create the directory " + directory.getAbsolutePath());
 			}
 			
 			OutputStream output = new FileOutputStream(savedFile);
