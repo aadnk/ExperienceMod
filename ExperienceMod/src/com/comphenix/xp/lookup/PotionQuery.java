@@ -29,6 +29,7 @@ import org.bukkit.potion.Potion;
 import org.bukkit.potion.PotionType;
 
 import com.comphenix.xp.parser.Utility;
+import com.google.common.collect.Lists;
 
 public class PotionQuery implements Query {
 
@@ -41,10 +42,11 @@ public class PotionQuery implements Query {
 	// Optimize away object creations
 	private static List<PotionType> noTypes = new ArrayList<PotionType>();
 	private static List<Integer> noLevels = new ArrayList<Integer>();
+	private static List<Boolean> noBooleans = new ArrayList<Boolean>();
 	
 	public PotionQuery() {
 		// Match all potions
-		this(noTypes, noLevels, null, null);
+		this(noTypes, noLevels, noBooleans, noBooleans);
 	}
 	
 	public PotionQuery(PotionType type) {
@@ -62,11 +64,20 @@ public class PotionQuery implements Query {
 		this.splash = Utility.getElementList(splash);
 	}
 	
-	public PotionQuery(List<PotionType> type, List<Integer> level, Boolean extended, Boolean splash) {
+	public static PotionQuery fromExact(PotionType type, Integer level, Boolean extended, Boolean splash) {
+		return new PotionQuery(
+				Lists.newArrayList(type),
+				Lists.newArrayList(level), 
+				Lists.newArrayList(extended),
+				Lists.newArrayList(splash)
+		);
+	}
+	
+	public PotionQuery(List<PotionType> type, List<Integer> level, List<Boolean> extended, List<Boolean> splash) {
 		this.type = type;
 		this.level = level;
-		this.extended = Utility.getElementList(extended);
-		this.splash = Utility.getElementList(splash);
+		this.extended = extended;
+		this.splash = splash;
 	}
 	
 	public PotionQuery(Potion potionObject) {

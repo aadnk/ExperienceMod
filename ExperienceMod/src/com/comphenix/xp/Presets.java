@@ -60,7 +60,7 @@ public class Presets {
 	 */
 	public Configuration getConfiguration(String presetName, String worldName) {
 		
-		PresetQuery query = new PresetQuery(presetName, worldName);
+		PresetQuery query = PresetQuery.fromExact(presetName, worldName);
 		Configuration result = presets.get(query);
 		
 		// Determine what to return

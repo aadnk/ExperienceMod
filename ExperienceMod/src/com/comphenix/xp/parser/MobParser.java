@@ -55,9 +55,9 @@ public class MobParser extends Parser<MobQuery> {
 		}
 		
 		// Scan all unused parameters for these options first
-		Boolean spawner = spawnerParser.parseAny(tokens);
-		Boolean baby = babyParser.parseAny(tokens);
-		Boolean tamed = tamedParser.parseAny(tokens);
+		List<Boolean> spawner = spawnerParser.parseAny(tokens);
+		List<Boolean> baby = babyParser.parseAny(tokens);
+		List<Boolean> tamed = tamedParser.parseAny(tokens);
 
 		// If there are some tokens left, a problem occured
 		if (!tokens.isEmpty()) {

@@ -44,8 +44,8 @@ public class PotionParser extends Parser<PotionQuery> {
 			throw new ParsingException("Can only create potion queries from potion rules.");
 		
 		// Scan all unused parameters for these options first
-		Boolean extended = extendedParser.parseAny(tokens);
-		Boolean splash = splashParser.parseAny(tokens);
+		List<Boolean> extended = extendedParser.parseAny(tokens);
+		List<Boolean> splash = splashParser.parseAny(tokens);
 		
 		Integer maxLevel = getMaxLevel(types);
 		

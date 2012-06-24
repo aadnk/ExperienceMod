@@ -28,6 +28,7 @@ import org.bukkit.block.Block;
 import org.bukkit.inventory.ItemStack;
 
 import com.comphenix.xp.parser.Utility;
+import com.google.common.collect.Lists;
 
 /**
  * Generic immutable representation of an item/block query.
@@ -80,6 +81,13 @@ public class ItemQuery implements Query {
 	public ItemQuery(Material material, Integer data) {
 		this(material != null ? material.getId() : null, 
 			 data);
+	}
+	
+	public static ItemQuery fromExact(Integer itemID, Integer durability) {
+		return new ItemQuery(
+				Lists.newArrayList(itemID), 
+				Lists.newArrayList(durability)
+		);
 	}
 	
 	public ItemQuery(Integer itemID, Integer durability) {

@@ -7,6 +7,7 @@ import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang.builder.ToStringBuilder;
 
 import com.comphenix.xp.parser.Utility;
+import com.google.common.collect.Lists;
 
 public class PresetQuery implements Query {
 	private List<String> presetNames;
@@ -22,6 +23,20 @@ public class PresetQuery implements Query {
 		this.worlds = worlds;
 	}
 	
+	public static PresetQuery fromExact(String presetName, String world) {
+		return new PresetQuery(
+				Lists.newArrayList(presetName), 
+				Lists.newArrayList(world)
+		);
+	}
+	
+	/**
+	 * Univeral query.
+	 */
+	public PresetQuery() {
+		this((String) null, (String) null);
+	}
+
 	public boolean hasPresetNames() {
 		return presetNames != null && !presetNames.isEmpty();
 	}

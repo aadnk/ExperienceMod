@@ -6,6 +6,8 @@ import java.util.Queue;
 
 public class BooleanParser extends Parser<List<Boolean>> {
 
+	private static List<Boolean> emptyList = new ArrayList<Boolean>();
+	
 	private String parameterName;
 
 	public BooleanParser(String parameterName) {
@@ -59,9 +61,9 @@ public class BooleanParser extends Parser<List<Boolean>> {
 	/**
 	 * Transforms and returns the first non-null element from the left into an object. That element is removed.
 	 * @param tokens Queue of items.
-	 * @return The object that was removed OR null if no element could be found.
+	 * @return List containing the removed object, OR an empty list if no object was removed.
 	 */
-	public Boolean parseAny(Queue<String> tokens) throws ParsingException {
+	List<Boolean> parseAny(Queue<String> tokens) throws ParsingException {
 
 		String toRemove = null;
 		List<Boolean> result = null;
@@ -81,15 +83,15 @@ public class BooleanParser extends Parser<List<Boolean>> {
 	    	tokens.remove(toRemove);
 	    	
 	    	if (result.size() == 1)
-	    		return result.get(0);
+	    		return result;
 	    	else
 	    		// Match true and false at the same time
-	    		return null;
+	    		return emptyList;
 	    	
 	    } else {
 	    	
 	    	// Speed things up a bit
-	    	return null;
+	    	return emptyList;
 	    }
 	}
 }

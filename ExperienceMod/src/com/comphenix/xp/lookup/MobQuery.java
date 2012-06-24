@@ -33,6 +33,7 @@ import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
 import com.comphenix.xp.parser.Utility;
+import com.google.common.collect.Lists;
 
 public class MobQuery implements Query {
 
@@ -46,12 +47,13 @@ public class MobQuery implements Query {
 	// Optimize away object creations
 	private static List<EntityType> noTypes = new ArrayList<EntityType>();
 	private static List<DamageCause> noDamages = new ArrayList<DamageCause>();
+	private static List<Boolean> noBooleans = new ArrayList<Boolean>();
 	
 	/**
 	 * Universal query.
 	 */
 	public MobQuery() {
-		this(noTypes, noDamages, null, null, null);
+		this(noTypes, noDamages, noBooleans, noBooleans, noBooleans);
 	}
 	
 	public MobQuery(EntityType type) {
@@ -63,14 +65,26 @@ public class MobQuery implements Query {
 	}
 	
 	public MobQuery(List<EntityType> type, List<DamageCause> deathCause,
-			Boolean spawner, Boolean baby, Boolean tamed) {
+				    List<Boolean> spawner, List<Boolean> baby, List<Boolean> tamed) {
 		this.type = type;
 		this.deathCause = deathCause;
-		this.spawner = Utility.getElementList(spawner);
-		this.baby = Utility.getElementList(baby);
-		this.tamed = Utility.getElementList(tamed);
+		this.spawner = spawner;
+		this.baby = baby;
+		this.tamed = tamed;
 	}
 
+	public static MobQuery fromExact(EntityType type, DamageCause deathCause, 
+									 SpawnReason reason, Boolean baby, Boolean tamed) {
+		return new MobQuery(
+				Lists.newArrayList(type), 
+				Lists.newArrayList(deathCause),
+				Lists.newArrayList(reason == null ? null : 
+					(reason == SpawnReason.SPAWNER)),
+				Lists.newArrayList(baby),
+				Lists.newArrayList(tamed)
+		);
+	}
+	
 	public MobQuery(LivingEntity entity, SpawnReason reason) {
 		
 		EntityDamageEvent cause = entity.getLastDamageCause();
