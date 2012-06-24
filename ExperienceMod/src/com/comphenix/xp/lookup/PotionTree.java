@@ -24,13 +24,38 @@ import org.apache.commons.lang.NotImplementedException;
 import org.bukkit.potion.PotionType;
 import com.comphenix.xp.Range;
 
-public class PotionTree extends SearchTree<PotionQuery, Range> {
+public class PotionTree extends RangeTree<PotionQuery> implements Multipliable<PotionTree> {
 
-	private Parameter<PotionType> type = new Parameter<PotionType>();
-	private Parameter<Integer> level = new Parameter<Integer>();
-	private Parameter<Boolean> extended = new Parameter<Boolean>();
-	private Parameter<Boolean> splash = new Parameter<Boolean>();
+	protected Parameter<PotionType> type;
+	protected Parameter<Integer> level;
+	protected Parameter<Boolean> extended;
+	protected Parameter<Boolean> splash;
 
+	// For cloning
+	public PotionTree(PotionTree other, double newMultiplier) { 
+		super(newMultiplier);
+		
+		if (other == null)
+			throw new IllegalArgumentException("other");
+		
+		this.level = other.level;
+		this.extended = other.extended;
+		this.splash = other.splash;
+	}
+	
+	public PotionTree(double multiplier) {
+		super(multiplier);
+		this.type = new Parameter<PotionType>();
+		this.level = new Parameter<Integer>();
+		this.extended = new Parameter<Boolean>();
+		this.splash = new Parameter<Boolean>();
+	}
+	
+	@Override
+	public PotionTree withMultiplier(double newMultiplier) {
+		return new PotionTree(this, newMultiplier);
+	}
+	
 	@Override
 	protected Integer putFromParameters(PotionQuery source, Integer id) {
 

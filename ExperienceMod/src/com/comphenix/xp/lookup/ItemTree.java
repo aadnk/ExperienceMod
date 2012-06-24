@@ -20,12 +20,37 @@ package com.comphenix.xp.lookup;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.comphenix.xp.Range;
+public class ItemTree extends RangeTree<ItemQuery> implements Multipliable<ItemTree> {
 
-public class ItemTree extends SearchTree<ItemQuery, Range> {
+	protected Parameter<Integer> itemID;
+	protected Parameter<Integer> durability; 
 
-	private Parameter<Integer> itemID = new Parameter<Integer>();
-	private Parameter<Integer> durability = new Parameter<Integer>();
+	// Only used by the hack in PotionTree.
+	ItemTree() {
+		super(1);
+	}
+	
+	// For cloning
+	public ItemTree(ItemTree other, double newMultiplier) {
+		super(newMultiplier);
+		
+		if (other == null)
+			throw new IllegalArgumentException("other");
+		
+		this.itemID = other.itemID;
+		this.durability = other.durability;
+	}
+	
+	public ItemTree(double multiplier) {
+		super(multiplier);
+		this.itemID = new Parameter<Integer>();
+		this.durability = new Parameter<Integer>();
+	}
+
+	@Override
+	public ItemTree withMultiplier(double newMultiplier) {
+		return new ItemTree(this, newMultiplier);
+	}
 	
 	@Override
 	protected Integer putFromParameters(ItemQuery source, Integer id) {

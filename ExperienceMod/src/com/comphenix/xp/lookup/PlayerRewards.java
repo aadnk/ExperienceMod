@@ -8,13 +8,34 @@ import com.comphenix.xp.Range;
 import com.comphenix.xp.parser.Utility;
 import com.comphenix.xp.parser.ParsingException;
 
-public class PlayerRewards {
+public class PlayerRewards implements Multipliable<PlayerRewards> {
 
 	// Quick lookup of reward types
 	private static HashMap<String, Rewards> lookup = new HashMap<String, Rewards>();
 	
 	// Reward types and their range of experiences
-	private HashMap<Rewards, Range> values = new HashMap<Rewards, Range>();
+	private HashMap<Rewards, Range> values;
+	private double multiplier;
+
+	public PlayerRewards(double multiplier) {
+		this.multiplier = multiplier;
+		this.values = new HashMap<Rewards, Range>();
+	}
+	
+	// For cloning
+	public PlayerRewards(PlayerRewards other, double newMultiplier) {
+		
+		if (other == null)
+			throw new IllegalArgumentException("other");
+		
+		this.multiplier = newMultiplier;
+		this.values = other.values;
+	}
+
+	@Override
+	public PlayerRewards withMultiplier(double newMultiplier) {
+		return new PlayerRewards(this, newMultiplier);
+	}
 	
 	public enum Rewards {
 		FISHING_SUCCESS("FISHING", "FISHING_SUCCESS", "CAUGHT_FISH"),
@@ -60,12 +81,16 @@ public class PlayerRewards {
 	public Collection<Range> getValues() {
 		return values.values();
 	}
+
+	public double getMultiplier() {
+		return multiplier;
+	}
 	
 	public Range getFishingSuccess() {
-		return get(Rewards.FISHING_SUCCESS, Range.Default);
+		return get(Rewards.FISHING_SUCCESS, Range.Default).multiply(multiplier);
 	}
 
 	public Range getFishingFailure() {
-		return get(Rewards.FISHING_FAILURE, Range.Default);
+		return get(Rewards.FISHING_FAILURE, Range.Default).multiply(multiplier);
 	}
 }

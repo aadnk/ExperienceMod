@@ -13,7 +13,7 @@ public class MobTreeTest {
 	@Test
 	public void testMobQuerying() {
 
-		MobTree tree = new MobTree();
+		MobTree tree = new MobTree(1);
 		
 		MobQuery fallGib = new MobQuery(null, DamageCause.FALL, null, null, null);
 		MobQuery magicGib = new MobQuery(null, DamageCause.MAGIC, null, null, null);

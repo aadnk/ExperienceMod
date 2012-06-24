@@ -42,7 +42,7 @@ public class ItemTreeTest {
 	
 	@Test
 	public void testItemQuerying() {
-		ItemTree tree = new ItemTree();
+		ItemTree tree = new ItemTree(1);
 		
 		int redColor = (int) DyeColor.RED.getData();
 		int blueColor = (int) DyeColor.BLUE.getData();

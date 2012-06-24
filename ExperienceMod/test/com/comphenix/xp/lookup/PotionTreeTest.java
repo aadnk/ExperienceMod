@@ -11,7 +11,7 @@ public class PotionTreeTest {
 
 	@Test
 	public void test() {
-		PotionTree tree = new PotionTree();
+		PotionTree tree = new PotionTree(1);
 		
 		// Match every regen
 		PotionQuery regenUniversal = new PotionQuery(PotionType.REGEN);

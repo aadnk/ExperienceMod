@@ -24,7 +24,6 @@ import java.util.List;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
-
 import com.comphenix.xp.lookup.*;
 import com.comphenix.xp.lookup.Query.Types;
 import com.comphenix.xp.parser.ItemParser;
@@ -32,7 +31,7 @@ import com.comphenix.xp.parser.MobParser;
 import com.comphenix.xp.parser.Utility;
 import com.comphenix.xp.parser.ParsingException;
 
-public class Configuration {
+public class Configuration implements Multipliable<Configuration> {
 	
 	// Quick lookup of action types
 	private static HashMap<String, ActionTypes> lookup = 
@@ -86,6 +85,27 @@ public class Configuration {
 	private ItemParser itemParser = new ItemParser();
 	private MobParser mobParser = new MobParser();
 	
+	public Configuration(Configuration other, double newMultiplier) {
+		if (other == null)
+			throw new IllegalArgumentException("other");
+		
+		// Copy (and change) scalars
+		this.multiplier = newMultiplier;
+		this.defaultRewardsDisabled = other.defaultRewardsDisabled;
+		this.rewardType = other.rewardType;
+		
+		// Copy (shallow) trees
+		this.experienceDrop = other.experienceDrop.withMultiplier(newMultiplier);
+		this.simpleBlockReward = other.simpleBlockReward.withMultiplier(newMultiplier);
+		this.simpleBonusReward = other.simpleBonusReward.withMultiplier(newMultiplier);
+		this.simplePlacingReward = other.simplePlacingReward.withMultiplier(newMultiplier);
+		this.simpleSmeltingReward = other.simpleSmeltingReward.withMultiplier(newMultiplier);
+		this.simpleCraftingReward = other.simpleCraftingReward.withMultiplier(newMultiplier);
+		this.simpleBrewingReward = other.simpleBrewingReward.withMultiplier(newMultiplier);
+		this.complexBrewingReward = other.complexBrewingReward.withMultiplier(newMultiplier);
+		this.playerRewards = other.playerRewards.withMultiplier(newMultiplier);
+	}
+	
 	public Configuration(FileConfiguration config, Debugger debugger) {
 		this.logger = debugger;
 		loadFromConfig(config);
@@ -93,36 +113,41 @@ public class Configuration {
 	
 	private void loadFromConfig(FileConfiguration config) {
 		
-		// Clear previous values
-		experienceDrop = new MobTree();
-		simpleBlockReward = new ItemTree();
-		simpleBonusReward = new ItemTree();
-		simplePlacingReward = new ItemTree();
-		simpleSmeltingReward = new ItemTree();
-		simpleCraftingReward = new ItemTree();
-		simpleBrewingReward = new ItemTree();
-		complexBrewingReward = new PotionTree();
-		playerRewards = new PlayerRewards();
-		
 		// Load scalar values
 		if (config.isDouble(multiplierSetting))
 			multiplier = config.getDouble(multiplierSetting, 1);
 		else
 			multiplier = config.getInt(multiplierSetting, 1);
 		
+		// Whether or not to remove all default XP drops
 		defaultRewardsDisabled = config.getBoolean(defaultRewardsSetting, true);
 		
 		// Load reward type
 		rewardType = loadReward(config.getString(rewardTypeSetting));
 		
+		// Clear previous values
+		experienceDrop = new MobTree(multiplier);
+		simpleBlockReward = new ItemTree(multiplier);
+		simpleBonusReward = new ItemTree(multiplier);
+		simplePlacingReward = new ItemTree(multiplier);
+		simpleSmeltingReward = new ItemTree(multiplier);
+		simpleCraftingReward = new ItemTree(multiplier);
+		simpleBrewingReward = new ItemTree(multiplier);
+		complexBrewingReward = new PotionTree(multiplier);
+		playerRewards = new PlayerRewards(multiplier);
+
 		// Load mob experience
 		loadMobs(config.getConfigurationSection("mobs"));
 		loadItemActions(config.getConfigurationSection("items"));
 		loadGenericRewards(config.getConfigurationSection("player"));
-		
+		checkRewards();
+	}
+	
+	private void checkRewards() {
 		// Are any rewards negative
 		if (rewardType == RewardTypes.EXPERIENCE && hasNegativeRewards()) {
-			logger.printWarning(this, "Cannot use negative rewards with the experience reward type.");
+			logger.printWarning(this, 
+					"Cannot use negative rewards with the experience reward type.");
 		}
 	}
 	
@@ -172,7 +197,7 @@ public class Configuration {
 				MobQuery query = mobParser.parse(key);
 				
 				if (value != null)
-					experienceDrop.put(query, value.multiply(multiplier));
+					experienceDrop.put(query, value);
 				else
 					logger.printWarning(this, "Unable to parse range/value on entity %s.", key);
 				
@@ -239,7 +264,7 @@ public class Configuration {
 				Range value = readRange(config, key, null);
 				
 				if (value != null)
-					playerRewards.put(key, value.multiply(multiplier));
+					playerRewards.put(key, value);
 				else
 					logger.printWarning(this, "Unable to parse range on player reward %s.", key);
 				
@@ -263,7 +288,7 @@ public class Configuration {
 		
 		// Ignore this type
 		if (range != null) {
-			destination.put(item, range.multiply(multiplier));
+			destination.put(item, range);
 		} else {
 			logger.printWarning(this, "Unable to read range on %s.", key);
 		}
@@ -304,6 +329,12 @@ public class Configuration {
 		}
 	}
 	
+	@Override
+	public Configuration withMultiplier(double newMultiplier) {
+		return new Configuration(this, newMultiplier);
+	}
+
+	@Override
 	public double getMultiplier() {
 		return multiplier;
 	}

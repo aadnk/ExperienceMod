@@ -23,16 +23,42 @@ import java.util.Set;
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
-import com.comphenix.xp.Range;
-
-public class MobTree extends SearchTree<MobQuery, Range> {
+public class MobTree extends RangeTree<MobQuery> implements Multipliable<MobTree> {
 
 	// DON'T CARE fields are marked with NULL
-	private Parameter<EntityType> type = new Parameter<EntityType>();
-	private Parameter<DamageCause> deathCause = new Parameter<DamageCause>();
-	private Parameter<Boolean> spawner = new Parameter<Boolean>();
-	private Parameter<Boolean> baby = new Parameter<Boolean>();
-	private Parameter<Boolean> tamed = new Parameter<Boolean>();
+	protected Parameter<EntityType> type;
+	protected Parameter<DamageCause> deathCause;
+	protected Parameter<Boolean> spawner;
+	protected Parameter<Boolean> baby;
+	protected Parameter<Boolean> tamed;
+	
+	// For cloning
+	protected MobTree(MobTree other, double newMultiplier) { 
+		super(newMultiplier);
+		
+		if (other == null)
+			throw new IllegalArgumentException("other");
+		
+		this.type = other.type;
+		this.deathCause = other.deathCause;
+		this.spawner = other.spawner;
+		this.baby = other.baby;
+		this.tamed = other.tamed;
+	}
+	
+	public MobTree(double multiplier) {
+		super(multiplier);
+		this.type = new Parameter<EntityType>();
+		this.deathCause = new Parameter<DamageCause>();
+		this.spawner = new Parameter<Boolean>();
+		this.baby = new Parameter<Boolean>();
+		this.tamed = new Parameter<Boolean>();
+	}
+
+	@Override
+	public MobTree withMultiplier(double newMultiplier) {
+		return new MobTree(this, newMultiplier);
+	}
 	
 	@Override
 	protected Integer putFromParameters(MobQuery source, Integer id) {
