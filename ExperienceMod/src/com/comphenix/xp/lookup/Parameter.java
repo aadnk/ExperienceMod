@@ -20,6 +20,31 @@ public class Parameter<TParam> {
 			putSingle(param, id);
 		}
 	}
+	
+	/**
+	 * Insert every parameter key and its corresponding ID list from the given parameter.
+	 * @param other Given parameter.
+	 * @param offsetID The amount to increment every ID in the given parameter.
+	 */
+	public void putAll(Parameter<TParam> other, Integer offsetID) {
+		
+		// Associate every parameter
+		for (TParam param : other.reverseLookup.keySet()) {
+			
+			Set<Integer> list = reverseLookup.get(param);
+			
+			// Initialize the list
+			if (list == null) {
+				list = new HashSet<Integer>();
+				reverseLookup.put(param, list);
+			}
+			
+			// Add every ID
+			for (Integer id : other.reverseLookup.get(param)) {
+				list.add(offsetID + id);
+			}
+		}
+	}
 
 	private void putSingle(TParam param, Integer id) {
 		

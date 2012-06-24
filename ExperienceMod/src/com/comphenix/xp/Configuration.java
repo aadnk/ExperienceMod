@@ -22,7 +22,6 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
 
 import com.comphenix.xp.lookup.*;
 import com.comphenix.xp.lookup.Query.Types;
@@ -85,12 +84,20 @@ public class Configuration implements Multipliable<Configuration> {
 	private ItemParser itemParser = new ItemParser();
 	private MobParser mobParser = new MobParser();
 	
+	public Configuration(Debugger debugger) {
+		this.logger = debugger;
+		this.rewardType = RewardTypes.EXPERIENCE;
+		this.defaultRewardsDisabled = false;
+		initialize(1);
+	}
+	
 	public Configuration(Configuration other, double newMultiplier) {
 		if (other == null)
 			throw new IllegalArgumentException("other");
 		
 		// Copy (and change) scalars
 		this.multiplier = newMultiplier;
+		this.logger = other.logger;
 		this.defaultRewardsDisabled = other.defaultRewardsDisabled;
 		this.rewardType = other.rewardType;
 		
@@ -104,26 +111,78 @@ public class Configuration implements Multipliable<Configuration> {
 		this.simpleBrewingReward = other.simpleBrewingReward.withMultiplier(newMultiplier);
 		this.complexBrewingReward = other.complexBrewingReward.withMultiplier(newMultiplier);
 		this.playerRewards = other.playerRewards.withMultiplier(newMultiplier);
+		this.checkRewards();
 	}
 	
-	public Configuration(FileConfiguration config, Debugger debugger) {
+	public Configuration(ConfigurationSection config, Debugger debugger) {
 		this.logger = debugger;
 		loadFromConfig(config);
 	}
 	
-	private void loadFromConfig(FileConfiguration config) {
+	/**
+	 * Merge a list of configurations into a new configuration.
+	 * 
+	 * @param configurations List of configurations.
+	 * @return Merged configuration.
+	 */
+	public static Configuration fromMultiple(List<Configuration> configurations, Debugger debugger) {
+		
+		if (configurations == null)
+			return null;
+		else if (configurations.size() == 0)
+			return null;
+		else if (configurations.size() == 1)
+			return configurations.get(0);
+		
+		Configuration copy = new Configuration(debugger);
+		
+		// Merge everything in order
+		for (Configuration config : configurations) {
+			copy.complexBrewingReward.putAll(config.complexBrewingReward);
+			copy.experienceDrop.putAll(config.experienceDrop);
+			copy.playerRewards.putAll(config.playerRewards);
+			copy.simpleBlockReward.putAll(config.simpleBlockReward);
+			copy.simpleBonusReward.putAll(config.simpleBonusReward);
+			copy.simpleBrewingReward.putAll(config.simpleBrewingReward);
+			copy.simpleCraftingReward.putAll(config.simpleCraftingReward);
+			copy.simplePlacingReward.putAll(config.simplePlacingReward);
+			copy.simpleSmeltingReward.putAll(config.simpleSmeltingReward);
+			
+			// This will be the last set value
+			copy.defaultRewardsDisabled = config.defaultRewardsDisabled;
+			copy.rewardType = config.rewardType;
+			
+			// Multiply all multipliers
+			copy.multiplier *= config.multiplier; 
+		}
+		
+		// Update multiplier
+		return new Configuration(copy, copy.multiplier);
+	}
+	
+	private void loadFromConfig(ConfigurationSection config) {
 		
 		// Load scalar values
 		if (config.isDouble(multiplierSetting))
 			multiplier = config.getDouble(multiplierSetting, 1);
 		else
 			multiplier = config.getInt(multiplierSetting, 1);
-		
+
 		// Whether or not to remove all default XP drops
 		defaultRewardsDisabled = config.getBoolean(defaultRewardsSetting, true);
 		
 		// Load reward type
 		rewardType = loadReward(config.getString(rewardTypeSetting));
+		initialize(multiplier);
+
+		// Load mob experience
+		loadMobs(config.getConfigurationSection("mobs"));
+		loadItemActions(config.getConfigurationSection("items"));
+		loadGenericRewards(config.getConfigurationSection("player"));
+		checkRewards();
+	}
+	
+	private void initialize(double multiplier) {
 		
 		// Clear previous values
 		experienceDrop = new MobTree(multiplier);
@@ -135,12 +194,6 @@ public class Configuration implements Multipliable<Configuration> {
 		simpleBrewingReward = new ItemTree(multiplier);
 		complexBrewingReward = new PotionTree(multiplier);
 		playerRewards = new PlayerRewards(multiplier);
-
-		// Load mob experience
-		loadMobs(config.getConfigurationSection("mobs"));
-		loadItemActions(config.getConfigurationSection("items"));
-		loadGenericRewards(config.getConfigurationSection("player"));
-		checkRewards();
 	}
 	
 	private void checkRewards() {

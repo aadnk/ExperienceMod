@@ -135,4 +135,14 @@ public class PotionTree extends RangeTree<PotionQuery> implements Multipliable<P
 			}
 		};
 	}
+	
+	@Override
+	protected void putAllParameters(SearchTree<PotionQuery, Range> other, Integer offset) {
+		PotionTree tree = (PotionTree) other;
+
+		type.putAll(tree.type, offset);
+		level.putAll(tree.level, offset);
+		extended.putAll(tree.extended, offset);
+		splash.putAll(tree.splash, offset);
+	}
 }

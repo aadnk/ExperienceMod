@@ -23,6 +23,8 @@ import java.util.Set;
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
+import com.comphenix.xp.Range;
+
 public class MobTree extends RangeTree<MobQuery> implements Multipliable<MobTree> {
 
 	// DON'T CARE fields are marked with NULL
@@ -114,5 +116,16 @@ public class MobTree extends RangeTree<MobQuery> implements Multipliable<MobTree
 		}
 		
 		return candidates;
+	}
+
+	@Override
+	protected void putAllParameters(SearchTree<MobQuery, Range> other, Integer offset) {
+		MobTree tree = (MobTree) other;
+
+		type.putAll(tree.type, offset);
+		deathCause.putAll(tree.deathCause, offset);
+		spawner.putAll(tree.spawner, offset);
+		baby.putAll(tree.baby, offset);
+		tamed.putAll(tree.tamed, offset);
 	}
 }

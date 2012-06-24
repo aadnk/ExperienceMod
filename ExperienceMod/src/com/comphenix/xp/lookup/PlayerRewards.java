@@ -67,6 +67,12 @@ public class PlayerRewards implements Multipliable<PlayerRewards> {
 		}
 	}
 	
+	public void putAll(PlayerRewards other) {
+		
+		// Copies all set values
+		values.putAll(other.values);
+	}
+	
 	public Range get(Rewards key, Range defaultValue) {
 		Range result = values.get(key);
 	

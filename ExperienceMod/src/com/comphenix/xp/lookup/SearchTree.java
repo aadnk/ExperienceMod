@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public abstract class SearchTree<TKey, TValue> {
@@ -45,6 +46,26 @@ public abstract class SearchTree<TKey, TValue> {
 		
 		paramCount.put(id, count);
 		return id;
+	}
+	
+	public void putAll(SearchTree<TKey, TValue> other) {
+
+		int offset = getNextID();
+		int highest = offset;
+		
+		// Insert everything from flatten
+		for (Map.Entry<Integer, TValue> entry : other.flatten.entrySet()) {
+			flatten.put(entry.getKey() + offset, entry.getValue());
+			highest = Math.max(highest, entry.getKey());
+		}
+		
+		// And from parameter count
+		for (Map.Entry<Integer, Integer> entry : other.paramCount.entrySet())
+			paramCount.put(entry.getKey() + offset, entry.getValue());
+		
+		// Make sure the parameters are updated too
+		putAllParameters(other, offset);
+		currentID = highest;
 	}
 	
 	public TValue get(TKey element) {
@@ -100,6 +121,7 @@ public abstract class SearchTree<TKey, TValue> {
 		return flatten.values();
 	}
 	
+	protected abstract void putAllParameters(SearchTree<TKey, TValue> other, Integer offset);
 	protected abstract Integer putFromParameters(TKey source, Integer id);
 	protected abstract Set<Integer> getFromParameters(TKey source);
 	

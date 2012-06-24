@@ -20,6 +20,8 @@ package com.comphenix.xp.lookup;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.comphenix.xp.Range;
+
 public class ItemTree extends RangeTree<ItemQuery> implements Multipliable<ItemTree> {
 
 	protected Parameter<Integer> itemID;
@@ -83,5 +85,14 @@ public class ItemTree extends RangeTree<ItemQuery> implements Multipliable<ItemT
 		
 		// Any remaining items will be sorted by specificity
 		return candidates;
+	}
+
+	@Override
+	protected void putAllParameters(SearchTree<ItemQuery, Range> other, Integer offset) {
+
+		ItemTree tree = (ItemTree) other;
+
+		itemID.putAll(tree.itemID, offset);
+		durability.putAll(tree.durability, offset);
 	}
 }
