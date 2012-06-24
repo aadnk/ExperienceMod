@@ -90,8 +90,8 @@ public class MobQuery implements Query {
 		EntityDamageEvent cause = entity.getLastDamageCause();
 		DamageCause deathCause = null;
 		
-		Boolean paramBaby = null;
-		Boolean paramTamed = null;
+		Boolean paramBaby = false;
+		Boolean paramTamed = false;
 		
 		if (cause != null) {
 			deathCause = cause.getCause();
