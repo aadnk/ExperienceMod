@@ -69,8 +69,10 @@ public class Configuration implements Multipliable<Configuration> {
 	
 	private double multiplier;
 	private boolean defaultRewardsDisabled;
-	private RewardTypes rewardType;
 	
+	private RewardTypes rewardType;
+	private Rewardable rewardManager;
+
 	private MobTree experienceDrop;
 	private ItemTree simpleBlockReward;
 	private ItemTree simpleBonusReward;
@@ -123,6 +125,7 @@ public class Configuration implements Multipliable<Configuration> {
 	 * Merge a list of configurations into a new configuration.
 	 * 
 	 * @param configurations List of configurations.
+	 * @param debugger Debugger instance.
 	 * @return Merged configuration.
 	 */
 	public static Configuration fromMultiple(List<Configuration> configurations, Debugger debugger) {
@@ -353,19 +356,15 @@ public class Configuration implements Multipliable<Configuration> {
 		String end = key + ".last";
 		
 		if (config.isDouble(key)) {
-	
 			return new Range(config.getDouble(key));
-		
-		} else if (config.isInt(key)) {
 			
+		} else if (config.isInt(key)) {
 			return new Range((double) config.getInt(key));
 			
 		} else if (config.contains(start) && config.contains(end)) {
-			
 			return new Range(config.getDouble(start), config.getDouble(end));
 	
 		} else if (config.isList(key)) {
-			
 			// Try to get a double list
 			List<Double> attempt = config.getDoubleList(key);
 
@@ -434,5 +433,17 @@ public class Configuration implements Multipliable<Configuration> {
 	
 	public RewardTypes getRewardType() {
 		return rewardType;
+	}
+	
+	public void setRewardType(RewardTypes rewardType) {
+		this.rewardType = rewardType;
+	}
+	
+	public Rewardable getRewardManager() {
+		return rewardManager;
+	}
+
+	public void setRewardManager(Rewardable rewardManager) {
+		this.rewardManager = rewardManager;
 	}
 }

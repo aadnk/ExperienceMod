@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Random;
 
 import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
@@ -59,9 +60,7 @@ public class ExperienceListener implements Listener {
 
 	private JavaPlugin parentPlugin;
 	private Debugger debugger;
-	private Configuration configuration;
-	
-	private Rewardable rewardManager = new RewardExperience();
+	private Presets presets;
 	
 	// To determine spawn reason
 	private HashMap<Integer, SpawnReason> spawnReasonLookup = new HashMap<Integer, SpawnReason>();
@@ -69,37 +68,34 @@ public class ExperienceListener implements Listener {
 	// Random source
 	private Random random = new Random();
 	
-	public ExperienceListener(JavaPlugin parentPlugin, Debugger debugger, Configuration configuration) {
+	public ExperienceListener(JavaPlugin parentPlugin, Debugger debugger, Presets presets) {
 		this.parentPlugin = parentPlugin;
 		this.debugger = debugger;
-		setConfiguration(configuration);
+		setPresets(presets);
 	}
 	
-	public Configuration getConfiguration() {
-		return configuration;
+	public Presets getPresets() {
+		return presets;
 	}
 
-	public void setConfiguration(Configuration configuration) {
-		this.configuration = configuration;
-	}
-	
-	public Rewardable getRewardManager() {
-		return rewardManager;
-	}
-
-	public void setRewardManager(Rewardable rewardManager) {
-		this.rewardManager = rewardManager;
+	public void setPresets(Presets presets) {
+		this.presets = presets;
 	}
 
 	public String getPermissionRewardPlacing() {
 		return permissionRewardPlacing;
 	}
 
+	public Configuration getConfiguration(Player player) {
+		return presets.getConfiguration(player);
+	}
+	
+	public Configuration getConfiguration(World world) {
+		return presets.getConfiguration(null, world.getName());
+	}
+	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockBreakEvent(BlockBreakEvent event) {
-		
-		ItemTree blockReward = configuration.getSimpleBlockReward();
-		ItemTree bonusReward = configuration.getSimpleBonusReward();
 		
 		Block block = event.getBlock();
 		Player player = event.getPlayer();
@@ -113,22 +109,35 @@ public class ExperienceListener implements Listener {
 			boolean allowBlockReward = player.hasPermission(permissionRewardBlock) && !hasSilkTouch(toolItem);
 			boolean allowBonusReward = player.hasPermission(permissionRewardBonus);
 
-			if (blockReward.containsKey(retrieveKey) && allowBlockReward) {
-				int exp = blockReward.get(retrieveKey).sampleInt(random);
-				
-				rewardManager.reward(player, block.getLocation(), exp);
-				debugger.printDebug(this, "Block mined by %s: Spawned %d xp for item %s.", 
-									    player.getName(), exp, block.getType());
+			// Only without silk touch
+			if (allowBlockReward) {
+				Configuration config = getConfiguration(player);
+
+				if (config.getSimpleBlockReward().containsKey(retrieveKey))
+					handleBlockEvent("Block mined by %s: Spawned %d xp for item %s.", 
+							config.getRewardManager(), config.getSimpleBlockReward(), 
+							retrieveKey, block, player);
 			}
 			
-			if (bonusReward.containsKey(retrieveKey) && allowBonusReward) {
-				int exp = bonusReward.get(retrieveKey).sampleInt(random);
+			if (allowBonusReward) {
+				Configuration config = getConfiguration(player);
 
-				rewardManager.reward(player, block.getLocation(), exp);
-				debugger.printDebug(this, "Block destroyed by %s: Spawned %d xp for item %s.", 
-					    player.getName(), exp, block.getType());
+				if (config.getSimpleBonusReward().containsKey(retrieveKey))
+					handleBlockEvent("Block destroyed by %s: Spawned %d xp for item %s.", 
+									 config.getRewardManager(), config.getSimpleBonusReward(), 
+									 retrieveKey, block, player);
 			}
 		}
+	}
+	
+	private void handleBlockEvent(String debugMessage, Rewardable manager, 
+								  ItemTree reward, ItemQuery query, 
+								  Block block, Player player) {
+		
+		int exp = reward.get(query).sampleInt(random);
+		
+		manager.reward(player, block.getLocation(), exp);
+		debugger.printDebug(this, debugMessage, player.getName(), exp, block.getType());
 	}
 	
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true) 
@@ -142,13 +151,15 @@ public class ExperienceListener implements Listener {
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void onPlayerFishEvent(PlayerFishEvent event) {
 		
-		PlayerRewards playerReward = configuration.getPlayerRewards();
 		Player player = event.getPlayer();
 		
 		String message = null;
 		Range reward = null;
 
 		if (player != null && player.hasPermission(permissionRewardFishing)) {
+			
+			Configuration config = getConfiguration(player);
+			PlayerRewards playerReward = config.getPlayerRewards();
 			
 			// Reward type
 			switch (event.getState()) {
@@ -167,17 +178,14 @@ public class ExperienceListener implements Listener {
 			if (reward != null) {
 				int exp = reward.sampleInt(random);
 				
-				rewardManager.reward(player, player.getLocation(), exp);
+				config.getRewardManager().reward(player, player.getLocation(), exp);
 				debugger.printDebug(this, message, player.getName(), exp);
 			}
 		}
 	}
 	
-	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockPlaceEvent(BlockPlaceEvent event) {
-		
-		ItemTree placeReward = configuration.getSimplePlacingReward();
 		
 		Block block = event.getBlock();
 		Player player = event.getPlayer();
@@ -186,11 +194,16 @@ public class ExperienceListener implements Listener {
 		if (block != null && player != null) { 
 			
 			boolean allowPlacingReward = player.hasPermission(permissionRewardPlacing);
-			ItemQuery retrieveKey = new ItemQuery(block);
 			
-			if (placeReward.containsKey(retrieveKey) && allowPlacingReward) {
-				int exp = placeReward.get(retrieveKey).sampleInt(random);
-				rewardManager.reward(player, exp);
+			if (allowPlacingReward) {
+				Configuration config = getConfiguration(player);
+				ItemQuery retrieveKey = new ItemQuery(block);
+				ItemTree placeReward = config.getSimplePlacingReward();
+				
+				if (placeReward.containsKey(retrieveKey)) {
+					int exp = placeReward.get(retrieveKey).sampleInt(random);
+					config.getRewardManager().reward(player, exp);
+				}
 			}
 		}
 	}
@@ -198,6 +211,7 @@ public class ExperienceListener implements Listener {
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onEntityDeathEvent(EntityDeathEvent event) {
 		
+		Configuration config;
 		LivingEntity entity = event.getEntity();
 		boolean hasKiller = entity.getKiller() != null;
 		
@@ -206,7 +220,13 @@ public class ExperienceListener implements Listener {
 			
 			Integer id = entity.getEntityId();
 			MobQuery query = new MobQuery(entity, spawnReasonLookup.get(id));
-			Range reward = configuration.getExperienceDrop().get(query);
+
+			if (hasKiller)
+				config = getConfiguration(entity.getKiller());
+			else
+				config = getConfiguration(entity.getWorld());
+			
+			Range reward = config.getExperienceDrop().get(query);
 
 			// Make sure the reward has been changed
 			if (reward != null) {
@@ -215,19 +235,19 @@ public class ExperienceListener implements Listener {
 				event.setDroppedExp(xp);
 				debugger.printDebug(this, "Entity %d: Changed experience drop to %d", id, xp);
 			
-			} else if (configuration.isDefaultRewardsDisabled() && hasKiller) {
+			} else if (config.isDefaultRewardsDisabled() && hasKiller) {
 				
 				// Disable all mob XP
 				event.setDroppedExp(0);
 				debugger.printDebug(this, "Entity %d: Default mob experience disabled.", id);
 	
-			} else if (!configuration.isDefaultRewardsDisabled() && hasKiller) {
+			} else if (!config.isDefaultRewardsDisabled() && hasKiller) {
 				
 				int expDropped = event.getDroppedExp();
 				
 				// Alter the default experience drop too
-				if (configuration.getMultiplier() != 1) {
-					Range increase = new Range(expDropped * configuration.getMultiplier());
+				if (config.getMultiplier() != 1) {
+					Range increase = new Range(expDropped * config.getMultiplier());
 					int expChanged = increase.sampleInt(random);
 					
 					debugger.printDebug(this, "Entity %d: Changed experience drop to %d", id, expChanged);
@@ -252,37 +272,43 @@ public class ExperienceListener implements Listener {
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onInventoryClickEvent(InventoryClickEvent event) {
 
-		ItemTree smeltingReward = configuration.getSimpleSmeltingReward();
-		ItemTree craftingReward = configuration.getSimpleCraftingReward();
-		ItemTree brewingReward = configuration.getSimpleBrewingReward();
-		PotionTree complexReward = configuration.getComplexBrewingReward();
-		
+		Player player = (Player) event.getWhoClicked();
+		Configuration config = null;
+
 		// Was this from a result slot (crafting, smelting or brewing)?
-		if (event.getInventory() != null &&
+		if (player != null &&
+		    event.getInventory() != null &&
 		    event.getSlotType() == SlotType.RESULT) {
 			
 			// Handle different types
 			switch (event.getInventory().getType()) {
 			case BREWING:
-				handleInventory(permissionRewardBrewing, event, brewingReward);
+				config = getConfiguration(player);
+				handleInventory(permissionRewardBrewing, event, 
+						config.getRewardManager(), config.getSimpleBrewingReward());
 				
 				// Yes, this feels a bit like a hack to me too. Blame faulty design. Anyways, the point
 				// is that we get to check more complex potion matching rules, like "match all splash potions"
 				// or "match all level 2 regen potions (splash or not)".
-				handleInventory(permissionRewardBrewing, event, complexReward.getItemQueryAdaptor());
+				handleInventory(permissionRewardBrewing, event, 
+						config.getRewardManager(), config.getComplexBrewingReward().getItemQueryAdaptor());
 				break;
 			case CRAFTING:
 			case WORKBENCH:
-				handleCrafting(permissionRewardCrafting, event, craftingReward);
+				config = getConfiguration(player);
+				handleCrafting(permissionRewardCrafting, event, 
+						config.getRewardManager(), config.getSimpleCraftingReward());
 				break;
 			case FURNACE:
-				handleInventory(permissionRewardSmelting, event, smeltingReward);
+				config = getConfiguration(player);
+				handleInventory(permissionRewardSmelting, event, 
+						config.getRewardManager(), config.getSimpleSmeltingReward());
 				break;
 			}
 		}
 	}
 	
-	private void handleInventory(String permission, InventoryClickEvent event, ItemTree rewards)
+	private void handleInventory(String permission, InventoryClickEvent event, Rewardable manager, ItemTree rewards)
 	{
 		HumanEntity player = event.getWhoClicked();
 		ItemStack toRetrieve = event.getCurrentItem();
@@ -301,14 +327,14 @@ public class ExperienceListener implements Listener {
 				int exp = rewards.get(matchKey).sampleInt(random) * Math.max(factor, 1);
 				
 				// Give the experience straight to the user
-				rewardManager.reward((Player) player, exp);
-				debugger.printDebug(this, "User %s has %s permission. Spawned %d xp for item %s.", 
+				manager.reward((Player) player, exp);
+				debugger.printDebug(this, "User %s - spawned %d xp for item %s.", 
 						player.getName(), permission, exp, toRetrieve.getType());
 			}
 		}
 	}
 	
-	private void handleCrafting(String permission, InventoryClickEvent event, ItemTree rewards) {
+	private void handleCrafting(String permission, InventoryClickEvent event, Rewardable manager, ItemTree rewards) {
 		
 		HumanEntity player = event.getWhoClicked();
 		ItemStack toCraft = event.getCurrentItem();
@@ -330,17 +356,17 @@ public class ExperienceListener implements Listener {
 			
 			if (event.isShiftClick()) {
 				// Hack ahoy
-				schedulePostCraftingReward(player, expPerItem, toCraft);
+				schedulePostCraftingReward(player, manager, expPerItem, toCraft);
 			} else {
 				// The items are stored in the cursor. Make sure there's enough space.
 				if (isStackSumLegal(toCraft, toStore)) {
 					int exp = toCraft.getAmount() * expPerItem;
 					
 					// Give the experience straight to the user
-					rewardManager.reward((Player) player, exp);
+					manager.reward((Player) player, exp);
 				
 					// Like above
-					debugger.printDebug(this, "User %s has %s permission. Spawned %d xp for item %s.", 
+					debugger.printDebug(this, "User %s - spawned %d xp for item %s.", 
 							player.getName(), permission, exp, toCraft.getType());
 				}
 			}
@@ -349,7 +375,9 @@ public class ExperienceListener implements Listener {
 	
 	// HACK! The API doesn't allow us to easily determine the resulting number of
 	// crafted items, so we're forced to compare the inventory before and after.
-	private void schedulePostCraftingReward(final HumanEntity player, final int expPerItem, final ItemStack compareItem) {
+	private void schedulePostCraftingReward(final HumanEntity player, final Rewardable manager, 
+											final int expPerItem, final ItemStack compareItem) {
+		
 		final ItemStack[] preInv = player.getInventory().getContents();
 		final int ticks = 1; // May need adjusting
 		
@@ -375,10 +403,10 @@ public class ExperienceListener implements Listener {
 				}
 				
 				if (newItemsCount > 0) {
-					rewardManager.reward((Player) player, expPerItem * newItemsCount);
+					manager.reward((Player) player, expPerItem * newItemsCount);
 					
 					// We know this is from crafting
-					debugger.printDebug(this, "User %s has %s permission. Spawned %d xp for %d items of %s.", 
+					debugger.printDebug(this, "User %s - spawned %d xp for %d items of %s.", 
 							player.getName(), permissionRewardCrafting, expPerItem * newItemsCount, 
 							newItemsCount, compareItem.getType());
 				}

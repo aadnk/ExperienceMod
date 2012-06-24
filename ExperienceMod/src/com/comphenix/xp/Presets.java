@@ -2,12 +2,21 @@ package com.comphenix.xp;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
+import net.milkbowl.vault.chat.Chat;
+
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 
+import com.comphenix.xp.lookup.PresetQuery;
+import com.comphenix.xp.lookup.PresetTree;
+import com.comphenix.xp.parser.ParsingException;
+import com.comphenix.xp.parser.PresetParser;
 import com.google.common.collect.Lists;
 
 /**
@@ -16,57 +25,82 @@ import com.google.common.collect.Lists;
 public class Presets {
 
 	// Mapping of preset name and configuration
-	private HashMap<String, Configuration> presets;
+	private PresetTree presets;
+	
+	// Parser
+	private PresetParser presetParser = new PresetParser();
 	
 	// Cache of configurations
 	private HashMap<File, Configuration> configurationFiles;
-	
 	private Debugger logger;
-	private Configuration defaultConfiguration;
 	
-	public Presets(ConfigurationSection config, Debugger debugger, File dataFolder) {
+	// Chat
+	private Chat chat;
+	
+	public Presets(ConfigurationSection config, Debugger debugger, Chat chat, File dataFolder) {
 		this.logger = debugger;
-		this.presets = new HashMap<String, Configuration>();
+		this.presets = new PresetTree();
+		this.chat = chat;
 		this.configurationFiles = new HashMap<File, Configuration>();
 		
 		loadPresets(config, dataFolder);
+		configurationFiles.clear();
 	}
 	
 	/**
 	 * Retrieves a stored configuration from a key value.
 	 * @param keyName Key value of the configuration to retrieve.
-	 * @param useDefault TRUE to return the default configuration if no such key exists.
-	 * @return The stored configuration, or the default configuration if useDefault is TRUE; null otherwise.
+	 * @param worldName TRUE to return the default configuration if no such key exists.
+	 * @return The stored configuration, or NULL if no configuration exists.
 	 */
-	public Configuration getConfiguration(String keyName, boolean useDefault) {
+	public Configuration getConfiguration(String presetName, String worldName) {
 		
-		Configuration result = presets.get(keyName); 
+		PresetQuery query = new PresetQuery(presetName, worldName);
+		Configuration result = presets.get(query);
 		
 		// Determine what to return
 		if (result != null)
 			return result;
-		else if (useDefault)
-			return defaultConfiguration;
 		else
 			return null;
+	}
+	
+	public Configuration getConfiguration(CommandSender sender) {
+		
+		String preset = null;
+		String world = null;
+		
+		if (chat != null && sender instanceof Player) {
+			Player player = (Player) sender;
+			preset = chat.getPlayerInfoString(player, "experience", null);
+			world = player.getWorld().getName();
+		}
+		
+		return getConfiguration(preset, world);
 	}
 	
 	private void loadPresets(ConfigurationSection section, File dataFolder) {
 		for (String key : section.getKeys(false)) { 
 			
-			// Load section
-			Configuration data = loadPreset(
-					section.getConfigurationSection(key), dataFolder);
+			// Load query
+			try {
+				PresetQuery query = presetParser.parse(key);
 			
-			if (data != null)
-				presets.put(key, data);
+				// Load section
+				Configuration data = loadPreset(
+						section.getConfigurationSection(key), dataFolder);
+				
+				if (data != null)
+					presets.put(query, data);
+			
+			} catch (ParsingException ex) {
+				logger.printWarning(this, "Cannot parse preset - %s", ex.getMessage());
+			}
 		}
 	}
 	
 	private Configuration loadPreset(ConfigurationSection data, File dataFolder) {
 		
-		boolean isDefault = data.getBoolean("default", false);
-
 		List<Configuration> files = getConfigurations(data, dataFolder);
 		Configuration local = getLocal(data);
 		Configuration result = null;
@@ -81,14 +115,6 @@ public class Presets {
 			result = new Configuration(logger);
 		else
 			result = Configuration.fromMultiple(files, logger);
-		
-		// Update default value
-		if (isDefault) {
-			if (defaultConfiguration != null)
-				logger.printWarning(this, "Multiple default sections detected!");
-			
-			defaultConfiguration = result;
-		}
 		
 		return result;
 	}
@@ -145,5 +171,9 @@ public class Presets {
 			// Return previously computed value
 			return configurationFiles.get(path);
 		}
+	}
+
+	public Collection<Configuration> getConfigurations() {
+		return presets.getValues();
 	}
 }

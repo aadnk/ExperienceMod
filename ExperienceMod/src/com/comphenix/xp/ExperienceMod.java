@@ -18,13 +18,19 @@ package com.comphenix.xp;
  */
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.MissingResourceException;
 import java.util.logging.Logger;
 
+import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.economy.Economy;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -35,6 +41,8 @@ import com.comphenix.xp.commands.CommandSpawnExp;
 
 public class ExperienceMod extends JavaPlugin implements Debugger {
 	
+	private static final int DEFAULT_BUFFER_SIZE = 1024 * 4;
+
 	private final String permissionInfo = "experiencemod.info";
 	
 	private final String commandReload = "experiencemod";
@@ -42,11 +50,13 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	
 	private Logger currentLogger;
 	private PluginManager manager;
+	
 	private Economy economy;
+	private Chat chat;
 	
 	private ExperienceListener listener;
 	private ExperienceInformer informer;
-	private Configuration configuration;
+	private Presets presets;
 	
 	// Commands
 	private CommandExperienceMod commandExperienceMod;
@@ -67,74 +77,96 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		// Load economy, if it exists
 		if (!hasEconomy())
 			setupEconomy();
+		if (!hasChat())
+			setupChat();
 		
-		// Initialize configuration
-		loadDefaults(false);
+		try {
+			// Initialize configuration
+			loadDefaults(false);
+			
+			// Register listeners
+			manager.registerEvents(listener, this);
+			manager.registerEvents(informer, this);
 		
-		// Register listeners
-		manager.registerEvents(listener, this);
-		manager.registerEvents(informer, this);
+		} catch (IOException e) {
+			currentLogger.severe("IO error when loading configurations: " + e.getMessage());
+		}
 		
 		// Register commands
 		getCommand(commandReload).setExecutor(commandExperienceMod);
 		getCommand(commandSpawnExp).setExecutor(commandSpawn);
 	}
 	
-	public void loadDefaults(boolean reload) {
-		FileConfiguration config = getConfig();
-		File path = new File(getDataFolder(), "config.yml");
+	public YamlConfiguration loadConfig(String name, String createMessage) throws IOException {
 		
-		// Reset warnings
-		informer.clearMessages();
+		File savedFile = new File(getDataFolder(), name);
 		
-		// See if we need to create the file
-		if (!path.exists()) {
-			// Supply default values if empty
-			config.options().copyDefaults(true);
-			saveConfig();
-			currentLogger.info("Creating default configuration file.");
+		// Reload the saved configuration
+		if (!savedFile.exists()) {
+
+			// Get the default file
+			InputStream input = ExperienceMod.class.getResourceAsStream("/" + name);
+			
+			// Make sure the directory exists 
+			if (!savedFile.getParentFile().mkdirs()) {
+				throw new IOException("Could not create the directory " + savedFile.getParent());
+			}
+			
+			OutputStream output = new FileOutputStream(savedFile);
+			
+			// Check just in case
+			if (input == null) {
+				throw new MissingResourceException(
+						"Cannot find built in resource file.", "ExperienceMod", name);
+			}
+
+			copyLarge(input, output);
 		}
+		
+		// Retrieve the saved file
+		return YamlConfiguration.loadConfiguration(savedFile);
+	}
+	
+	public void loadDefaults(boolean reload) throws IOException {
 		
 		// Read from disk again
-		if (reload) {
-			reloadConfig();
+		if (reload || presets == null) {
 			
-			// Reload internal representation
-			configuration = null;
-			config = getConfig();
-		}
-		
-		// Load it
-		if (configuration == null) {
-			configuration = new Configuration(config, this);
-			setConfiguration(configuration);
-		}
-		
-		RewardTypes reward = configuration.getRewardType();
-		
-		// See if we actually can enable the economy
-		if (economy == null && reward == RewardTypes.ECONOMY) {
-			printWarning(this, "Cannot enable economy. VAULT plugin was not found.");
-			reward = RewardTypes.EXPERIENCE;
-		}
-		
-		// Set reward type
-		switch (reward) {
-		case EXPERIENCE:
-			listener.setRewardManager(new RewardExperience());
-			currentLogger.info("Using experience as reward.");
-			break;
-		case VIRTUAL:
-			listener.setRewardManager(new RewardVirtual());
-			currentLogger.info("Using virtual experience as reward.");
-			break;
-		case ECONOMY:
-			listener.setRewardManager(new RewardEconomy(economy, this));
-			currentLogger.info("Using the economy as reward.");
-			break;
-		default:
-			printWarning(this, "Unknown reward manager.");
-			break;
+			// Reset warnings
+			informer.clearMessages();
+			
+			// Load parts of the configuration
+			YamlConfiguration presetList = loadConfig("presets.yml", "Creating default preset list.");
+			loadConfig("config.yml", "Creating default configuration.");
+			
+			// Load it
+			presets = new Presets(presetList, this, chat, getDataFolder());
+			setPresets(presets);
+			
+			// Check for problems
+			for (Configuration config : presets.getConfigurations()) {
+				
+				RewardTypes reward = config.getRewardType();
+				
+				// See if we actually can enable the economy
+				if (economy == null && reward == RewardTypes.ECONOMY) {
+					printWarning(this, "Cannot enable economy. VAULT plugin was not found.");
+					config.setRewardType(reward = RewardTypes.EXPERIENCE);
+				}
+				
+				// Set reward type
+				switch (reward) {
+				case EXPERIENCE:
+					config.setRewardManager(new RewardExperience());
+					break;
+				case VIRTUAL:
+					config.setRewardManager(new RewardVirtual());
+					break;
+				case ECONOMY:
+					config.setRewardManager(new RewardEconomy(economy, this));
+					break;
+				}
+			}
 		}
 	}
 	
@@ -153,17 +185,36 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		}
     }
 	
+	private void setupChat()
+    {
+		try {
+	        RegisteredServiceProvider<Chat> chatProvider = getServer().getServicesManager().getRegistration(Chat.class);
+	        
+	        if (chatProvider != null) {
+	            chat = chatProvider.getProvider();
+	        }
+
+		} catch (NoClassDefFoundError e) {
+			// No vault
+			return;
+		}
+    }
+	
 	private boolean hasEconomy() {
 		return economy != null;
 	}
 	
-	private void setConfiguration(Configuration configuration) {
+	private boolean hasChat() {
+		return chat != null;
+	}
+	
+	private void setPresets(Presets presets) {
 		
 		// Create a new listener if necessary
 		if (listener == null) {
-			listener = new ExperienceListener(this, this, configuration);
+			listener = new ExperienceListener(this, this, presets);
 		} else {
-			listener.setConfiguration(configuration);
+			listener.setPresets(presets);
 		}
 	}
 	
@@ -195,8 +246,8 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		return informer;
 	}
 	
-	public Configuration getConfiguration() {
-		return configuration;
+	public Presets getPresets() {
+		return presets;
 	}
 	
 	@Override
@@ -226,5 +277,19 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		
 		// Add to list of warnings
 	    informer.addWarningMessage(String.format(message, params));
+	}
+	
+	
+	// Taken from Apache Commons-IO
+	private static long copyLarge(InputStream input, OutputStream output) throws IOException {
+		byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
+		long count = 0;
+		int n = 0;
+		
+		while (-1 != (n = input.read(buffer))) {
+			output.write(buffer, 0, n);
+			count += n;
+		}
+		return count;
 	}
 }

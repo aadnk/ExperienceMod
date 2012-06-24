@@ -26,7 +26,8 @@ public interface Query {
 	public enum Types {
 		Items,
 		Potions,
-		Mobs
+		Mobs,
+		Configurations
 	}
 	
 	public Types getQueryType();

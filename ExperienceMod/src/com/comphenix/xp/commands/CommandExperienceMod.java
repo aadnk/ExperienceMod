@@ -1,5 +1,6 @@
 package com.comphenix.xp.commands;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
@@ -88,8 +89,14 @@ public class CommandExperienceMod implements CommandExecutor {
 	
 		} else if (sub.equalsIgnoreCase(subCommandReload) || sub.length() == 0) {
 			
-			plugin.loadDefaults(true);
-			plugin.respond(sender, ChatColor.BLUE + "Reloaded ExperienceMod.");
+			try {
+				plugin.loadDefaults(true);
+				plugin.respond(sender, ChatColor.BLUE + "Reloaded ExperienceMod.");
+	    		
+			} catch (IOException e) {
+				plugin.respond(sender, ChatColor.RED + "Error: " + e.getMessage());
+			}
+			
     		return true;
 
 		} else {
@@ -101,7 +108,7 @@ public class CommandExperienceMod implements CommandExecutor {
 
 	private void handleQueryMob(CommandSender sender, String[] args, int offset) {
 
-		Configuration config = plugin.getConfiguration();
+		Configuration config = plugin.getPresets().getConfiguration(sender);
 		
 		try {
 			String text = StringUtils.join(args, " ", offset, args.length);
@@ -121,7 +128,7 @@ public class CommandExperienceMod implements CommandExecutor {
 	private void handleQueryItem(CommandSender sender, String[] args, int offset) {
 
 		Configuration.ActionTypes type = Configuration.ActionTypes.matchAction(getSafe(args, offset));
-		Configuration config = plugin.getConfiguration();
+		Configuration config = plugin.getPresets().getConfiguration(sender);
 		
 		// Make sure it's valid
 		if (type == null) {
