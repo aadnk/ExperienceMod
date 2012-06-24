@@ -24,6 +24,11 @@ import com.google.common.collect.Lists;
  */
 public class Presets {
 
+	private static final String optionPreset = "experiencePreset";
+	
+	private static final String settingImportFile = "file";
+	private static final String settingLocal = "local";
+	
 	// Mapping of preset name and configuration
 	private PresetTree presets;
 	
@@ -72,7 +77,7 @@ public class Presets {
 		
 		if (chat != null && sender instanceof Player) {
 			Player player = (Player) sender;
-			preset = chat.getPlayerInfoString(player, "experience", null);
+			preset = chat.getPlayerInfoString(player, optionPreset, null);
 			world = player.getWorld().getName();
 		}
 		
@@ -121,9 +126,9 @@ public class Presets {
 	
 	private Configuration getLocal(ConfigurationSection data) {
 		
-		if (data.isConfigurationSection("local"))
+		if (data.isConfigurationSection(settingLocal))
 			return new Configuration(
-					data.getConfigurationSection("local"), logger);
+					data.getConfigurationSection(settingLocal), logger);
 		else
 			return null;
 	}
@@ -147,10 +152,10 @@ public class Presets {
 	
 	private List<String> getFiles(ConfigurationSection data) {
 		
-		if (data.isString("file"))
-			return Lists.newArrayList(data.getString("file"));
-		else if (data.isList("file"))
-			return data.getStringList("file");
+		if (data.isString(settingImportFile))
+			return Lists.newArrayList(data.getString(settingImportFile));
+		else if (data.isList(settingImportFile))
+			return data.getStringList(settingImportFile);
 		else
 			return Lists.newArrayList();
 	}
