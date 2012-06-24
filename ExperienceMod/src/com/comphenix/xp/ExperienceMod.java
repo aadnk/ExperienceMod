@@ -147,6 +147,11 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			presets = new Presets(presetList, this, chat, getDataFolder());
 			setPresets(presets);
 			
+			// Vault is required here
+			if (chat == null && presets.usesPresetParameters()) {
+				printWarning(this, "Cannot use presets. VAULT plugin was not found");
+			}
+			
 			// Check for problems
 			for (Configuration config : presets.getConfigurations()) {
 				

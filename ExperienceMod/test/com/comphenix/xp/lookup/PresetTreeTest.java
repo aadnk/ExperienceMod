@@ -3,9 +3,7 @@ package com.comphenix.xp.lookup;
 import static org.junit.Assert.*;
 
 import org.junit.Test;
-
 import com.comphenix.xp.Configuration;
-import com.google.common.collect.Lists;
 
 public class PresetTreeTest {
 
@@ -28,5 +26,4 @@ public class PresetTreeTest {
 		assertEquals(tree.get(getUniversal), one);
 		assertEquals(tree.get(emptyPreset), two);
 	}
-
 }

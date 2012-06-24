@@ -84,6 +84,10 @@ public class Presets {
 		return getConfiguration(preset, world);
 	}
 	
+	public boolean usesPresetParameters() {
+		return presets.usesPresetNames();
+	}
+	
 	private void loadPresets(ConfigurationSection section, File dataFolder) {
 		for (String key : section.getKeys(false)) { 
 			

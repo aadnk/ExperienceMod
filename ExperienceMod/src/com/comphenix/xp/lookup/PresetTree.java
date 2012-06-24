@@ -15,6 +15,15 @@ public class PresetTree extends SearchTree<PresetQuery, Configuration> {
 		this.worlds = new Parameter<String>();
 	}
 	
+	public boolean usesPresetNames() {
+		for (String param : presetNames.getKeys()) {
+			if (param != null)
+				return true;
+		}
+		
+		return false;
+	}
+	
 	@Override
 	protected void putAllParameters(SearchTree<PresetQuery, Configuration> other, Integer offset) {
 		throw new UnsupportedOperationException();

@@ -1,5 +1,6 @@
 package com.comphenix.xp.lookup;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -123,5 +124,13 @@ public class Parameter<TParam> {
 		// But remove those previously eliminated
 		whitelist.retainAll(current);
 		return whitelist;
+	}
+	
+	/**
+	 * Retrieves every stored parameter.
+	 * @return Every stored parameter.
+	 */
+	public Collection<TParam> getKeys() {
+		return reverseLookup.keySet();
 	}
 }
