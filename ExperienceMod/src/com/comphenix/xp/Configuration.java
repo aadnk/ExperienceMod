@@ -23,13 +23,14 @@ import java.util.List;
 
 import org.bukkit.configuration.ConfigurationSection;
 
-import com.comphenix.xp.Rewardable.RewardTypes;
 import com.comphenix.xp.lookup.*;
 import com.comphenix.xp.lookup.Query.Types;
 import com.comphenix.xp.parser.ItemParser;
 import com.comphenix.xp.parser.MobParser;
 import com.comphenix.xp.parser.Utility;
 import com.comphenix.xp.parser.ParsingException;
+import com.comphenix.xp.rewards.Rewardable;
+import com.comphenix.xp.rewards.Rewardable.RewardTypes;
 
 public class Configuration implements Multipliable<Configuration> {
 	

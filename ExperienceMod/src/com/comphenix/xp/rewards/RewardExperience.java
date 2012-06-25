@@ -1,8 +1,10 @@
-package com.comphenix.xp;
+package com.comphenix.xp.rewards;
 
 import org.apache.commons.lang.NullArgumentException;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+
+import com.comphenix.xp.Server;
 
 
 public class RewardExperience implements Rewardable {

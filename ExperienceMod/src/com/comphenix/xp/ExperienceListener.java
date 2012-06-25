@@ -46,6 +46,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.comphenix.xp.lookup.*;
+import com.comphenix.xp.rewards.Rewardable;
 import com.google.common.base.Objects;
 
 public class ExperienceListener implements Listener {

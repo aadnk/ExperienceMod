@@ -1,4 +1,4 @@
-package com.comphenix.xp;
+package com.comphenix.xp.rewards;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Player;

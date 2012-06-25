@@ -35,9 +35,12 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.comphenix.xp.Rewardable.RewardTypes;
 import com.comphenix.xp.commands.CommandExperienceMod;
 import com.comphenix.xp.commands.CommandSpawnExp;
+import com.comphenix.xp.rewards.RewardEconomy;
+import com.comphenix.xp.rewards.RewardExperience;
+import com.comphenix.xp.rewards.RewardVirtual;
+import com.comphenix.xp.rewards.Rewardable.RewardTypes;
 
 public class ExperienceMod extends JavaPlugin implements Debugger {
 	

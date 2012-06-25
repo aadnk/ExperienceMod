@@ -1,4 +1,4 @@
-package com.comphenix.xp;
+package com.comphenix.xp.rewards;
 
 import org.apache.commons.lang.NullArgumentException;
 import org.bukkit.Location;

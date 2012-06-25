@@ -1,4 +1,4 @@
-package com.comphenix.xp;
+package com.comphenix.xp.rewards;
 
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
@@ -6,6 +6,8 @@ import net.milkbowl.vault.economy.EconomyResponse;
 import org.apache.commons.lang.NullArgumentException;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+
+import com.comphenix.xp.Debugger;
 
 
 public class RewardEconomy implements Rewardable {
