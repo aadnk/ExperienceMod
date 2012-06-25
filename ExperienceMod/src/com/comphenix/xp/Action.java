@@ -4,9 +4,10 @@ import com.comphenix.xp.messages.Message;
 
 public class Action {
 
+	
 	private Range experience;
 	private Message message;
-
+	
 	protected Action(Range experience, Message message) {
 		super();
 		this.experience = experience;

@@ -23,6 +23,7 @@ import java.util.List;
 
 import org.bukkit.configuration.ConfigurationSection;
 
+import com.comphenix.xp.Rewardable.RewardTypes;
 import com.comphenix.xp.lookup.*;
 import com.comphenix.xp.lookup.Query.Types;
 import com.comphenix.xp.parser.ItemParser;
@@ -54,13 +55,7 @@ public class Configuration implements Multipliable<Configuration> {
 			return lookup.get(Utility.getEnumName(action));
 		}
 	}
-	
-	public enum RewardTypes {
-		EXPERIENCE,
-		VIRTUAL,
-		ECONOMY
-	}
-	
+		
 	private static final String multiplierSetting = "multiplier";
 	private static final String defaultRewardsSetting = "default rewards disabled";
 	private static final String rewardTypeSetting = "reward type";

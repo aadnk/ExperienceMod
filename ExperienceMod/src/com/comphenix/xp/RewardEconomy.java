@@ -7,6 +7,7 @@ import org.apache.commons.lang.NullArgumentException;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
+
 public class RewardEconomy implements Rewardable {
 
 	private Economy economy;
@@ -60,5 +61,15 @@ public class RewardEconomy implements Rewardable {
 				debugger.printDebug(this, "Could not deposit %d to player %s: %s", 
 									amount, name, response.errorMessage);
 		}
+	}
+
+	@Override
+	public RewardTypes getType() {
+		return RewardTypes.ECONOMY;
+	}
+
+	@Override
+	public String getRewardName() {
+		return getType().name();
 	}
 }

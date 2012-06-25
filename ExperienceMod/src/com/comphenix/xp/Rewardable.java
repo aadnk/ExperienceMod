@@ -9,6 +9,15 @@ import org.bukkit.entity.Player;
  * @author Kristian
  */
 public interface Rewardable {
+	
+	public enum RewardTypes {
+		DEFAULT,
+		EXPERIENCE,
+		VIRTUAL,
+		ECONOMY,
+		CUSTOM
+	}
+	
 	/**
 	 * Rewards a player with the given amount of resources.
 	 * @param player player to award.
@@ -23,4 +32,16 @@ public interface Rewardable {
 	 * @param amount amount of resources to give.
 	 */
 	public void reward(Player player, Location point, int amount);
+	
+	/**
+	 * Retrieves the reward type.
+	 * @return Reward type of this class.
+	 */
+	public RewardTypes getType();
+
+	/**
+	 * Retrieves a unique string identifying this reward. Will be using during parsing.
+	 * @return A unique reward ID.
+	 */
+	public String getRewardName();
 }

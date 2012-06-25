@@ -4,6 +4,7 @@ import org.apache.commons.lang.NullArgumentException;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
+
 public class RewardExperience implements Rewardable {
 
 	// Just delegate to the more specific method
@@ -22,5 +23,15 @@ public class RewardExperience implements Rewardable {
 		
 		// Create the experience at this location
 		Server.spawnExperience(player.getWorld(), point, amount);
+	}
+
+	@Override
+	public RewardTypes getType() {
+		return RewardTypes.EXPERIENCE;
+	}
+
+	@Override
+	public String getRewardName() {
+		return getType().name();
 	}
 }

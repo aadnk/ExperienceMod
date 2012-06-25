@@ -77,4 +77,14 @@ public class RewardVirtual implements Rewardable {
 			setExperience(player, exp + value);
 		}
 	}
+
+	@Override
+	public RewardTypes getType() {
+		return RewardTypes.VIRTUAL;
+	}
+
+	@Override
+	public String getRewardName() {
+		return getType().name();
+	}
 }
