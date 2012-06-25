@@ -14,6 +14,7 @@ import org.junit.Test;
 import com.comphenix.xp.Configuration;
 import com.comphenix.xp.Debugger;
 import com.comphenix.xp.Range;
+import com.comphenix.xp.parser.ParsingException;
 
 public class ItemTreeTest {
 
@@ -39,6 +40,29 @@ public class ItemTreeTest {
 		// Load the default configuration
 		configuration = new Configuration(defaultFile, injected);
     }
+	
+	@Test
+	public void testItemMerging() throws ParsingException {
+		
+		ItemQuery universal = ItemQuery.fromAny();
+		ItemQuery stoneQuery = ItemQuery.fromAny(Material.STONE);
+		
+		ItemTree tree1 = new ItemTree(1);
+		ItemTree tree2 = new ItemTree(2);
+		ItemTree result = new ItemTree(1);
+		
+		Range universalValue = new Range(0);
+		Range stoneValue = new Range(1);
+		
+		tree1.put(stoneQuery, stoneValue);
+		tree2.put(universal, universalValue);
+		
+		result.putAll(tree1);
+		result.putAll(tree2);
+		
+		assertEquals(stoneValue, result.get(ItemQuery.fromExact(Material.STONE.getId(), 1)));
+		assertEquals(universalValue, result.get(ItemQuery.fromExact(Material.WOOD.getId(), 0)));
+	}
 	
 	@Test
 	public void testItemQuerying() {

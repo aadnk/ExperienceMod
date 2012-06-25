@@ -50,13 +50,13 @@ public abstract class SearchTree<TKey, TValue> {
 	
 	public void putAll(SearchTree<TKey, TValue> other) {
 
-		int offset = getNextID();
+		int offset = currentID;
 		int highest = offset;
 		
 		// Insert everything from flatten
 		for (Map.Entry<Integer, TValue> entry : other.flatten.entrySet()) {
 			flatten.put(entry.getKey() + offset, entry.getValue());
-			highest = Math.max(highest, entry.getKey());
+			highest = Math.max(highest, entry.getKey() + offset);
 		}
 		
 		// And from parameter count
@@ -65,7 +65,7 @@ public abstract class SearchTree<TKey, TValue> {
 		
 		// Make sure the parameters are updated too
 		putAllParameters(other, offset);
-		currentID = highest;
+		currentID = highest + 1;
 	}
 	
 	public TValue get(TKey element) {
