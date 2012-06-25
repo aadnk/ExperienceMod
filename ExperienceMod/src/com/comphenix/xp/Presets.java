@@ -43,12 +43,17 @@ public class Presets {
 	private Chat chat;
 	
 	public Presets(ConfigurationSection config, Debugger debugger, Chat chat, File dataFolder) {
+		if (chat == null)
+			throw new IllegalArgumentException("Vault (Chat) was not found.");
+		
 		this.logger = debugger;
 		this.presets = new PresetTree();
 		this.chat = chat;
 		this.configurationFiles = new HashMap<File, Configuration>();
 		
-		loadPresets(config, dataFolder);
+		if (config != null)
+			loadPresets(config, dataFolder);
+		
 		configurationFiles.clear();
 	}
 	
@@ -103,7 +108,8 @@ public class Presets {
 					presets.put(query, data);
 			
 			} catch (ParsingException ex) {
-				logger.printWarning(this, "Cannot parse preset - %s", ex.getMessage());
+				if (logger != null)
+					logger.printWarning(this, "Cannot parse preset - %s", ex.getMessage());
 			}
 		}
 	}
@@ -147,7 +153,7 @@ public class Presets {
 			
 			if (absolutePath.exists())
 				result.add(loadFromFile(absolutePath));
-			else
+			else if (logger != null)
 				logger.printWarning(this, "Cannot find configuration file %s.", path);
 		}
 		

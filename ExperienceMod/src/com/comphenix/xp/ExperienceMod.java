@@ -44,7 +44,6 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	private static final int DEFAULT_BUFFER_SIZE = 1024 * 4;
 
 	private final String permissionInfo = "experiencemod.info";
-	
 	private final String commandReload = "experiencemod";
 	private final String commandSpawnExp = "spawnexp";
 	
