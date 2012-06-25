@@ -65,6 +65,7 @@ public class Configuration implements Multipliable<Configuration> {
 	
 	private double multiplier;
 	private boolean defaultRewardsDisabled;
+	private boolean preset;
 	
 	private RewardTypes rewardType;
 	private Rewardable rewardManager;
@@ -376,6 +377,22 @@ public class Configuration implements Multipliable<Configuration> {
 			// Default value
 			return defaultValue;
 		}
+	}
+	
+	/**
+	 * Whether or not this configuration is associated with a specified preset.
+	 * @return TRUE if it is, FALSE otherwise. 
+	 */
+	public boolean hasPreset() {
+		return preset;
+	}
+	
+	/**
+	 * Whether or not this configuration is associated with a specified preset.
+	 * @param value new value.
+	 */
+	public void setPreset(boolean value) {
+		preset = value;
 	}
 	
 	@Override

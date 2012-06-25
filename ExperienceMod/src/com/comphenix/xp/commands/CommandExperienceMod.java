@@ -54,12 +54,12 @@ public class CommandExperienceMod implements CommandExecutor {
 	private boolean handleMainCommand(CommandSender sender, String[] args) {
 		
 		// Make sure the sender has permissions
-		if (!plugin.hasCommandPermission(sender, permissionAdmin)) {
+		if (!CommandUtilities.hasCommandPermission(sender, permissionAdmin)) {
 			plugin.respond(sender, ChatColor.RED + "You haven't got permission to execute this command.");
 			return true;
 		} 
 		
-		String sub = getSafe(args, 0);
+		String sub = CommandUtilities.getSafe(args, 0);
 		
 		// Toggle debugging
 		if (sub.equalsIgnoreCase(subCommandToggleDebug)) {
@@ -108,9 +108,8 @@ public class CommandExperienceMod implements CommandExecutor {
 
 	private void handleQueryMob(CommandSender sender, String[] args, int offset) {
 
-		Configuration config = plugin.getPresets().getConfiguration(sender);
-		
 		try {
+			Configuration config = plugin.getPresets().getConfiguration(sender);
 			String text = StringUtils.join(args, " ", offset, args.length);
 			
 			MobQuery query = mobParser.parse(text);
@@ -127,16 +126,17 @@ public class CommandExperienceMod implements CommandExecutor {
 	
 	private void handleQueryItem(CommandSender sender, String[] args, int offset) {
 
-		Configuration.ActionTypes type = Configuration.ActionTypes.matchAction(getSafe(args, offset));
-		Configuration config = plugin.getPresets().getConfiguration(sender);
+		Configuration.ActionTypes type = Configuration.ActionTypes.matchAction(
+				CommandUtilities.getSafe(args, offset));
 		
 		// Make sure it's valid
 		if (type == null) {
-			plugin.respond(sender, ChatColor.RED + "Unknown action type: " + getSafe(args, offset));
+			plugin.respond(sender, ChatColor.RED + "Unknown action type: " + CommandUtilities.getSafe(args, offset));
 			return;
 		}
 
 		try {
+			Configuration config = plugin.getPresets().getConfiguration(sender);
 			String text = StringUtils.join(args, " ", offset + 1, args.length);
 			
 			Query query = itemParser.parse(text);
@@ -193,9 +193,5 @@ public class CommandExperienceMod implements CommandExecutor {
 				plugin.respond(sender, String.format(" %d. %s", i + 1, ranges.get(i)));
 			}
 		}
-	}
-	
-	private String getSafe(String[] args, int index) {
-		return args.length > index ? args[index] : "";
 	}
 }

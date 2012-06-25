@@ -34,6 +34,13 @@ public class PresetQuery implements Query {
 		);
 	}
 	
+	public static PresetQuery fromExact(List<String> presetName, String world) {
+		return new PresetQuery(
+				presetName, 
+				Lists.newArrayList(world)
+		);
+	}
+	
 	public PresetQuery(List<String> presetNames, List<String> worlds) {
 		this.presetNames = presetNames;
 		this.worlds = worlds;

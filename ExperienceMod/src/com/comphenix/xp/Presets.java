@@ -15,8 +15,10 @@ import org.bukkit.entity.Player;
 
 import com.comphenix.xp.lookup.PresetQuery;
 import com.comphenix.xp.lookup.PresetTree;
+import com.comphenix.xp.parser.ParameterParser;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.parser.PresetParser;
+import com.comphenix.xp.parser.StringParser;
 import com.google.common.collect.Lists;
 
 /**
@@ -24,7 +26,7 @@ import com.google.common.collect.Lists;
  */
 public class Presets {
 
-	private static final String optionPreset = "experiencePreset";
+	public static final String optionPreset = "experiencePreset";
 	
 	private static final String settingImportFile = "file";
 	private static final String settingLocal = "local";
@@ -34,6 +36,7 @@ public class Presets {
 	
 	// Parser
 	private PresetParser presetParser = new PresetParser();
+	private ParameterParser<String> stringParser = new ParameterParser<String>(new StringParser());
 	
 	// Cache of configurations
 	private HashMap<File, Configuration> configurationFiles;
@@ -58,24 +61,31 @@ public class Presets {
 	}
 	
 	/**
-	 * Retrieves a stored configuration from a key value.
-	 * @param keyName Key value of the configuration to retrieve.
-	 * @param worldName TRUE to return the default configuration if no such key exists.
+	 * Retrieves a stored configuration from a key value. Note that while NULL in rules will match 
+	 * any query, a query with null will NOT match any rule. In that case, it will only match rules with
+	 * null in the corresponding parameters.
+	 * 
+	 * @param keyName Key value(s) of the configuration to retrieve.
+	 * @param worldName Name of the world the preset is associated with. 
 	 * @return The stored configuration, or NULL if no configuration exists.
+	 * @throws ParsingException If the given list of keys is malformed.
 	 */
-	public Configuration getConfiguration(String presetName, String worldName) {
+	public Configuration getConfiguration(String presetNames, String worldName) throws ParsingException {
 		
-		PresetQuery query = PresetQuery.fromExact(presetName, worldName);
+		List<String> names = stringParser.parseExact(presetNames);
+		
+		PresetQuery query = PresetQuery.fromExact(names, worldName);
 		Configuration result = presets.get(query);
-		
+	
 		// Determine what to return
 		if (result != null)
 			return result;
-		else
-			return null;
+		
+		// Error
+		return null;
 	}
 	
-	public Configuration getConfiguration(CommandSender sender) {
+	public Configuration getConfiguration(CommandSender sender) throws ParsingException {
 		
 		String preset = null;
 		String world = null;
@@ -103,6 +113,9 @@ public class Presets {
 				// Load section
 				Configuration data = loadPreset(
 						section.getConfigurationSection(key), dataFolder);
+				
+				// Remember if we have presets or not
+				data.setPreset(query.hasPresetNames());
 				
 				if (data != null)
 					presets.put(query, data);
@@ -132,6 +145,13 @@ public class Presets {
 			result = Configuration.fromMultiple(files, logger);
 		
 		return result;
+	}
+	
+	public boolean containsPreset(String preset, String world) throws ParsingException {
+		Configuration result = getConfiguration(preset, world);
+		
+		// Whether or not the matching rule has specified presets
+		return result.hasPreset();
 	}
 	
 	private Configuration getLocal(ConfigurationSection data) {

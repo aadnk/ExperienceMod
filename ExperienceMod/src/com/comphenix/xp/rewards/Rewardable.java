@@ -36,4 +36,9 @@ public interface Rewardable {
 	 * @return A unique reward ID.
 	 */
 	public String getRewardName();
+	
+	
+	public void hasDependencies() {
+		
+	}
 }

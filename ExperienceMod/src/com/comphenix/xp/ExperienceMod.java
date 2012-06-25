@@ -29,6 +29,7 @@ import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.economy.Economy;
 
 import org.bukkit.ChatColor;
+import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.PluginManager;
@@ -37,6 +38,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.comphenix.xp.commands.CommandExperienceMod;
 import com.comphenix.xp.commands.CommandSpawnExp;
+import com.comphenix.xp.parser.ParsingException;
+import com.comphenix.xp.parser.Utility;
 import com.comphenix.xp.rewards.RewardEconomy;
 import com.comphenix.xp.rewards.RewardExperience;
 import com.comphenix.xp.rewards.RewardVirtual;
@@ -152,6 +155,11 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			// Vault is required here
 			if (chat == null && presets.usesPresetParameters()) {
 				printWarning(this, "Cannot use presets. VAULT plugin was not found");
+				
+			} else {
+				
+				// Show more warnings
+				checkIllegalPresets();
 			}
 			
 			// Check for problems
@@ -176,6 +184,32 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 				case ECONOMY:
 					config.setRewardManager(new RewardEconomy(economy, this));
 					break;
+				}
+			}
+		}
+	}
+	
+	// Check for illegal presets
+	private void checkIllegalPresets() {
+		
+		for (String group : chat.getGroups()) {
+			for (World world : getServer().getWorlds()) {
+				
+				String worldName = world.getName();
+				String possibleOption = chat.getGroupInfoString(
+						worldName, group, Presets.optionPreset, null);
+
+				try {
+					if (!Utility.isNullOrIgnoreable(possibleOption) && 
+						!presets.containsPreset(possibleOption, worldName)) {
+						
+						// Complain about this too. Is likely an error.
+						printWarning(this, 
+								"Could not find preset %s. Please check spelling.", possibleOption);
+					}
+					
+				} catch (ParsingException e) {
+					printWarning(this, "Preset '%s' causes error: %s", possibleOption, e.getMessage());
 				}
 			}
 		}
@@ -231,17 +265,6 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	
 	@Override
 	public void onDisable() {
-	}
-	
-	public boolean hasCommandPermission(CommandSender sender, String permission) {
-		
-		// Make sure the sender has permissions
-		if (sender != null && !sender.hasPermission(permission)) {
-			return false;
-		} else {
-			// We have permission
-			return true;
-		}
 	}
 
 	@Override	

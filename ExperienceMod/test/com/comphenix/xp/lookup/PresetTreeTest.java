@@ -15,7 +15,7 @@ public class PresetTreeTest {
 		PresetQuery universal = PresetQuery.fromAny();
 		PresetQuery emptyPreset = PresetQuery.fromAny("empty", null);
 		
-		PresetQuery getUniversal = PresetQuery.fromExact(null, null);
+		PresetQuery getUniversal = PresetQuery.fromExact((String) null, null);
 		
 		Configuration one = new Configuration(null);
 		Configuration two = new Configuration(null);

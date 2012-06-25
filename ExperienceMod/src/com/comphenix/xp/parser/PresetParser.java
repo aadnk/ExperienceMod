@@ -29,11 +29,4 @@ public class PresetParser extends Parser<PresetQuery> {
 
 		return new PresetQuery(presetNames, worldNames);
 	}
-	
-	private static class StringParser extends Parser<String> {
-		@Override
-		String parse(String text) throws ParsingException {
-			return text.trim();
-		}
-	}
 }

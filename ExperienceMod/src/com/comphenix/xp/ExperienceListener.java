@@ -46,6 +46,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.comphenix.xp.lookup.*;
+import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.rewards.Rewardable;
 import com.google.common.base.Objects;
 
@@ -88,12 +89,34 @@ public class ExperienceListener implements Listener {
 		return permissionRewardPlacing;
 	}
 
+	/**
+	 * Load the correct configuration for a given player.
+	 * @param world The given player.
+	 * @return The most relevant configuration, or NULL if none were found.
+	 */
 	public Configuration getConfiguration(Player player) {
-		return presets.getConfiguration(player);
+		try {
+			return presets.getConfiguration(player);
+			
+		} catch (ParsingException e) {
+			// We most likely have complained about this already
+			return null;
+		}
 	}
 	
+	/**
+	 * Load the correct configuration for general world events not associated with any player.
+	 * @param world The world to look for.
+	 * @return The most relevant configuration, or NULL if none were found.
+	 */
 	public Configuration getConfiguration(World world) {
-		return presets.getConfiguration(null, world.getName());
+		try {
+			return presets.getConfiguration(null, world.getName());
+			
+		} catch (ParsingException e) {
+			//debugger.printDebug(this, "Preset error: %s", e.getMessage());
+			return null;
+		}
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -114,21 +137,35 @@ public class ExperienceListener implements Listener {
 			// Only without silk touch
 			if (allowBlockReward) {
 				Configuration config = getConfiguration(player);
-
-				if (config.getSimpleBlockReward().containsKey(retrieveKey))
+			
+				// No configuration or default configuration found
+				if (config == null) {
+					debugger.printDebug(this, "Cannot find config for player %s in mining %s.", 
+							player.getName(), block);
+					
+				} else if (config.getSimpleBlockReward().containsKey(retrieveKey)) {
 					handleBlockEvent("Block mined by %s: Spawned %d xp for item %s.", 
 							config.getRewardManager(), config.getSimpleBlockReward(), 
 							retrieveKey, block, player);
+				}
 			}
 			
 			if (allowBonusReward) {
 				Configuration config = getConfiguration(player);
 
-				if (config.getSimpleBonusReward().containsKey(retrieveKey))
+				// No configuration or default configuration found
+				if (config == null) {
+					debugger.printDebug(this, "Cannot find config for player %s in mining %s.", 
+							player.getName(), block);
+					
+				} else if (config.getSimpleBonusReward().containsKey(retrieveKey)) {
 					handleBlockEvent("Block destroyed by %s: Spawned %d xp for item %s.", 
 									 config.getRewardManager(), config.getSimpleBonusReward(), 
 									 retrieveKey, block, player);
+				}
 			}
+			
+			// Done
 		}
 	}
 	
@@ -161,6 +198,13 @@ public class ExperienceListener implements Listener {
 		if (player != null && player.hasPermission(permissionRewardFishing)) {
 			
 			Configuration config = getConfiguration(player);
+			
+			// No configuration or default configuration found
+			if (config == null) {
+				debugger.printDebug(this, "Cannot find config for player %s in fishing.", player.getName());
+				return;
+			}
+				
 			PlayerRewards playerReward = config.getPlayerRewards();
 			
 			// Reward type
@@ -199,6 +243,12 @@ public class ExperienceListener implements Listener {
 			
 			if (allowPlacingReward) {
 				Configuration config = getConfiguration(player);
+				
+				if (config == null) {
+					debugger.printDebug(this, "No config found for block %s.", block);
+					return;
+				}
+					
 				ItemQuery retrieveKey = ItemQuery.fromExact(block);
 				ItemTree placeReward = config.getSimplePlacingReward();
 				
@@ -227,6 +277,12 @@ public class ExperienceListener implements Listener {
 				config = getConfiguration(entity.getKiller());
 			else
 				config = getConfiguration(entity.getWorld());
+			
+			// Guard
+			if (config == null) {
+				debugger.printDebug(this, "No config found for mob %d, query: %s", id, query);
+				return;
+			}
 			
 			Range reward = config.getExperienceDrop().get(query);
 
@@ -291,6 +347,13 @@ public class ExperienceListener implements Listener {
 				// Do not proceed if the user isn't permitted
 				if (player.hasPermission(permissionRewardBrewing)) {
 					config = getConfiguration(player);
+					
+					// Guard again
+					if (config == null) {
+						debugger.printDebug(this, "No config found for %s with brewing %s.", player.getName(), toCraft);
+						return;
+					}
+					
 					handleInventory(event, config.getRewardManager(), config.getSimpleBrewingReward(), true);
 				
 					// Yes, this feels a bit like a hack to me too. Blame faulty design. Anyways, the point
@@ -305,14 +368,24 @@ public class ExperienceListener implements Listener {
 			case WORKBENCH:
 				if (player.hasPermission(permissionRewardCrafting)) {
 					config = getConfiguration(player);
-					handleInventory(event, config.getRewardManager(), config.getSimpleCraftingReward(), false);
+					
+					if (config != null) {
+						handleInventory(event, config.getRewardManager(), config.getSimpleCraftingReward(), false);
+					} else {
+						debugger.printDebug(this, "No config found for %s with crafting %s.", player.getName(), toCraft);
+					}
 				}
 				break;
 				
 			case FURNACE:
 				if (player.hasPermission(permissionRewardSmelting)) {
 					config = getConfiguration(player);
-					handleInventory(event, config.getRewardManager(), config.getSimpleSmeltingReward(), true);
+					
+					if (config != null) {
+						handleInventory(event, config.getRewardManager(), config.getSimpleSmeltingReward(), true);
+					} else {
+						debugger.printDebug(this, "No config found for %s with smelting %s.", player.getName(), toCraft);
+					}
 				}
 				break;
 			}

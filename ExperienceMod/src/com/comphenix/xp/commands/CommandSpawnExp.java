@@ -47,7 +47,7 @@ public class CommandSpawnExp implements CommandExecutor {
 		}
 		
 		// Make sure the sender has permissions
-		if (!plugin.hasCommandPermission(sender, permissionAdmin)) {
+		if (!CommandUtilities.hasCommandPermission(sender, permissionAdmin)) {
 			plugin.respond(sender, ChatColor.RED + "You haven't got permission to execute this command.");
 			return true;
 		}

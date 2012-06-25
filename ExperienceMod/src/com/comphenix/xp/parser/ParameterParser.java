@@ -45,6 +45,16 @@ public class ParameterParser<TItem> extends Parser<List<TItem>>{
 		return elements;
 	}
 	
+	public List<TItem> parseExact(String text) throws ParsingException {
+		List<TItem> result = parse(text);
+		
+		// Represent nothing with NULL
+		if (result.size() == 0)
+			result.add(null);
+		
+		return result;
+	}
+	
 	public Parser<TItem> getElementParser() {
 		return elementParser;
 	}
