@@ -6,7 +6,11 @@ import org.bukkit.entity.Player;
 
 import com.comphenix.xp.Server;
 
-
+/**
+ * Rewards players with experience orbs.
+ * 
+ * @author Kristian
+ */
 public class RewardExperience implements Rewardable {
 
 	// Just delegate to the more specific method

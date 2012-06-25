@@ -10,14 +10,6 @@ import org.bukkit.entity.Player;
  */
 public interface Rewardable {
 	
-	public enum RewardTypes {
-		DEFAULT,
-		EXPERIENCE,
-		VIRTUAL,
-		ECONOMY,
-		CUSTOM
-	}
-	
 	/**
 	 * Rewards a player with the given amount of resources.
 	 * @param player player to award.

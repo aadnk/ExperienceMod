@@ -4,6 +4,11 @@ import org.apache.commons.lang.NullArgumentException;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
+/**
+ * Rewards players with experience directly by simply adding the experience to their experience bar.
+ * 
+ * @author Kristian
+ */
 public class RewardVirtual implements Rewardable {
 
 	@Override

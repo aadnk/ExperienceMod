@@ -30,7 +30,7 @@ import com.comphenix.xp.parser.MobParser;
 import com.comphenix.xp.parser.Utility;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.rewards.Rewardable;
-import com.comphenix.xp.rewards.Rewardable.RewardTypes;
+import com.comphenix.xp.rewards.RewardTypes;
 
 public class Configuration implements Multipliable<Configuration> {
 	

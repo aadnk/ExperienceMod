@@ -9,7 +9,11 @@ import org.bukkit.entity.Player;
 
 import com.comphenix.xp.Debugger;
 
-
+/**
+ * Rewards players with currency.
+ * 
+ * @author Kristian
+ */
 public class RewardEconomy implements Rewardable {
 
 	private Economy economy;

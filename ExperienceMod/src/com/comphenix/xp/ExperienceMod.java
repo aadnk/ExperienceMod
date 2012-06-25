@@ -40,7 +40,7 @@ import com.comphenix.xp.commands.CommandSpawnExp;
 import com.comphenix.xp.rewards.RewardEconomy;
 import com.comphenix.xp.rewards.RewardExperience;
 import com.comphenix.xp.rewards.RewardVirtual;
-import com.comphenix.xp.rewards.Rewardable.RewardTypes;
+import com.comphenix.xp.rewards.RewardTypes;
 
 public class ExperienceMod extends JavaPlugin implements Debugger {
 	
