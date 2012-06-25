@@ -14,6 +14,13 @@ public abstract class RangeTree<TKey> extends SearchTree<TKey, Range>{
 		this.multiplier = multiplier;
 	}
 	
+	public RangeTree(RangeTree<TKey> other, double multiplier) {
+		this.multiplier = multiplier;
+		this.flatten = other.flatten;
+		this.paramCount = other.paramCount;
+		this.currentID = other.currentID;
+	}
+	
 	@Override
 	public Range get(TKey element) {
 		Range result = super.get(element);

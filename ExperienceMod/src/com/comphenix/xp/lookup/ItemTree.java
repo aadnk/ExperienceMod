@@ -34,7 +34,7 @@ public class ItemTree extends RangeTree<ItemQuery> implements Multipliable<ItemT
 	
 	// For cloning
 	public ItemTree(ItemTree other, double newMultiplier) {
-		super(newMultiplier);
+		super(other, newMultiplier);
 		
 		if (other == null)
 			throw new IllegalArgumentException("other");

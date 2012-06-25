@@ -44,24 +44,35 @@ public class ItemTreeTest {
 	@Test
 	public void testItemMerging() throws ParsingException {
 		
+		int redColor = (int) DyeColor.RED.getData();
+		int blueColor = (int) DyeColor.BLUE.getData();
+		
 		ItemQuery universal = ItemQuery.fromAny();
 		ItemQuery stoneQuery = ItemQuery.fromAny(Material.STONE);
+		ItemQuery redWool = new ItemQuery(
+				Arrays.asList(Material.WOOL.getId()), 
+				Arrays.asList(redColor, blueColor));
 		
 		ItemTree tree1 = new ItemTree(1);
 		ItemTree tree2 = new ItemTree(2);
+		ItemTree tree3 = new ItemTree(3);
 		ItemTree result = new ItemTree(1);
 		
 		Range universalValue = new Range(0);
 		Range stoneValue = new Range(1);
+		Range redValue = new Range(5);
 		
 		tree1.put(stoneQuery, stoneValue);
 		tree2.put(universal, universalValue);
+		tree3.put(redWool, redValue);
 		
 		result.putAll(tree1);
 		result.putAll(tree2);
+		result.putAll(tree3);
 		
 		assertEquals(stoneValue, result.get(ItemQuery.fromExact(Material.STONE.getId(), 1)));
 		assertEquals(universalValue, result.get(ItemQuery.fromExact(Material.WOOD.getId(), 0)));
+		assertEquals(redValue, result.get(ItemQuery.fromExact(Material.WOOL.getId(), redColor)));
 	}
 	
 	@Test

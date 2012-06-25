@@ -36,7 +36,7 @@ public class MobTree extends RangeTree<MobQuery> implements Multipliable<MobTree
 	
 	// For cloning
 	protected MobTree(MobTree other, double newMultiplier) { 
-		super(newMultiplier);
+		super(other, newMultiplier);
 		
 		if (other == null)
 			throw new IllegalArgumentException("other");

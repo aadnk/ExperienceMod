@@ -33,7 +33,7 @@ public class PotionTree extends RangeTree<PotionQuery> implements Multipliable<P
 
 	// For cloning
 	public PotionTree(PotionTree other, double newMultiplier) { 
-		super(newMultiplier);
+		super(other, newMultiplier);
 		
 		if (other == null)
 			throw new IllegalArgumentException("other");

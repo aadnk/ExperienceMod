@@ -175,7 +175,7 @@ public class Configuration implements Multipliable<Configuration> {
 		defaultRewardsDisabled = config.getBoolean(defaultRewardsSetting, true);
 		
 		// Load reward type
-		rewardType = loadReward(config.getString(rewardTypeSetting));
+		rewardType = loadReward(config.getString(rewardTypeSetting, "experience"));
 		initialize(multiplier);
 
 		// Load mob experience
@@ -197,6 +197,7 @@ public class Configuration implements Multipliable<Configuration> {
 		simpleBrewingReward = new ItemTree(multiplier);
 		complexBrewingReward = new PotionTree(multiplier);
 		playerRewards = new PlayerRewards(multiplier);
+		this.multiplier = multiplier;
 	}
 	
 	private void checkRewards() {
