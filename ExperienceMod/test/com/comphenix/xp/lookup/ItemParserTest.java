@@ -21,16 +21,16 @@ public class ItemParserTest {
 		int redColor = (int) DyeColor.RED.getData();
 		int blueColor = (int) DyeColor.BLUE.getData();
 		
-		ItemQuery universal = new ItemQuery();
-		ItemQuery stoneQuery = new ItemQuery(Material.STONE);
-		ItemQuery redWool = new ItemQuery(Material.WOOL, redColor);
-		ItemQuery blueStuff = new ItemQuery((Material) null, blueColor);
+		ItemQuery universal = ItemQuery.fromAny();
+		ItemQuery stoneQuery = ItemQuery.fromAny(Material.STONE);
+		ItemQuery redWool = ItemQuery.fromAny(Material.WOOL, redColor);
+		ItemQuery blueStuff = ItemQuery.fromAny((Material) null, blueColor);
 		ItemQuery redAndBlue = new ItemQuery(Arrays.asList(Material.WOOL.getId()), 
 				 							 Arrays.asList(redColor, blueColor));
 		
-		PotionQuery universalPotion = new PotionQuery();
-		PotionQuery levelTwoPotion = new PotionQuery(null, 2, null, null);
-		PotionQuery specificPotion = new PotionQuery(PotionType.FIRE_RESISTANCE, 1, true, true);
+		PotionQuery universalPotion = PotionQuery.fromAny();
+		PotionQuery levelTwoPotion = PotionQuery.fromAny(null, 2);
+		PotionQuery specificPotion = PotionQuery.fromAny(PotionType.FIRE_RESISTANCE, 1, true, true);
 		
 		ItemParser parser = new ItemParser();
 		

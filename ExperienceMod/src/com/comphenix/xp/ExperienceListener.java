@@ -104,7 +104,7 @@ public class ExperienceListener implements Listener {
 		if (block != null && player != null) { 
 			
 			ItemStack toolItem = player.getItemInHand();
-			ItemQuery retrieveKey = new ItemQuery(block);
+			ItemQuery retrieveKey = ItemQuery.fromExact(block);
 			
 			boolean allowBlockReward = player.hasPermission(permissionRewardBlock) && !hasSilkTouch(toolItem);
 			boolean allowBonusReward = player.hasPermission(permissionRewardBonus);
@@ -197,7 +197,7 @@ public class ExperienceListener implements Listener {
 			
 			if (allowPlacingReward) {
 				Configuration config = getConfiguration(player);
-				ItemQuery retrieveKey = new ItemQuery(block);
+				ItemQuery retrieveKey = ItemQuery.fromExact(block);
 				ItemTree placeReward = config.getSimplePlacingReward();
 				
 				if (placeReward.containsKey(retrieveKey)) {
@@ -219,7 +219,7 @@ public class ExperienceListener implements Listener {
 		if (entity != null && isMob(entity)) {
 			
 			Integer id = entity.getEntityId();
-			MobQuery query = new MobQuery(entity, spawnReasonLookup.get(id));
+			MobQuery query = MobQuery.fromExact(entity, spawnReasonLookup.get(id));
 
 			if (hasKiller)
 				config = getConfiguration(entity.getKiller());
@@ -318,7 +318,7 @@ public class ExperienceListener implements Listener {
 		if (player != null && hasItems(toRetrieve)) {
 			// Make sure this player CAN receive experience
 			boolean allowReward = player.hasPermission(permission);
-			ItemQuery matchKey = new ItemQuery(toRetrieve);
+			ItemQuery matchKey = ItemQuery.fromExact(toRetrieve);
 			
 			if (hasExperienceReward(rewards, matchKey) && allowReward) {
 				// Some cruft here - the stack is only divided when the user has no cursor items
@@ -343,7 +343,7 @@ public class ExperienceListener implements Listener {
 		// Make sure we are actually crafting anything
 		if (player != null && hasItems(toCraft)) {
 
-			ItemQuery retrieveKey = new ItemQuery(toCraft);
+			ItemQuery retrieveKey = ItemQuery.fromExact(toCraft);
 			
 			// Do not proceed if the user isn't permitted
 			if (!player.hasPermission(permission)) 

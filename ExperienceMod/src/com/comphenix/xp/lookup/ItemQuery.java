@@ -20,6 +20,7 @@ package com.comphenix.xp.lookup;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang.NullArgumentException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
@@ -45,42 +46,53 @@ public class ItemQuery implements Query {
 	/**
 	 * Universal query.
 	 */
-	public ItemQuery() {
-		itemID = noNumbers;
-		durability = noNumbers;
+	public static ItemQuery fromAny() {
+		return new ItemQuery(noNumbers, noNumbers);
+	}	
+	
+	/**
+	 * Creates a query from the given material and data.
+	 * @param material material to create from.
+	 */
+	public static ItemQuery fromAny(Material material) {
+		return fromAny(material != null ? material.getId() : null, null);
+	}
+	
+	/**
+	 * Creates a query from the given material and data.
+	 * @param material material to create from.
+	 * @param durability durability to create from.
+	 */
+	public static ItemQuery fromAny(Material material, Integer durability) {
+		return fromAny(material != null ? material.getId() : null, durability);
+	}
+	
+	public static ItemQuery fromAny(Integer itemID, Integer durability) {
+		return new ItemQuery(
+				Utility.getElementList(itemID), 
+				Utility.getElementList(durability)
+		);
 	}
 	
 	/**
 	 * Creates a query from a given world block.
 	 * @param block - block to create from.
 	 */
-	public ItemQuery(Block block) { 
-		this(block.getTypeId(), (int) block.getData());
+	public static ItemQuery fromExact(Block block) {
+		return fromExact(block.getTypeId(), (int) block.getData());
 	}
 	
 	/**
 	 * Extracts the item type and durability. Note that the item count property is ignored.
 	 * @param stack - item type.
+	 * @throws NullArgumentException if the stack is null.
 	 */
-	public ItemQuery(ItemStack stack) {
-		this(stack.getTypeId(), (int) stack.getDurability());
-	}
-	
-	/**
-	 * Creates a query from the given material.
-	 * @param material material to create from.
-	 */
-	public ItemQuery(Material material) {
-		this(material.getId(), null);
-	}
-	
-	/**
-	 * Creates a query from the given material and data.
-	 * @param material material to create from.
-	 */
-	public ItemQuery(Material material, Integer data) {
-		this(material != null ? material.getId() : null, 
-			 data);
+	public static ItemQuery fromExact(ItemStack stack) {
+		
+		if (stack == null)
+			throw new NullArgumentException("stack");
+		
+		return fromExact(stack.getTypeId(), (int) stack.getDurability());
 	}
 	
 	public static ItemQuery fromExact(Integer itemID, Integer durability) {
@@ -88,11 +100,6 @@ public class ItemQuery implements Query {
 				Lists.newArrayList(itemID), 
 				Lists.newArrayList(durability)
 		);
-	}
-	
-	public ItemQuery(Integer itemID, Integer durability) {
-		this.itemID = Utility.getElementList(itemID);
-		this.durability = Utility.getElementList(durability);
 	}
 	
 	public ItemQuery(List<Integer> itemID, List<Integer> durability) {
@@ -181,14 +188,7 @@ public class ItemQuery implements Query {
 		else
 			return String.format("%s", itemsText);
 	}
-	
-	public static ItemQuery fromStack(ItemStack stack) {
-		if (stack == null)
-			return null;
-		else
-			return new ItemQuery(stack);
-	}
-	
+		
 	@Override
 	public Types getQueryType() {
 		return Types.Items;

@@ -15,10 +15,10 @@ public class MobParserTest {
 	@Test
 	public void testParser() throws ParsingException {
 		
-		MobQuery universal = new MobQuery();
-		MobQuery allZombies = new MobQuery(EntityType.ZOMBIE);
-		MobQuery fallingZombies = new MobQuery(EntityType.ZOMBIE, DamageCause.FALL, null, null, null);
-		MobQuery spawnedMobs = new MobQuery(null, null, SpawnReason.SPAWNER, null, null);
+		MobQuery universal = MobQuery.fromAny();
+		MobQuery allZombies = MobQuery.fromAny(EntityType.ZOMBIE);
+		MobQuery fallingZombies = MobQuery.fromAny(EntityType.ZOMBIE, DamageCause.FALL, null, null, null);
+		MobQuery spawnedMobs = MobQuery.fromAny(null, null, SpawnReason.SPAWNER, null, null);
 		
 		MobParser parser = new MobParser();
 		

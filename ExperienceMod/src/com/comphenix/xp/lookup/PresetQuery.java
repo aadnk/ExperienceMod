@@ -13,14 +13,18 @@ public class PresetQuery implements Query {
 	private List<String> presetNames;
 	private List<String> worlds;
 	
-	public PresetQuery(String presetName, String world) {
-		presetNames = Utility.getElementList(presetName);
-		worlds = Utility.getElementList(world);
+	/**
+	 * Univeral query.
+	 */
+	public static PresetQuery fromAny() {
+		return fromAny(null, null);
 	}
-
-	public PresetQuery(List<String> presetNames, List<String> worlds) {
-		this.presetNames = presetNames;
-		this.worlds = worlds;
+	
+	public static PresetQuery fromAny(String presetName, String world) {
+		return new PresetQuery(
+				Utility.getElementList(presetName),
+				Utility.getElementList(world)
+		);
 	}
 	
 	public static PresetQuery fromExact(String presetName, String world) {
@@ -30,13 +34,11 @@ public class PresetQuery implements Query {
 		);
 	}
 	
-	/**
-	 * Univeral query.
-	 */
-	public PresetQuery() {
-		this((String) null, (String) null);
+	public PresetQuery(List<String> presetNames, List<String> worlds) {
+		this.presetNames = presetNames;
+		this.worlds = worlds;
 	}
-
+	
 	public boolean hasPresetNames() {
 		return presetNames != null && !presetNames.isEmpty();
 	}

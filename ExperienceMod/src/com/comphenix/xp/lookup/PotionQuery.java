@@ -44,24 +44,29 @@ public class PotionQuery implements Query {
 	private static List<Integer> noLevels = new ArrayList<Integer>();
 	private static List<Boolean> noBooleans = new ArrayList<Boolean>();
 	
-	public PotionQuery() {
-		// Match all potions
-		this(noTypes, noLevels, noBooleans, noBooleans);
+	/**
+	 * Universal query.
+	 * @return Universal query.
+	 */
+	public static PotionQuery fromAny() {
+		return new PotionQuery(noTypes, noLevels, noBooleans, noBooleans);
 	}
 	
-	public PotionQuery(PotionType type) {
-		this(type, null, null, null);
+	public static PotionQuery fromAny(PotionType type) {
+		return fromAny(type, null, null, null);
 	}
 	
-	public PotionQuery(PotionType type, Integer level) {
-		this(type, level, null, null);
+	public static PotionQuery fromAny(PotionType type, Integer level) {
+		return fromAny(type, level, null, null);
 	}
 	
-	public PotionQuery(PotionType type, Integer level, Boolean extended, Boolean splash) {
-		this.type = Utility.getElementList(type);
-		this.level = Utility.getElementList(level);
-		this.extended = Utility.getElementList(extended);
-		this.splash = Utility.getElementList(splash);
+	public static PotionQuery fromAny(PotionType type, Integer level, Boolean extended, Boolean splash) {
+		return new PotionQuery(
+				Utility.getElementList(type),
+				Utility.getElementList(level),
+				Utility.getElementList(extended),
+				Utility.getElementList(splash)
+		);
 	}
 	
 	public static PotionQuery fromExact(PotionType type, Integer level, Boolean extended, Boolean splash) {

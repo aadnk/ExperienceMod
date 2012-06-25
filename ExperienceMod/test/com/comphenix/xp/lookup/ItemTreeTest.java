@@ -48,8 +48,8 @@ public class ItemTreeTest {
 		int blueColor = (int) DyeColor.BLUE.getData();
 		int brownColor = (int) DyeColor.BROWN.getData();
 		
-		ItemQuery universal = new ItemQuery();
-		ItemQuery stone = new ItemQuery(Material.STONE, null);
+		ItemQuery universal = ItemQuery.fromAny();
+		ItemQuery stone = ItemQuery.fromAny(Material.STONE, null);
 		ItemQuery redWool = new ItemQuery(
 				Arrays.asList(Material.WOOL.getId()), 
 				Arrays.asList(redColor, blueColor));
@@ -62,18 +62,18 @@ public class ItemTreeTest {
 		tree.put(stone, stoneValue);
 		tree.put(redWool, redValue);
 		
-		assertEquals(stoneValue, tree.get(new ItemQuery(Material.STONE.getId(), null)));
-		assertEquals(stoneValue, tree.get(new ItemQuery(Material.STONE.getId(), 1)));
-		assertEquals(universalValue, tree.get(new ItemQuery(Material.WOOD.getId(), 0)));
-		assertEquals(redValue, tree.get(new ItemQuery(Material.WOOL.getId(), redColor)));
-		assertEquals(redValue, tree.get(new ItemQuery(Material.WOOL.getId(), blueColor)));
-		assertEquals(universalValue, tree.get(new ItemQuery(Material.WOOL.getId(), brownColor)));
+		assertEquals(stoneValue, tree.get(ItemQuery.fromAny(Material.STONE.getId(), null)));
+		assertEquals(stoneValue, tree.get(ItemQuery.fromExact(Material.STONE.getId(), 1)));
+		assertEquals(universalValue, tree.get(ItemQuery.fromExact(Material.WOOD.getId(), 0)));
+		assertEquals(redValue, tree.get(ItemQuery.fromExact(Material.WOOL.getId(), redColor)));
+		assertEquals(redValue, tree.get(ItemQuery.fromExact(Material.WOOL.getId(), blueColor)));
+		assertEquals(universalValue, tree.get(ItemQuery.fromExact(Material.WOOL.getId(), brownColor)));
 	}
 	
 	@Test
 	public void testItemSpeed() {
 		
-		ItemQuery diamondQuery = new ItemQuery(Material.DIAMOND_ORE);
+		ItemQuery diamondQuery = ItemQuery.fromAny(Material.DIAMOND_ORE);
 		Range lastRange = null;
 		
 		// Assuming no errors, try searching for diamond a couple of times

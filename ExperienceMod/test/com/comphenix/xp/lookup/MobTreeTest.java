@@ -15,10 +15,10 @@ public class MobTreeTest {
 
 		MobTree tree = new MobTree(1);
 		
-		MobQuery fallGib = new MobQuery(null, DamageCause.FALL, null, null, null);
-		MobQuery magicGib = new MobQuery(null, DamageCause.MAGIC, null, null, null);
-		MobQuery zombieKill = new MobQuery(EntityType.ZOMBIE, null, null, null, null);
-		MobQuery noSpawnXP = new MobQuery(null, null, SpawnReason.SPAWNER, null, null);
+		MobQuery fallGib = MobQuery.fromAny(null, DamageCause.FALL);
+		MobQuery magicGib = MobQuery.fromAny(null, DamageCause.MAGIC);
+		MobQuery zombieKill = MobQuery.fromAny(EntityType.ZOMBIE);
+		MobQuery noSpawnXP = MobQuery.fromAny(null, null, SpawnReason.SPAWNER, null, null);
 		
 		Range zombieValue =  new Range(5);
 		Range magicValue = new Range(2);
@@ -37,6 +37,6 @@ public class MobTreeTest {
 	}
 	
 	private Range queryTree(MobTree tree, EntityType type, DamageCause cause, SpawnReason reason) {
-		return tree.get(new MobQuery(type, cause, reason, false, false));
+		return tree.get(MobQuery.fromExact(type, cause, reason, false, false));
 	}
 }

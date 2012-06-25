@@ -14,11 +14,11 @@ public class PotionTreeTest {
 		PotionTree tree = new PotionTree(1);
 		
 		// Match every regen
-		PotionQuery regenUniversal = new PotionQuery(PotionType.REGEN);
-		PotionQuery universal = new PotionQuery();
+		PotionQuery regenUniversal = PotionQuery.fromAny(PotionType.REGEN);
+		PotionQuery universal = PotionQuery.fromAny();
 		
 		// Match just level 2 splash potions
-		PotionQuery regenSplashLvl2 = new PotionQuery(null, 2, null, true);
+		PotionQuery regenSplashLvl2 = PotionQuery.fromAny(null, 2, null, true);
 		
 		Range regenSplashValue = new Range(2);
 		Range regenValue = new Range(1);
@@ -29,9 +29,9 @@ public class PotionTreeTest {
 		tree.put(regenUniversal, regenValue);
 		tree.put(regenSplashLvl2, regenSplashValue);
 		
-		assertEquals(regenSplashValue, tree.get(new PotionQuery(PotionType.REGEN, 2, false, true)));
-		assertEquals(regenSplashValue, tree.get(new PotionQuery(PotionType.REGEN, 2, true, true)));
-		assertEquals(regenValue, tree.get(new PotionQuery(PotionType.REGEN, 1, true, true)));
-		assertEquals(universalValue, tree.get(new PotionQuery(PotionType.INSTANT_HEAL, 1, false, true)));
+		assertEquals(regenSplashValue, tree.get(PotionQuery.fromExact(PotionType.REGEN, 2, false, true)));
+		assertEquals(regenSplashValue, tree.get(PotionQuery.fromExact(PotionType.REGEN, 2, true, true)));
+		assertEquals(regenValue, tree.get(PotionQuery.fromExact(PotionType.REGEN, 1, true, true)));
+		assertEquals(universalValue, tree.get(PotionQuery.fromExact(PotionType.INSTANT_HEAL, 1, false, true)));
 	}
 }

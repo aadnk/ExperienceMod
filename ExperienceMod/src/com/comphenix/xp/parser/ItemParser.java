@@ -98,7 +98,7 @@ public class ItemParser extends Parser<Query> {
 			
 			// Return universal potion query
 			if (isPotion && durabilities.isEmpty()) {
-				return new PotionQuery();
+				return PotionQuery.fromAny();
 			}
 			
 			// At this point we have all we need to know

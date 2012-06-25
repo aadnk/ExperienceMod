@@ -52,41 +52,38 @@ public class MobQuery implements Query {
 	/**
 	 * Universal query.
 	 */
-	public MobQuery() {
-		this(noTypes, noDamages, noBooleans, noBooleans, noBooleans);
+	public static MobQuery fromAny() {
+		return new MobQuery(noTypes, noDamages, noBooleans, noBooleans, noBooleans);
+	}	
+	
+	public static MobQuery fromAny(EntityType type) {
+		return fromAny(type, null, null, null, null);
 	}
 	
-	public MobQuery(EntityType type) {
-		this(type, null, null, null, null);
-	}
-	
-	public MobQuery(EntityType type, DamageCause deathCause, SpawnReason reason, Boolean baby, Boolean tamed) {
-		setSingles(type, deathCause, reason, baby, tamed);
-	}
-	
-	public MobQuery(List<EntityType> type, List<DamageCause> deathCause,
-				    List<Boolean> spawner, List<Boolean> baby, List<Boolean> tamed) {
-		this.type = type;
-		this.deathCause = deathCause;
-		this.spawner = spawner;
-		this.baby = baby;
-		this.tamed = tamed;
+	public static MobQuery fromAny(EntityType type, DamageCause cause) {
+		return fromAny(type, cause, null, null, null);
 	}
 
-	public static MobQuery fromExact(EntityType type, DamageCause deathCause, 
-									 SpawnReason reason, Boolean baby, Boolean tamed) {
+	public static MobQuery fromAny(EntityType type, DamageCause deathCause, 
+			 					  SpawnReason reason, Boolean baby, Boolean tamed) {
+		
+		List<Boolean> spawner;
+		
+		if (reason != null) 
+			spawner = Arrays.asList(reason == SpawnReason.SPAWNER);
+		else
+			spawner = new ArrayList<Boolean>();
+		
 		return new MobQuery(
-				Lists.newArrayList(type), 
-				Lists.newArrayList(deathCause),
-				Lists.newArrayList(reason == null ? null : 
-					(reason == SpawnReason.SPAWNER)),
-				Lists.newArrayList(baby),
-				Lists.newArrayList(tamed)
+				 	Utility.getElementList(type),
+				 	Utility.getElementList(deathCause),
+				 	spawner,
+				 	Utility.getElementList(baby),
+				 	Utility.getElementList(tamed)
 		);
 	}
 	
-	public MobQuery(LivingEntity entity, SpawnReason reason) {
-		
+	public static MobQuery fromExact(LivingEntity entity, SpawnReason reason) {
 		EntityDamageEvent cause = entity.getLastDamageCause();
 		DamageCause deathCause = null;
 		
@@ -106,20 +103,30 @@ public class MobQuery implements Query {
 			paramTamed = ((Tameable)entity).isTamed();
 		}
 
-		// Load from singles
-		setSingles(entity.getType(), deathCause, reason, paramBaby, paramTamed);
+		// Load directly
+		return fromExact(entity.getType(), deathCause, reason, paramBaby, paramTamed);
+	}
+
+	public static MobQuery fromExact(EntityType type, DamageCause deathCause, 
+									 SpawnReason reason, Boolean baby, Boolean tamed) {
+		return new MobQuery(
+				Lists.newArrayList(type), 
+				Lists.newArrayList(deathCause),
+				Lists.newArrayList(reason == null ? null : 
+					(reason == SpawnReason.SPAWNER)),
+				Lists.newArrayList(baby),
+				Lists.newArrayList(tamed)
+		);
 	}
 	
-	private void setSingles(EntityType type, DamageCause deathCause, SpawnReason reason, Boolean baby, Boolean tamed) {
-		this.type = Utility.getElementList(type);
-		this.deathCause = Utility.getElementList(deathCause);
-		this.baby = Utility.getElementList(baby);
-		this.tamed = Utility.getElementList(tamed);
-		
-		if (reason != null) 
-			this.spawner = Arrays.asList(reason == SpawnReason.SPAWNER);
-		else
-			this.spawner = new ArrayList<Boolean>();
+	
+	public MobQuery(List<EntityType> type, List<DamageCause> deathCause,
+			List<Boolean> spawner, List<Boolean> baby, List<Boolean> tamed) {
+		this.type = type;
+		this.deathCause = deathCause;
+		this.spawner = spawner;
+		this.baby = baby;
+		this.tamed = tamed;
 	}
 
 	public List<DamageCause> getDeathCause() {
