@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Random;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
@@ -273,102 +274,86 @@ public class ExperienceListener implements Listener {
 	public void onInventoryClickEvent(InventoryClickEvent event) {
 
 		Player player = (Player) event.getWhoClicked();
+		ItemStack toCraft = event.getCurrentItem();
+		
 		Configuration config = null;
 
 		// Was this from a result slot (crafting, smelting or brewing)?
 		if (player != null &&
 		    event.getInventory() != null &&
-		    event.getSlotType() == SlotType.RESULT) {
+		    event.getSlotType() == SlotType.RESULT &&
+		    hasItems(toCraft)) {
 			
 			// Handle different types
 			switch (event.getInventory().getType()) {
 			case BREWING:
-				config = getConfiguration(player);
-				handleInventory(permissionRewardBrewing, event, 
-						config.getRewardManager(), config.getSimpleBrewingReward());
+				// Do not proceed if the user isn't permitted
+				if (player.hasPermission(permissionRewardBrewing)) {
+					config = getConfiguration(player);
+					handleInventory(event, config.getRewardManager(), config.getSimpleBrewingReward(), true);
 				
-				// Yes, this feels a bit like a hack to me too. Blame faulty design. Anyways, the point
-				// is that we get to check more complex potion matching rules, like "match all splash potions"
-				// or "match all level 2 regen potions (splash or not)".
-				handleInventory(permissionRewardBrewing, event, 
-						config.getRewardManager(), config.getComplexBrewingReward().getItemQueryAdaptor());
+					// Yes, this feels a bit like a hack to me too. Blame faulty design. Anyways, the point
+					// is that we get to check more complex potion matching rules, like "match all splash potions"
+					// or "match all level 2 regen potions (splash or not)".
+					handleInventory(event, config.getRewardManager(), 
+							config.getComplexBrewingReward().getItemQueryAdaptor(), true);
+				}
+				
 				break;
 			case CRAFTING:
 			case WORKBENCH:
-				config = getConfiguration(player);
-				handleCrafting(permissionRewardCrafting, event, 
-						config.getRewardManager(), config.getSimpleCraftingReward());
+				if (player.hasPermission(permissionRewardCrafting)) {
+					config = getConfiguration(player);
+					handleInventory(event, config.getRewardManager(), config.getSimpleCraftingReward(), false);
+				}
 				break;
+				
 			case FURNACE:
-				config = getConfiguration(player);
-				handleInventory(permissionRewardSmelting, event, 
-						config.getRewardManager(), config.getSimpleSmeltingReward());
+				if (player.hasPermission(permissionRewardSmelting)) {
+					config = getConfiguration(player);
+					handleInventory(event, config.getRewardManager(), config.getSimpleSmeltingReward(), true);
+				}
 				break;
 			}
 		}
 	}
 	
-	private void handleInventory(String permission, InventoryClickEvent event, Rewardable manager, ItemTree rewards)
-	{
+	private void handleInventory(InventoryClickEvent event, Rewardable manager, ItemTree rewards, boolean partialResults) {
+		
 		HumanEntity player = event.getWhoClicked();
-		ItemStack toRetrieve = event.getCurrentItem();
-		boolean hasCursorItems = hasItems(event.getCursor());
+		ItemStack toStore = event.getCursor();
+		ItemStack toCraft = event.getCurrentItem();
+		ItemQuery retrieveKey = ItemQuery.fromExact(toCraft);
 
-		// Is there any items to get?
-		if (player != null && hasItems(toRetrieve)) {
-			// Make sure this player CAN receive experience
-			boolean allowReward = player.hasPermission(permission);
-			ItemQuery matchKey = ItemQuery.fromExact(toRetrieve);
+		// Make sure there is an experience reward
+		if (!hasExperienceReward(rewards, retrieveKey))
+			return;
+		
+		int expPerItem = rewards.get(retrieveKey).sampleInt(random);
+		
+		if (event.isShiftClick()) {
+			// Hack ahoy
+			schedulePostCraftingReward(player, manager, expPerItem, toCraft);
+		} else {
 			
-			if (hasExperienceReward(rewards, matchKey) && allowReward) {
+			// The items are stored in the cursor. Make sure there's enough space.
+			int count = getStorageCount(toStore, toCraft, partialResults);
+
+			if (count > 0) {
+				
 				// Some cruft here - the stack is only divided when the user has no cursor items
-				int divisor = !hasCursorItems && event.isRightClick() ? 2 : 1;
-				int factor = toRetrieve.getAmount() / divisor;
-				int exp = rewards.get(matchKey).sampleInt(random) * Math.max(factor, 1);
+				if (partialResults && event.isRightClick() && !hasItems(toStore)) {
+					count = Math.max(count / 2, 1);
+				}
+				
+				int exp = count * expPerItem;
 				
 				// Give the experience straight to the user
 				manager.reward((Player) player, exp);
+			
+				// Like above
 				debugger.printDebug(this, "User %s - spawned %d xp for item %s.", 
-						player.getName(), permission, exp, toRetrieve.getType());
-			}
-		}
-	}
-	
-	private void handleCrafting(String permission, InventoryClickEvent event, Rewardable manager, ItemTree rewards) {
-		
-		HumanEntity player = event.getWhoClicked();
-		ItemStack toCraft = event.getCurrentItem();
-		ItemStack toStore = event.getCursor();
-
-		// Make sure we are actually crafting anything
-		if (player != null && hasItems(toCraft)) {
-
-			ItemQuery retrieveKey = ItemQuery.fromExact(toCraft);
-			
-			// Do not proceed if the user isn't permitted
-			if (!player.hasPermission(permission)) 
-				return; 
-			// Make sure there is an experience reward
-			if (!hasExperienceReward(rewards, retrieveKey))
-				return;
-			
-			int expPerItem = rewards.get(retrieveKey).sampleInt(random);
-			
-			if (event.isShiftClick()) {
-				// Hack ahoy
-				schedulePostCraftingReward(player, manager, expPerItem, toCraft);
-			} else {
-				// The items are stored in the cursor. Make sure there's enough space.
-				if (isStackSumLegal(toCraft, toStore)) {
-					int exp = toCraft.getAmount() * expPerItem;
-					
-					// Give the experience straight to the user
-					manager.reward((Player) player, exp);
-				
-					// Like above
-					debugger.printDebug(this, "User %s - spawned %d xp for item %s.", 
-							player.getName(), permission, exp, toCraft.getType());
-				}
+						player.getName(), exp, toCraft.getType());
 			}
 		}
 	}
@@ -430,12 +415,28 @@ public class ExperienceListener implements Listener {
 		return rewards.containsKey(key) && !rewards.get(key).equals(Range.Default);
 	}
 	
-	private boolean isStackSumLegal(ItemStack a, ItemStack b) {
-		// See if we can create a new item stack with the combined elements of a and b
-		if (a == null || b == null)
-			return true; // Treat null as an empty stack
-		else
-			return a.getAmount() + b.getAmount() <= a.getType().getMaxStackSize();
+	// Recipes are cancelled if there's isn't exactly enough space. 
+	public int getStorageCount(ItemStack storage, ItemStack addition, boolean allowPartial) {
+		
+		if (addition == null)
+			return 0;
+		else if (storage == null)
+			// All storage slots have the same limits
+			return addition.getAmount(); 
+		// Yes, storage might be air blocks ... weird.
+		else if (storage.getType() != Material.AIR && !hasSameItem(storage, addition))
+			// Items MUST be the same
+			return 0;
+		
+		int sum = storage.getAmount() + addition.getAmount();
+		int max = storage.getType().getMaxStackSize();
+
+		// Now determine the number of additional items in the storage stack
+		if (sum > max) {
+			return allowPartial ? max - storage.getAmount() : 0;
+		} else {
+			return addition.getAmount();
+		}
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

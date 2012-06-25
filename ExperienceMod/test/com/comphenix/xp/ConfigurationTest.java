@@ -19,7 +19,7 @@ public class ConfigurationTest {
 	@Test
 	public void testMerging() {
 		
-		Debugger debugger = createDefaultDebugger();
+		Debugger debugger = new MockDebugger();
 		
 		Configuration first = createConfig(
 				"multiplier: 1\n" +
@@ -52,17 +52,5 @@ public class ConfigurationTest {
 		} catch (UnsupportedEncodingException e) {
 			throw new RuntimeException("No UTF-8 installed.");
 		}
-	}
-	
-	private Debugger createDefaultDebugger() {
-		return new Debugger() {
-			public void printWarning(Object sender, String message, Object... params) {
-				fail(String.format(message, params));
-			}
-
-			// Not needed
-			public void printDebug(Object sender, String message, Object... params) {}
-			public boolean isDebugEnabled() { return false; }
-		};
 	}
 }
