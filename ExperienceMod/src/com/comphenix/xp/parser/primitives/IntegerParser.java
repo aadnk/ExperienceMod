@@ -6,7 +6,7 @@ import com.comphenix.xp.parser.ParsingException;
 public class IntegerParser extends Parser<Integer> {
 
 	@Override
-	Integer parse(String text) throws ParsingException {
+	public Integer parse(String text) throws ParsingException {
 		try {
 			return Integer.parseInt(text);
 		} catch (NumberFormatException e) {

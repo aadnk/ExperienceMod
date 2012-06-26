@@ -5,7 +5,7 @@ import com.comphenix.xp.parser.ParsingException;
 
 public class StringParser extends Parser<String> {
 	@Override
-	String parse(String text) throws ParsingException {
+	public String parse(String text) throws ParsingException {
 		return text.trim();
 	}
 }

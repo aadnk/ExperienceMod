@@ -17,7 +17,7 @@ public abstract class Parser<TResult> {
 	 * @return Result of the parsing.
 	 * @throws ParsingException The text cannot be transformed into a list of objects.
 	 */
-	abstract TResult parse(String text) throws ParsingException;
+	public abstract TResult parse(String text) throws ParsingException;
 	 
 	/**
 	 * Transforms the head of the queue into a string of objects. No head is treated as an empty string.

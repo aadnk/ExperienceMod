@@ -27,7 +27,7 @@ public class BooleanParser extends Parser<List<Boolean>> {
 	 * @return Boolean value if parsing succeeded, or NULL otherwise.
 	 */
 	@Override
-	List<Boolean> parse(String text) throws ParsingException {
+	public List<Boolean> parse(String text) throws ParsingException {
 		
 		if (text == null)
 			return null;
@@ -66,7 +66,7 @@ public class BooleanParser extends Parser<List<Boolean>> {
 	 * @param tokens Queue of items.
 	 * @return List containing the removed object, OR an empty list if no object was removed.
 	 */
-	List<Boolean> parseAny(Queue<String> tokens) throws ParsingException {
+	public List<Boolean> parseAny(Queue<String> tokens) throws ParsingException {
 
 		String toRemove = null;
 		List<Boolean> result = null;
