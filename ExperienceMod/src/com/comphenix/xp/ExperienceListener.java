@@ -144,9 +144,12 @@ public class ExperienceListener implements Listener {
 							player.getName(), block);
 					
 				} else if (config.getSimpleBlockReward().containsKey(retrieveKey)) {
-					handleBlockEvent("Block mined by %s: Spawned %d xp for item %s.", 
+					handleBlockEvent(, 
 							config.getRewardManager(), config.getSimpleBlockReward(), 
 							retrieveKey, block, player);
+					
+					debugger.printDebug(this, "Block mined by %s: Spawned %d xp for item %s.", 
+							player.getName(), exp, block.getType());
 				}
 			}
 			
@@ -176,7 +179,7 @@ public class ExperienceListener implements Listener {
 		int exp = reward.get(query).sampleInt(random);
 		
 		manager.reward(player, block.getLocation(), exp);
-		debugger.printDebug(this, debugMessage, player.getName(), exp, block.getType());
+		
 	}
 	
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true) 

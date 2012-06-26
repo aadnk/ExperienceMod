@@ -2,6 +2,8 @@ package com.comphenix.xp.rewards;
 
 import java.util.HashMap;
 import org.apache.commons.lang.NullArgumentException;
+
+import com.comphenix.xp.Configuration;
 import com.comphenix.xp.rewards.RewardTypes;
 
 /**
@@ -12,11 +14,13 @@ import com.comphenix.xp.rewards.RewardTypes;
 public class RewardProvider {
 	
 	private static String customUnsupported = "rewardType cannot be custom. Use getByString().";
+	private static String defaultRewardName = "DEFAULT";
 	
 	private HashMap<String, Rewardable> nameLookup;
 	private HashMap<RewardTypes, Rewardable> enumLookup;
 
 	private String defaultReward;
+	private Configuration configuration;
 	
 	public RewardProvider() {
 		// Default constructor
@@ -24,9 +28,10 @@ public class RewardProvider {
 		this.enumLookup = new HashMap<RewardTypes, Rewardable>();
 	}
 	
-	public RewardProvider(RewardProvider reference) {
+	public RewardProvider(RewardProvider reference, Configuration configuration) {
 		this.nameLookup = reference.nameLookup;
 		this.enumLookup = reference.enumLookup;
+		this.configuration = configuration;
 	}
 	
 	/**
@@ -42,19 +47,22 @@ public class RewardProvider {
 		if (rewardType == RewardTypes.DEFAULT)
 			return getByName(getDefaultReward());
 		
-		return enumLookup.get(rewardType);
+		return getConfigSpecific(enumLookup.get(rewardType));
 	}
 	
 	/**
-	 * Returns the currently registered reward manager with this name.
+	 * Returns the currently registered reward manager with this name. The name 
+	 * should be conforming to the Java Enum convention.
 	 * @param rewardName name to search for.
 	 * @return The currently registered reward manager, or NULL if not found.
 	 */
 	public Rewardable getByName(String rewardName) {
 		if (rewardName == null)
 			throw new NullArgumentException("rewardName");
+		if (rewardName.equalsIgnoreCase(defaultRewardName))
+			return nameLookup.get(getDefaultReward());
 		
-		return nameLookup.get(rewardName);
+		return getConfigSpecific(nameLookup.get(rewardName));
 	}
 	
 	/**
@@ -127,13 +135,46 @@ public class RewardProvider {
 	}
 	
 	/**
+	 * Determines whether or not the given reward has been registered.
+	 * @param name Name of the reward to check.
+	 * @return TRUE if it has, FALSE otherwise.
+	 */
+	public boolean containsReward(String name) {
+		return nameLookup.containsKey(name);
+	}
+	
+	/**
+	 * Determines whether or not the given reward type has been registered.
+	 * @param type Type of the reward to check.
+	 * @return TRUE if it has, FALSE otherwise.
+	 */
+	public boolean containsReward(RewardTypes type) {
+		if (type == RewardTypes.DEFAULT)
+			return containsReward(defaultReward);
+		else if (type == RewardTypes.CUSTOM)
+			throw new IllegalArgumentException(customUnsupported);
+		
+		return enumLookup.containsKey(type);
+	}
+	
+	// Make sure the reward manager has the correct configuration associated with it
+	private Rewardable getConfigSpecific(Rewardable reward) {
+		
+		if (configuration != null)
+			return reward.clone(configuration);
+		else
+			return reward;
+	}
+	
+	/**
 	 * Creates a copy of this reward provider with shallow references to the same list of rewards, except with a different
 	 * internal default reward type. This allows multiple copies of the provider to reference the same rewards, but use
 	 * a different default reward manager.
+	 * @param config Configuration settings for the different managers.
 	 * @return A shallow copy of this reward manager.
 	 */
-	public RewardProvider createView() {
-		return new RewardProvider(this);
+	public RewardProvider createView(Configuration config) {
+		return new RewardProvider(this, config);
 	}
 	
 	/**
@@ -150,5 +191,34 @@ public class RewardProvider {
 	 */
 	public void setDefaultReward(String defaultReward) {
 		this.defaultReward = defaultReward;
+	}
+	
+	/**
+	 * Sets the default reward manager by type.
+	 * @param defaultReward default manager type.
+	 */
+	public void setDefaultReward(RewardTypes defaultType) {
+		if (defaultType == RewardTypes.DEFAULT)
+			throw new IllegalArgumentException("Cannot set the default with the default.");
+		else if (defaultType == RewardTypes.CUSTOM)
+			throw new IllegalArgumentException(customUnsupported);
+		
+		setDefaultReward(defaultType.name());
+	}
+	
+	/**
+	 * Retrieves the configuration containing settings for different reward managers.
+	 * @return The configuration file.
+	 */
+	public Configuration getConfiguration() {
+		return configuration;
+	}
+
+	/**
+	 * Sets the configuration containing settings for different reward managers.
+	 * @param configuration New configuration.
+	 */
+	public void setConfiguration(Configuration configuration) {
+		this.configuration = configuration;
 	}
 }

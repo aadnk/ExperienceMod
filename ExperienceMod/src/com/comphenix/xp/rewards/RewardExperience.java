@@ -2,8 +2,10 @@ package com.comphenix.xp.rewards;
 
 import org.apache.commons.lang.NullArgumentException;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 
+import com.comphenix.xp.Configuration;
 import com.comphenix.xp.Server;
 
 /**
@@ -13,14 +15,16 @@ import com.comphenix.xp.Server;
  */
 public class RewardExperience implements Rewardable {
 
-	// Just delegate to the more specific method
+	@Override
 	public void reward(Player player, int amount) {
 		if (player == null)
 			throw new NullArgumentException("player");
 		
+		// Delegate to more specific method
 		reward(player, player.getLocation(), amount);
 	}
 	
+	@Override
 	public void reward(Player player, Location point, int amount) {
 		if (player == null)
 			throw new NullArgumentException("player");
@@ -32,6 +36,17 @@ public class RewardExperience implements Rewardable {
 	}
 
 	@Override
+	public void reward(World world, Location point, int amount) {
+		if (world == null)
+			throw new NullArgumentException("world");
+		if (point == null)
+			throw new NullArgumentException("point");
+		
+		// And here
+		Server.spawnExperience(world, point, amount);
+	}
+	
+	@Override
 	public RewardTypes getType() {
 		return RewardTypes.EXPERIENCE;
 	}
@@ -39,5 +54,10 @@ public class RewardExperience implements Rewardable {
 	@Override
 	public String getRewardName() {
 		return getType().name();
+	}
+
+	@Override
+	public Rewardable clone(Configuration config) {
+		return new RewardExperience();
 	}
 }

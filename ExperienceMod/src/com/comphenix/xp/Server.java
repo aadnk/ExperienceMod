@@ -17,10 +17,14 @@ package com.comphenix.xp;
  *  02111-1307 USA
  */
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.ExperienceOrb;
+import org.bukkit.entity.Player;
 
 public class Server {
 	private static final int[] threshhold = { 2477, 1237, 617, 307, 149, 73, 37, 17, 7, 3, 1 };
@@ -56,5 +60,28 @@ public class Server {
     	
     	// Usually due to zero experience
     	return 1;
+    }
+    
+    /**
+     * Retrieve the list of nearby players.
+     * @param world The world to search in.
+     * @param point The origin point to search from.
+     * @param radius The maximum distance away from the origin point to search in.
+     * @return Every player within the radius distance from the given point.
+     */
+    public static List<Player> getNearbyPlayers(World world, Location point, double radius) {
+
+    	List<Player> result = new ArrayList<Player>();
+    	double radiusSquared = radius * radius;
+    	
+    	// We'll just search through the entire list
+    	for (Player player : world.getPlayers()) {
+    	
+    		if (player != null && point.distanceSquared(player.getLocation()) < radiusSquared) {
+    			result.add(player);
+    		}
+    	}
+    	
+    	return result;
     }
 }

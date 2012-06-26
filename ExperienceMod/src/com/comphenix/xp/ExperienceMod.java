@@ -40,8 +40,10 @@ import com.comphenix.xp.commands.CommandExperienceMod;
 import com.comphenix.xp.commands.CommandSpawnExp;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.parser.Utility;
+import com.comphenix.xp.rewards.ItemRewardListener;
 import com.comphenix.xp.rewards.RewardEconomy;
 import com.comphenix.xp.rewards.RewardExperience;
+import com.comphenix.xp.rewards.RewardProvider;
 import com.comphenix.xp.rewards.RewardVirtual;
 import com.comphenix.xp.rewards.RewardTypes;
 
@@ -61,6 +63,9 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	
 	private ExperienceListener listener;
 	private ExperienceInformer informer;
+	private ItemRewardListener itemListener;
+	
+	private RewardProvider rewardProvider;
 	private Presets presets;
 	
 	// Commands
@@ -71,6 +76,8 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	
 	@Override
 	public void onEnable() {
+		RewardEconomy rewardEconomy;
+		
 		manager = getServer().getPluginManager();
 		
 		currentLogger = this.getLogger();
@@ -78,12 +85,28 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		
 		commandExperienceMod = new CommandExperienceMod(this);
 		commandSpawn = new CommandSpawnExp(this);
+		rewardProvider = new RewardProvider();
 		
 		// Load economy, if it exists
 		if (!hasEconomy())
 			setupEconomy();
 		if (!hasChat())
 			setupChat();
+		
+		// Load reward types
+		rewardProvider.register(new RewardExperience(), false);
+		rewardProvider.register(new RewardVirtual(), false);
+		rewardProvider.setDefaultReward(RewardTypes.EXPERIENCE);
+		
+		// Don't register economy rewards unless we can
+		if (hasEconomy()) {
+			itemListener = new ItemRewardListener();
+			rewardEconomy = new RewardEconomy(economy, this, itemListener); 
+			
+			// Associate everything
+			rewardProvider.register(rewardEconomy, false);
+			itemListener.setReward(rewardEconomy);
+		}
 		
 		try {
 			// Initialize configuration
@@ -176,13 +199,13 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 				// Set reward type
 				switch (reward) {
 				case EXPERIENCE:
-					config.setRewardManager(new RewardExperience());
+					config.setRewardManager();
 					break;
 				case VIRTUAL:
-					config.setRewardManager(new RewardVirtual());
+					config.setRewardManager();
 					break;
 				case ECONOMY:
-					config.setRewardManager(new RewardEconomy(economy, this));
+					config.setRewardManager();
 					break;
 				}
 			}
@@ -253,16 +276,6 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		return chat != null;
 	}
 	
-	private void setPresets(Presets presets) {
-		
-		// Create a new listener if necessary
-		if (listener == null) {
-			listener = new ExperienceListener(this, this, presets);
-		} else {
-			listener.setPresets(presets);
-		}
-	}
-	
 	@Override
 	public void onDisable() {
 	}
@@ -275,13 +288,43 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	public void toggleDebug() {
 		debugEnabled = !debugEnabled;
 	}
+
+	public Chat getChat() {
+		return chat;
+	}
+	
+	public Economy getEconomy() {
+		return economy;
+	}
+	
+	public ExperienceListener getListener() {
+		return listener;
+	}
 	
 	public ExperienceInformer getInformer() {
 		return informer;
 	}
 	
+	public RewardProvider getRewardProvider() {
+		return rewardProvider;
+	}
+
+	public ItemRewardListener getItemListener() {
+		return itemListener;
+	}
+
 	public Presets getPresets() {
 		return presets;
+	}
+	
+	private void setPresets(Presets presets) {
+		
+		// Create a new listener if necessary
+		if (listener == null) {
+			listener = new ExperienceListener(this, this, presets);
+		} else {
+			listener.setPresets(presets);
+		}
 	}
 	
 	@Override

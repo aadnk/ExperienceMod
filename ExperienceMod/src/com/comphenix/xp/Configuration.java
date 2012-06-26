@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.inventory.ItemStack;
 
 import com.comphenix.xp.lookup.*;
 import com.comphenix.xp.lookup.Query.Types;
@@ -29,8 +30,7 @@ import com.comphenix.xp.parser.ItemParser;
 import com.comphenix.xp.parser.MobParser;
 import com.comphenix.xp.parser.Utility;
 import com.comphenix.xp.parser.ParsingException;
-import com.comphenix.xp.rewards.Rewardable;
-import com.comphenix.xp.rewards.RewardTypes;
+import com.comphenix.xp.rewards.RewardProvider;
 
 public class Configuration implements Multipliable<Configuration> {
 	
@@ -61,14 +61,23 @@ public class Configuration implements Multipliable<Configuration> {
 	private static final String defaultRewardsSetting = "default rewards disabled";
 	private static final String rewardTypeSetting = "reward type";
 	
+	private static final String economyDropsSetting = "economy drop";
+	private static final String economyWorthSetting = "economy drop worth";
+	private static final String virtualScanRadiusSetting = "virtual scan radius";
+	
+	private static final double defaultScanRadius = 20;
+	
 	private Debugger logger;
 	
 	private double multiplier;
 	private boolean defaultRewardsDisabled;
 	private boolean preset;
 	
-	private RewardTypes rewardType;
-	private Rewardable rewardManager;
+	private ItemStack economyDropItem;
+	private Integer economyItemWorth;
+	private double scanRadiusSetting;
+	
+	private RewardProvider rewardProvider;
 
 	private MobTree experienceDrop;
 	private ItemTree simpleBlockReward;
@@ -85,7 +94,6 @@ public class Configuration implements Multipliable<Configuration> {
 	
 	public Configuration(Debugger debugger) {
 		this.logger = debugger;
-		this.rewardType = RewardTypes.EXPERIENCE;
 		this.defaultRewardsDisabled = false;
 		initialize(1);
 	}
@@ -98,7 +106,13 @@ public class Configuration implements Multipliable<Configuration> {
 		this.multiplier = newMultiplier;
 		this.logger = other.logger;
 		this.defaultRewardsDisabled = other.defaultRewardsDisabled;
-		this.rewardType = other.rewardType;
+		this.economyItemWorth = other.economyItemWorth;
+		this.economyDropItem = other.economyDropItem;
+		this.scanRadiusSetting = other.scanRadiusSetting;
+		
+		if (other.rewardProvider != null) {
+			this.rewardProvider = other.rewardProvider.createView(this);
+		}
 		
 		// Copy (shallow) trees
 		this.experienceDrop = other.experienceDrop.withMultiplier(newMultiplier);
@@ -150,7 +164,10 @@ public class Configuration implements Multipliable<Configuration> {
 			
 			// This will be the last set value
 			copy.defaultRewardsDisabled = config.defaultRewardsDisabled;
-			copy.rewardType = config.rewardType;
+			copy.rewardProvider = config.rewardProvider;
+			copy.economyItemWorth = config.economyItemWorth;
+			copy.economyDropItem = config.economyDropItem;
+			copy.scanRadiusSetting = config.scanRadiusSetting;
 			
 			// Multiply all multipliers
 			copy.multiplier *= config.multiplier; 
@@ -159,7 +176,7 @@ public class Configuration implements Multipliable<Configuration> {
 		// Update multiplier
 		return new Configuration(copy, copy.multiplier);
 	}
-	
+
 	private void loadFromConfig(ConfigurationSection config) {
 		
 		// Load scalar values
@@ -170,9 +187,26 @@ public class Configuration implements Multipliable<Configuration> {
 
 		// Whether or not to remove all default XP drops
 		defaultRewardsDisabled = config.getBoolean(defaultRewardsSetting, true);
+		scanRadiusSetting = readDouble(config, virtualScanRadiusSetting, defaultScanRadius);
+		
+		economyItemWorth = config.getInt(economyWorthSetting, 1);
+		economyDropItem = null;
+		
+		// Economy drop item
+		try {
+			Query drop = itemParser.parse(config.getString(economyDropsSetting, ""));
+			
+			if (drop != null && drop instanceof ItemQuery) {
+				economyDropItem = ((ItemQuery) drop).toItemStack(1);
+			}
+			
+		} catch (ParsingException e) {
+			logger.printWarning(this, "Cannot load economy drop type: %s", e.getMessage());
+		}
 		
 		// Load reward type
-		rewardType = loadReward(config.getString(rewardTypeSetting, "experience"));
+		String defaultReward = loadReward(config.getString(rewardTypeSetting, null));
+		setDefaultRewardName(defaultReward);
 		initialize(multiplier);
 
 		// Load mob experience
@@ -199,7 +233,7 @@ public class Configuration implements Multipliable<Configuration> {
 	
 	private void checkRewards() {
 		// Are any rewards negative
-		if (rewardType == RewardTypes.EXPERIENCE && hasNegativeRewards()) {
+		if (hasNegativeRewards()) {
 			logger.printWarning(this, 
 					"Cannot use negative rewards with the experience reward type.");
 		}
@@ -229,14 +263,17 @@ public class Configuration implements Multipliable<Configuration> {
 		return false;
 	}
 	
-	private RewardTypes loadReward(String text) {
+	private String loadReward(String text) {
 	
-		try {
-			return RewardTypes.valueOf(Utility.getEnumName(text));
-
-		} catch (IllegalArgumentException e) {
-			logger.printWarning(this, "Cannot parse reward type: %s", text);
-			return RewardTypes.EXPERIENCE;
+		String parsing = Utility.getEnumName(text);
+			
+		if (text != null && rewardProvider.containsReward(parsing)) {
+			return parsing;
+			
+		} else {
+			// Print a warning too!
+			logger.printWarning(this, "Cannot find reward type: %s", text);
+			return rewardProvider.getDefaultReward();
 		}
 	}
 	
@@ -348,6 +385,22 @@ public class Configuration implements Multipliable<Configuration> {
 		}
 	}
 
+	/**
+	 * Reads a double or integer from the configuration section.
+	 * @param config Configuration section to read from.
+	 * @param key The key to read.
+	 * @return The double, or NULL if none were found.
+	 */
+	private double readDouble(ConfigurationSection config, String key, double defaultValue) {
+		
+		if (config.isDouble(key))
+			return config.getDouble(key);
+		else if (config.isInt(key)) 
+			return (double) config.getInt(key);
+		else 
+			return defaultValue;
+	}
+	
 	private Range readRange(ConfigurationSection config, String key, Range defaultValue) {
 		
 		String start = key + ".first";
@@ -445,19 +498,32 @@ public class Configuration implements Multipliable<Configuration> {
 		return playerRewards;
 	}
 	
-	public RewardTypes getRewardType() {
-		return rewardType;
+	public RewardProvider getRewardProvider() {
+		return rewardProvider;
 	}
 	
-	public void setRewardType(RewardTypes rewardType) {
-		this.rewardType = rewardType;
+	public void setRewardManager(RewardProvider rewardProvider) {
+		this.rewardProvider = rewardProvider;
 	}
 	
-	public Rewardable getRewardManager() {
-		return rewardManager;
+	public ItemStack getEconomyDropItem() {
+		return economyDropItem;
 	}
 
-	public void setRewardManager(Rewardable rewardManager) {
-		this.rewardManager = rewardManager;
+	public Integer getEconomyItemWorth() {
+		return economyItemWorth;
+	}
+	
+	public String getDefaultRewardName() {
+		if (rewardProvider == null)
+			return null;
+		else
+			return rewardProvider.getDefaultReward();
+	}
+	
+	public void setDefaultRewardName(String rewardName) {
+		if (rewardProvider != null) {
+			rewardProvider.setDefaultReward(rewardName);
+		}
 	}
 }

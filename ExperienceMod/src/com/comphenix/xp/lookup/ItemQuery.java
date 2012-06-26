@@ -177,6 +177,36 @@ public class ItemQuery implements Query {
 		return materials;
 	}
 
+	/**
+	 * Converts the given query to an item stack if possible.
+	 * @return The converted item stack, or NULL if not possible.
+	 */
+	public ItemStack toItemStack(int amount) {
+
+		int data = 0;
+		
+		if (containsSingleNonNull(itemID)) {
+			
+			// We'll treat no durability as zero
+			if (containsSingleNonNull(durability)) {
+				data = durability.get(0);
+			} else if (durability.isEmpty()) {
+				data = 0;
+			} else {
+				return null;
+			}
+			
+			// Create the item stack
+			return new ItemStack(itemID.get(0), amount, (short) data);
+		}
+		
+		return null;
+	}
+	
+	private boolean containsSingleNonNull(List<Integer> list) {
+		return list != null && list.size() == 1 && !list.contains(null);
+	}
+	
 	@Override
 	public String toString() {
 		
