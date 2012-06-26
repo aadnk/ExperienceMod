@@ -2,11 +2,11 @@ package com.comphenix.xp.parser.text;
 
 import org.bukkit.entity.EntityType;
 
-import com.comphenix.xp.parser.Parser;
+import com.comphenix.xp.parser.TextParser;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.parser.Utility;
 
-public class MobEntityTypeParser extends Parser<EntityType> {
+public class MobEntityTypeParser extends TextParser<EntityType> {
 
 	@Override
 	public EntityType parse(String text) throws ParsingException {

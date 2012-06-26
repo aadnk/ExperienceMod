@@ -25,10 +25,10 @@ import org.bukkit.Material;
 import com.comphenix.xp.lookup.ItemQuery;
 import com.comphenix.xp.lookup.PotionQuery;
 import com.comphenix.xp.lookup.Query;
-import com.comphenix.xp.parser.Parser;
+import com.comphenix.xp.parser.TextParser;
 import com.comphenix.xp.parser.ParsingException;
 
-public class ItemParser extends Parser<Query> {
+public class ItemParser extends TextParser<Query> {
 	
 	private ParameterParser<Integer> itemNameParser = new ParameterParser<Integer>(new ItemNameParser());
 	

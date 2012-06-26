@@ -2,11 +2,11 @@ package com.comphenix.xp.parser.text;
 
 import org.bukkit.potion.PotionType;
 
-import com.comphenix.xp.parser.Parser;
+import com.comphenix.xp.parser.TextParser;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.parser.Utility;
 
-public class PotionTypeParser extends Parser<PotionType> {
+public class PotionTypeParser extends TextParser<PotionType> {
 
 	@Override
 	public PotionType parse(String text) throws ParsingException {

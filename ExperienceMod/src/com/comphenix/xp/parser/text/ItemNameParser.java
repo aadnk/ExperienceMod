@@ -4,11 +4,11 @@ import java.util.HashMap;
 
 import org.bukkit.Material;
 
-import com.comphenix.xp.parser.Parser;
+import com.comphenix.xp.parser.TextParser;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.parser.Utility;
 
-public class ItemNameParser extends Parser<Integer> {
+public class ItemNameParser extends TextParser<Integer> {
 
 	private static HashMap<String, Material> alternativeNames = new HashMap<String, Material>();
 	

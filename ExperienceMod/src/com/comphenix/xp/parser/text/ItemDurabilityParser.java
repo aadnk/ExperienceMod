@@ -13,11 +13,11 @@ import org.bukkit.material.MonsterEggs;
 import org.bukkit.material.Step;
 
 import com.comphenix.xp.extra.SmoothBrickType;
-import com.comphenix.xp.parser.Parser;
+import com.comphenix.xp.parser.TextParser;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.parser.Utility;
 
-public class ItemDurabilityParser extends Parser<Integer> {
+public class ItemDurabilityParser extends TextParser<Integer> {
 
 	// Quick lookup of items
 	private static Map<Integer, ItemCategory> lookup = new HashMap<Integer, ItemCategory>();

@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 
-import com.comphenix.xp.parser.Parser;
+import com.comphenix.xp.parser.TextParser;
 import com.comphenix.xp.parser.ParsingException;
 
-public class BooleanParser extends Parser<List<Boolean>> {
+public class BooleanParser extends TextParser<List<Boolean>> {
 
 	private static List<Boolean> emptyList = new ArrayList<Boolean>();
 	

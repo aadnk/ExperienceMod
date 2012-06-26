@@ -10,7 +10,7 @@ import java.util.Queue;
  * @author Kristian
  * @param <TResult> Type of the resulting object.
  */
-public abstract class Parser<TResult> {
+public abstract class TextParser<TResult> {
 	/**
 	 * Transforms the given text into an object. 
 	 * @param text Text to parse.

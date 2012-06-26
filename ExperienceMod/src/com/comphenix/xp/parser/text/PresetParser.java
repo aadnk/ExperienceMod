@@ -6,11 +6,11 @@ import java.util.Queue;
 import org.apache.commons.lang.StringUtils;
 
 import com.comphenix.xp.lookup.PresetQuery;
-import com.comphenix.xp.parser.Parser;
+import com.comphenix.xp.parser.TextParser;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.parser.primitives.StringParser;
 
-public class PresetParser extends Parser<PresetQuery> {
+public class PresetParser extends TextParser<PresetQuery> {
 
 	private ParameterParser<String> textParsing = new ParameterParser<String>(new StringParser());
 	

@@ -8,12 +8,12 @@ import org.bukkit.Material;
 import org.bukkit.potion.PotionType;
 
 import com.comphenix.xp.lookup.PotionQuery;
-import com.comphenix.xp.parser.Parser;
+import com.comphenix.xp.parser.TextParser;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.parser.primitives.BooleanParser;
 import com.comphenix.xp.parser.primitives.IntegerParser;
 
-public class PotionParser extends Parser<PotionQuery> {
+public class PotionParser extends TextParser<PotionQuery> {
 
 	private ParameterParser<Integer> itemNameParser = new ParameterParser<Integer>(new ItemNameParser());
 	private ParameterParser<PotionType> potionTypeParser = new ParameterParser<PotionType>(new PotionTypeParser());

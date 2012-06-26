@@ -3,7 +3,7 @@ package com.comphenix.xp.parser.text;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.comphenix.xp.parser.Parser;
+import com.comphenix.xp.parser.TextParser;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.parser.Utility;
 
@@ -13,12 +13,12 @@ import com.comphenix.xp.parser.Utility;
  * @author Kristian
  * @param <TItem> Type of each value.
  */
-public class ParameterParser<TItem> extends Parser<List<TItem>>{
+public class ParameterParser<TItem> extends TextParser<List<TItem>>{
 
 	private static final String VALUE_DIVIDER = ",";
-	private Parser<TItem> elementParser;
+	private TextParser<TItem> elementParser;
 
-	public ParameterParser(Parser<TItem> elementParser) {
+	public ParameterParser(TextParser<TItem> elementParser) {
 		this.elementParser = elementParser;
 	}
 
@@ -59,7 +59,7 @@ public class ParameterParser<TItem> extends Parser<List<TItem>>{
 		return result;
 	}
 	
-	public Parser<TItem> getElementParser() {
+	public TextParser<TItem> getElementParser() {
 		return elementParser;
 	}
 }
