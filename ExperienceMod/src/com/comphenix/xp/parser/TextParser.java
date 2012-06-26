@@ -10,13 +10,14 @@ import java.util.Queue;
  * @author Kristian
  * @param <TResult> Type of the resulting object.
  */
-public abstract class TextParser<TResult> {
+public abstract class TextParser<TResult> extends Parser<String, TResult> {
 	/**
 	 * Transforms the given text into an object. 
 	 * @param text Text to parse.
 	 * @return Result of the parsing.
 	 * @throws ParsingException The text cannot be transformed into a list of objects.
 	 */
+	@Override
 	public abstract TResult parse(String text) throws ParsingException;
 	 
 	/**

@@ -18,8 +18,12 @@ public class Action implements Multipliable<Action> {
 	private Message message;
 	private List<RangedReward> rewards = new ArrayList<RangedReward>();
 	
-	public Action(Message message) {
-		this.message = message;
+	public Action() {
+		// Default constructor
+	}
+	
+	public Action(Range defaultAction) {
+		addReward("DEFAULT", defaultAction);
 	}
 	
 	public void addReward(String rewardType, Range range) {

@@ -30,7 +30,9 @@ public class ItemRewardListener implements Listener {
 			if (amount != null) {
 				event.setCancelled(true);
 				reward.reward(player, amount);
+				
 				queue.remove(id);
+				item.remove();
 			}
 		}
 	}

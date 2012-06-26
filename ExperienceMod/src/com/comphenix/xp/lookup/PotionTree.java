@@ -24,7 +24,7 @@ import org.apache.commons.lang.NotImplementedException;
 import org.bukkit.potion.PotionType;
 import com.comphenix.xp.Range;
 
-public class PotionTree extends RangeTree<PotionQuery> implements Multipliable<PotionTree> {
+public class PotionTree extends ActionTree<PotionQuery> implements Multipliable<PotionTree> {
 
 	protected Parameter<PotionType> type;
 	protected Parameter<Integer> level;

@@ -25,7 +25,7 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
 import com.comphenix.xp.Range;
 
-public class MobTree extends RangeTree<MobQuery> implements Multipliable<MobTree> {
+public class MobTree extends ActionTree<MobQuery> implements Multipliable<MobTree> {
 
 	// DON'T CARE fields are marked with NULL
 	protected Parameter<EntityType> type;

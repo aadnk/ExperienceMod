@@ -6,15 +6,15 @@ import java.util.List;
 
 import com.comphenix.xp.Range;
 
-public abstract class RangeTree<TKey> extends SearchTree<TKey, Range>{
+public abstract class ActionTree<TKey> extends SearchTree<TKey, Range>{
 
 	protected double multiplier;
 	
-	public RangeTree(double multiplier) {
+	public ActionTree(double multiplier) {
 		this.multiplier = multiplier;
 	}
 	
-	public RangeTree(RangeTree<TKey> other, double multiplier) {
+	public ActionTree(ActionTree<TKey> other, double multiplier) {
 		this.multiplier = multiplier;
 		this.flatten = other.flatten;
 		this.paramCount = other.paramCount;

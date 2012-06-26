@@ -26,6 +26,7 @@ import org.bukkit.inventory.ItemStack;
 
 import com.comphenix.xp.lookup.*;
 import com.comphenix.xp.lookup.Query.Types;
+import com.comphenix.xp.parser.ActionParser;
 import com.comphenix.xp.parser.Utility;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.parser.text.ItemParser;
@@ -91,6 +92,7 @@ public class Configuration implements Multipliable<Configuration> {
 	
 	private ItemParser itemParser = new ItemParser();
 	private MobParser mobParser = new MobParser();
+	private ActionParser actionParser = new ActionParser();
 	
 	public Configuration(Debugger debugger) {
 		this.logger = debugger;
@@ -284,7 +286,7 @@ public class Configuration implements Multipliable<Configuration> {
 		
 		for (String key : config.getKeys(false)) {
 			try {				
-				Range value = readRange(config, key, null);
+				Action value = actionParser.parse(config.getConfigurationSection(key));
 				MobQuery query = mobParser.parse(key);
 				
 				if (value != null)
@@ -352,7 +354,7 @@ public class Configuration implements Multipliable<Configuration> {
 		for (String key : config.getKeys(false)) {
 			
 			try {
-				Range value = readRange(config, key, null);
+				Action value = actionParser.parse(config.getConfigurationSection(key));
 				
 				if (value != null)
 					playerRewards.put(key, value);
@@ -369,9 +371,9 @@ public class Configuration implements Multipliable<Configuration> {
 	// I just wanted handle SearchTree<ItemQuery, Range> and SearchTree<PotionQuery, Range> with the same method, but
 	// apparently you can't simply use SearchTree<Query, Range> or some derivation to match them both. Too bad.
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private void loadActionOnItem(ConfigurationSection config, String key, Query item, SearchTree destination, Query.Types checkType)  {
+	private void loadActionOnItem(ConfigurationSection config, String key, Query item, SearchTree destination, Query.Types checkType) throws ParsingException  {
 		
-		Range range = readRange(config, key, null);
+		Action range = actionParser.parse(config.getConfigurationSection(key));
 		
 		// Check the query type
 		if (item.getQueryType() != checkType)
@@ -399,37 +401,6 @@ public class Configuration implements Multipliable<Configuration> {
 			return (double) config.getInt(key);
 		else 
 			return defaultValue;
-	}
-	
-	private Range readRange(ConfigurationSection config, String key, Range defaultValue) {
-		
-		String start = key + ".first";
-		String end = key + ".last";
-		
-		if (config.isDouble(key)) {
-			return new Range(config.getDouble(key));
-			
-		} else if (config.isInt(key)) {
-			return new Range((double) config.getInt(key));
-			
-		} else if (config.contains(start) && config.contains(end)) {
-			return new Range(config.getDouble(start), config.getDouble(end));
-	
-		} else if (config.isList(key)) {
-			// Try to get a double list
-			List<Double> attempt = config.getDoubleList(key);
-
-			if (attempt != null && attempt.size() == 2)
-				return new Range(attempt.get(0), attempt.get(1));
-			else if (attempt != null && attempt.size() == 1)
-				return new Range(attempt.get(0));
-			else
-				return defaultValue;
-			
-		} else {
-			// Default value
-			return defaultValue;
-		}
 	}
 	
 	/**

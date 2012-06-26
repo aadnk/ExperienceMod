@@ -22,7 +22,7 @@ import java.util.Set;
 
 import com.comphenix.xp.Range;
 
-public class ItemTree extends RangeTree<ItemQuery> implements Multipliable<ItemTree> {
+public class ItemTree extends ActionTree<ItemQuery> implements Multipliable<ItemTree> {
 
 	protected Parameter<Integer> itemID;
 	protected Parameter<Integer> durability; 
