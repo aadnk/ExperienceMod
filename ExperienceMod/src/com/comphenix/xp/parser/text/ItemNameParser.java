@@ -1,8 +1,12 @@
-package com.comphenix.xp.parser;
+package com.comphenix.xp.parser.text;
 
 import java.util.HashMap;
 
 import org.bukkit.Material;
+
+import com.comphenix.xp.parser.Parser;
+import com.comphenix.xp.parser.ParsingException;
+import com.comphenix.xp.parser.Utility;
 
 public class ItemNameParser extends Parser<Integer> {
 

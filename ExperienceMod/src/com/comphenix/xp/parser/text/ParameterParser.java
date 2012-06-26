@@ -1,7 +1,11 @@
-package com.comphenix.xp.parser;
+package com.comphenix.xp.parser.text;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import com.comphenix.xp.parser.Parser;
+import com.comphenix.xp.parser.ParsingException;
+import com.comphenix.xp.parser.Utility;
 
 /**
  * Reads a comma-delimited list of parsable values.

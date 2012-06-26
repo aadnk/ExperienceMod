@@ -16,9 +16,9 @@ import com.comphenix.xp.lookup.ItemQuery;
 import com.comphenix.xp.lookup.MobQuery;
 import com.comphenix.xp.lookup.PotionQuery;
 import com.comphenix.xp.lookup.Query;
-import com.comphenix.xp.parser.ItemParser;
-import com.comphenix.xp.parser.MobParser;
 import com.comphenix.xp.parser.ParsingException;
+import com.comphenix.xp.parser.text.ItemParser;
+import com.comphenix.xp.parser.text.MobParser;
 
 public class CommandExperienceMod implements CommandExecutor {
 

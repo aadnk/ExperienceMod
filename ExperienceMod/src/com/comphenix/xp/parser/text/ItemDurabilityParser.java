@@ -1,4 +1,4 @@
-package com.comphenix.xp.parser;
+package com.comphenix.xp.parser.text;
 
 import java.util.HashMap;
 import java.util.List;
@@ -13,6 +13,9 @@ import org.bukkit.material.MonsterEggs;
 import org.bukkit.material.Step;
 
 import com.comphenix.xp.extra.SmoothBrickType;
+import com.comphenix.xp.parser.Parser;
+import com.comphenix.xp.parser.ParsingException;
+import com.comphenix.xp.parser.Utility;
 
 public class ItemDurabilityParser extends Parser<Integer> {
 

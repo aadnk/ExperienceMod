@@ -1,4 +1,4 @@
-package com.comphenix.xp.parser;
+package com.comphenix.xp.parser.text;
 
 import java.util.List;
 import java.util.Queue;
@@ -6,6 +6,8 @@ import java.util.Queue;
 import org.apache.commons.lang.StringUtils;
 
 import com.comphenix.xp.lookup.PresetQuery;
+import com.comphenix.xp.parser.Parser;
+import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.parser.primitives.StringParser;
 
 public class PresetParser extends Parser<PresetQuery> {

@@ -1,6 +1,10 @@
-package com.comphenix.xp.parser;
+package com.comphenix.xp.parser.text;
 
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
+
+import com.comphenix.xp.parser.Parser;
+import com.comphenix.xp.parser.ParsingException;
+import com.comphenix.xp.parser.Utility;
 
 public class MobDamageCauseParser extends Parser<DamageCause> {
 

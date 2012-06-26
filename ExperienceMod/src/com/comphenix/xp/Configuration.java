@@ -26,10 +26,10 @@ import org.bukkit.inventory.ItemStack;
 
 import com.comphenix.xp.lookup.*;
 import com.comphenix.xp.lookup.Query.Types;
-import com.comphenix.xp.parser.ItemParser;
-import com.comphenix.xp.parser.MobParser;
 import com.comphenix.xp.parser.Utility;
 import com.comphenix.xp.parser.ParsingException;
+import com.comphenix.xp.parser.text.ItemParser;
+import com.comphenix.xp.parser.text.MobParser;
 import com.comphenix.xp.rewards.RewardProvider;
 
 public class Configuration implements Multipliable<Configuration> {

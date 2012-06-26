@@ -1,4 +1,4 @@
-package com.comphenix.xp.parser;
+package com.comphenix.xp.parser.text;
 
 import java.util.List;
 import java.util.Queue;
@@ -8,6 +8,8 @@ import org.bukkit.Material;
 import org.bukkit.potion.PotionType;
 
 import com.comphenix.xp.lookup.PotionQuery;
+import com.comphenix.xp.parser.Parser;
+import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.parser.primitives.BooleanParser;
 import com.comphenix.xp.parser.primitives.IntegerParser;
 

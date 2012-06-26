@@ -15,10 +15,10 @@ import org.bukkit.entity.Player;
 
 import com.comphenix.xp.lookup.PresetQuery;
 import com.comphenix.xp.lookup.PresetTree;
-import com.comphenix.xp.parser.ParameterParser;
 import com.comphenix.xp.parser.ParsingException;
-import com.comphenix.xp.parser.PresetParser;
 import com.comphenix.xp.parser.primitives.StringParser;
+import com.comphenix.xp.parser.text.ParameterParser;
+import com.comphenix.xp.parser.text.PresetParser;
 import com.google.common.collect.Lists;
 
 /**

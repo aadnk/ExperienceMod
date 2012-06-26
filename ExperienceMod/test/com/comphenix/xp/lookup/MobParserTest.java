@@ -7,8 +7,8 @@ import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.junit.Test;
 
-import com.comphenix.xp.parser.MobParser;
 import com.comphenix.xp.parser.ParsingException;
+import com.comphenix.xp.parser.text.MobParser;
 
 public class MobParserTest {
 
