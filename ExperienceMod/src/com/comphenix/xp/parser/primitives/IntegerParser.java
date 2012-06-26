@@ -1,4 +1,7 @@
-package com.comphenix.xp.parser;
+package com.comphenix.xp.parser.primitives;
+
+import com.comphenix.xp.parser.Parser;
+import com.comphenix.xp.parser.ParsingException;
 
 public class IntegerParser extends Parser<Integer> {
 

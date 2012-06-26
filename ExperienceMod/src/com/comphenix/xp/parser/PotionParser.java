@@ -8,6 +8,8 @@ import org.bukkit.Material;
 import org.bukkit.potion.PotionType;
 
 import com.comphenix.xp.lookup.PotionQuery;
+import com.comphenix.xp.parser.primitives.BooleanParser;
+import com.comphenix.xp.parser.primitives.IntegerParser;
 
 public class PotionParser extends Parser<PotionQuery> {
 

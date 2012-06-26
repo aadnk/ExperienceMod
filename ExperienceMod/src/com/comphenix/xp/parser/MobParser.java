@@ -25,6 +25,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
 import com.comphenix.xp.lookup.MobQuery;
+import com.comphenix.xp.parser.primitives.BooleanParser;
 
 public class MobParser extends Parser<MobQuery> {
 	

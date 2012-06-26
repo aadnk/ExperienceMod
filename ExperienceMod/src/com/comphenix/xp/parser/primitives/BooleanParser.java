@@ -1,8 +1,11 @@
-package com.comphenix.xp.parser;
+package com.comphenix.xp.parser.primitives;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
+
+import com.comphenix.xp.parser.Parser;
+import com.comphenix.xp.parser.ParsingException;
 
 public class BooleanParser extends Parser<List<Boolean>> {
 
