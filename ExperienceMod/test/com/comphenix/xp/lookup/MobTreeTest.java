@@ -6,6 +6,8 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.junit.Test;
+
+import com.comphenix.xp.Action;
 import com.comphenix.xp.Range;
 
 public class MobTreeTest {
@@ -14,16 +16,17 @@ public class MobTreeTest {
 	public void testMobQuerying() {
 
 		MobTree tree = new MobTree(1);
+		String def = "EXPERIENCE";
 		
 		MobQuery fallGib = MobQuery.fromAny(null, DamageCause.FALL);
 		MobQuery magicGib = MobQuery.fromAny(null, DamageCause.MAGIC);
 		MobQuery zombieKill = MobQuery.fromAny(EntityType.ZOMBIE);
 		MobQuery noSpawnXP = MobQuery.fromAny(null, null, SpawnReason.SPAWNER, null, null);
 		
-		Range zombieValue =  new Range(5);
-		Range magicValue = new Range(2);
-		Range noSpawnValue = new Range(0);
-		Range fallValue = new Range(15);
+		Action zombieValue = new Action(def, new Range(5));
+		Action magicValue = new Action(def,  new Range(2));
+		Action noSpawnValue = new Action(def, new Range(0));
+		Action fallValue = new Action(def, new Range(15));
 		
 		tree.put(zombieKill, zombieValue);
 		tree.put(magicGib, magicValue);
@@ -36,7 +39,7 @@ public class MobTreeTest {
 		assertEquals(fallValue, queryTree(tree, EntityType.ZOMBIE, DamageCause.FALL, SpawnReason.SPAWNER));
 	}
 	
-	private Range queryTree(MobTree tree, EntityType type, DamageCause cause, SpawnReason reason) {
+	private Action queryTree(MobTree tree, EntityType type, DamageCause cause, SpawnReason reason) {
 		return tree.get(MobQuery.fromExact(type, cause, reason, false, false));
 	}
 }

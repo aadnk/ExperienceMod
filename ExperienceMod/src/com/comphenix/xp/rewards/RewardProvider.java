@@ -160,7 +160,9 @@ public class RewardProvider {
 	// Make sure the reward manager has the correct configuration associated with it
 	private Rewardable getConfigSpecific(Rewardable reward) {
 		
-		if (configuration != null)
+		if (reward == null)
+			return null;
+		else if (configuration != null)
 			return reward.clone(configuration);
 		else
 			return reward;

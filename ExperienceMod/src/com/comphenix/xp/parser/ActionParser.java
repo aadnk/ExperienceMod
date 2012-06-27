@@ -12,7 +12,7 @@ import com.comphenix.xp.parser.primitives.StringParser;
 import com.comphenix.xp.parser.text.ParameterParser;
 import com.comphenix.xp.rewards.RewardProvider;
 
-public class ActionParser extends Parser<ConfigurationSection, Action> {
+public class ActionParser {
 
 	private static final String messageTextSetting = "message";
 	private static final String messageChannelSetting = "channels";
@@ -24,11 +24,13 @@ public class ActionParser extends Parser<ConfigurationSection, Action> {
 		this.provider = provider;
 	}
 	
-	@Override
-	public Action parse(ConfigurationSection input) throws ParsingException {
+	public Action parse(ConfigurationSection input, String key) throws ParsingException {
 		
+		if (input == null)
+			return null;
+
 		Action result = new Action();
-		Range topLevel = readRange(input, null);
+		Range topLevel = readRange(input, key, null);
 		
 		String text = null;
 		List<String> channels = new ArrayList<String>();
@@ -40,14 +42,14 @@ public class ActionParser extends Parser<ConfigurationSection, Action> {
 		}
 		
 		// If not, get sub-rewards
-		for (String key : input.getKeys(false)) {
+		for (String sub : input.getKeys(false)) {
 			
-			if (key.equalsIgnoreCase(messageTextSetting)) {
+			if (sub.equalsIgnoreCase(messageTextSetting)) {
 				text = input.getString(key);
-			} else if (key.equalsIgnoreCase(messageChannelSetting)) {
+			} else if (sub.equalsIgnoreCase(messageChannelSetting)) {
 				channels = textParsing.parse(input.getString(key));
 			} else {
-				Range range = readRange(input.getConfigurationSection(key), null);
+				Range range = readRange(input.getConfigurationSection(key), sub, null);
 				
 				if (range != null) {
 					result.addReward(key, range);
@@ -67,27 +69,23 @@ public class ActionParser extends Parser<ConfigurationSection, Action> {
 		return result;
 	}
 	
-	public Action parse(ConfigurationSection input, String key) throws ParsingException {
-		return parse(input.getConfigurationSection(key));
-	}
-	
-	private Range readRange(ConfigurationSection config, Range defaultValue) {
+	private Range readRange(ConfigurationSection config, String key, Range defaultValue) {
 		
-		String start = "first";
-		String end = "last";
+		String start = key + ".first";
+		String end = key + ".last";
 		
-		if (config.isDouble("")) {
-			return new Range(config.getDouble(""));
+		if (config.isDouble(key)) {
+			return new Range(config.getDouble(key));
 			
-		} else if (config.isInt("")) {
-			return new Range((double) config.getInt(""));
+		} else if (config.isInt(key)) {
+			return new Range((double) config.getInt(key));
 			
 		} else if (config.contains(start) && config.contains(end)) {
 			return new Range(config.getDouble(start), config.getDouble(end));
 	
-		} else if (config.isList("")) {
+		} else if (config.isList(key)) {
 			// Try to get a double list
-			List<Double> attempt = config.getDoubleList("");
+			List<Double> attempt = config.getDoubleList(key);
 
 			if (attempt != null && attempt.size() == 2)
 				return new Range(attempt.get(0), attempt.get(1));

@@ -11,10 +11,13 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.comphenix.xp.Action;
 import com.comphenix.xp.Configuration;
 import com.comphenix.xp.Debugger;
 import com.comphenix.xp.Range;
 import com.comphenix.xp.parser.ParsingException;
+import com.comphenix.xp.rewards.RewardProvider;
+import com.comphenix.xp.rewards.RewardTypes;
 
 public class ItemTreeTest {
 
@@ -25,6 +28,8 @@ public class ItemTreeTest {
     public static void loadDefaultConfiguration() {
 		InputStream file = ItemTreeTest.class.getResourceAsStream("/config.yml");
 		YamlConfiguration defaultFile = YamlConfiguration.loadConfiguration(file);
+		RewardProvider provider = new RewardProvider();
+		provider.setDefaultReward(RewardTypes.EXPERIENCE);
 		
 		Debugger injected = new Debugger() {
 			public void printWarning(Object sender, String message, Object... params) {
@@ -38,7 +43,7 @@ public class ItemTreeTest {
 		};
 		
 		// Load the default configuration
-		configuration = new Configuration(defaultFile, injected);
+		configuration = new Configuration(defaultFile, injected, provider);
     }
 	
 	@Test
@@ -46,6 +51,7 @@ public class ItemTreeTest {
 		
 		int redColor = (int) DyeColor.RED.getData();
 		int blueColor = (int) DyeColor.BLUE.getData();
+		String def = "EXPERIENCE";
 		
 		ItemQuery universal = ItemQuery.fromAny();
 		ItemQuery stoneQuery = ItemQuery.fromAny(Material.STONE);
@@ -58,9 +64,9 @@ public class ItemTreeTest {
 		ItemTree tree3 = new ItemTree(3);
 		ItemTree result = new ItemTree(1);
 		
-		Range universalValue = new Range(0);
-		Range stoneValue = new Range(1);
-		Range redValue = new Range(5);
+		Action universalValue = new Action(def, new Range(0));
+		Action stoneValue = new Action(def,new Range(1));
+		Action redValue = new Action(def,new Range(5));
 		
 		tree1.put(stoneQuery, stoneValue);
 		tree2.put(universal, universalValue);
@@ -82,6 +88,7 @@ public class ItemTreeTest {
 		int redColor = (int) DyeColor.RED.getData();
 		int blueColor = (int) DyeColor.BLUE.getData();
 		int brownColor = (int) DyeColor.BROWN.getData();
+		String def = "EXPERIENCE";
 		
 		ItemQuery universal = ItemQuery.fromAny();
 		ItemQuery stone = ItemQuery.fromAny(Material.STONE, null);
@@ -89,9 +96,9 @@ public class ItemTreeTest {
 				Arrays.asList(Material.WOOL.getId()), 
 				Arrays.asList(redColor, blueColor));
 		
-		Range universalValue = new Range(0);
-		Range stoneValue = new Range(1);
-		Range redValue = new Range(5);
+		Action universalValue = new Action(def, new Range(0));
+		Action stoneValue = new Action(def, new Range(1));
+		Action redValue = new Action(def, new Range(5));
 		
 		tree.put(universal, universalValue);
 		tree.put(stone, stoneValue);
@@ -109,14 +116,14 @@ public class ItemTreeTest {
 	public void testItemSpeed() {
 		
 		ItemQuery diamondQuery = ItemQuery.fromAny(Material.DIAMOND_ORE);
-		Range lastRange = null;
+		Action lastAction = null;
 		
 		// Assuming no errors, try searching for diamond a couple of times
 		for (int i = 0; i < REPEAT_COUNT; i++) {
-			lastRange = configuration.getSimpleBlockReward().get(diamondQuery);
+			lastAction = configuration.getSimpleBlockReward().get(diamondQuery);
 		}
 		
 		// The default configuration should have it
-		assertNotNull(lastRange);
+		assertNotNull(lastAction);
 	}
 }

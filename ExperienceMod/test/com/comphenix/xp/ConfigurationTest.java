@@ -25,6 +25,7 @@ public class ConfigurationTest {
 		
 		RewardProvider provider = new RewardProvider();
 		provider.setDefaultReward(RewardTypes.EXPERIENCE);
+		String def = "EXPERIENCE";
 		
 		Configuration first = createConfig(
 				"multiplier: 1\n" +
@@ -41,8 +42,11 @@ public class ConfigurationTest {
 		MobQuery queryBlace = MobQuery.fromAny(EntityType.BLAZE, DamageCause.ENTITY_ATTACK);
 		MobQuery queryZombie = MobQuery.fromAny(EntityType.ZOMBIE, DamageCause.ENTITY_ATTACK);
 		
-		assertEquals(new Range(5), result.getExperienceDrop().get(queryBlace).getReward(RewardTypes.EXPERIENCE));
-		assertEquals(new Range(0), result.getExperienceDrop().get(queryZombie).getReward(RewardTypes.EXPERIENCE));
+		Action blaceAction = new Action(def, new Range(5));
+		Action zombieAction = new Action(def, new Range(0));
+		
+		assertEquals(blaceAction, result.getExperienceDrop().get(queryBlace));
+		assertEquals(zombieAction, result.getExperienceDrop().get(queryZombie));
 	}
 	
 	// Load configuration from text

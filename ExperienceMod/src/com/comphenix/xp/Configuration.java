@@ -320,9 +320,9 @@ public class Configuration implements Multipliable<Configuration> {
 		
 		for (String key : config.getKeys(false)) {
 			try {				
-				Action value = actionParser.parse(config.getConfigurationSection(key));
+				Action value = actionParser.parse(config, key);
 				MobQuery query = mobParser.parse(key);
-				
+
 				if (value != null)
 					experienceDrop.put(query, value);
 				else
@@ -388,7 +388,7 @@ public class Configuration implements Multipliable<Configuration> {
 		for (String key : config.getKeys(false)) {
 			
 			try {
-				Action value = actionParser.parse(config.getConfigurationSection(key));
+				Action value = actionParser.parse(config, key);
 				
 				if (value != null)
 					playerRewards.put(key, value);
@@ -407,7 +407,7 @@ public class Configuration implements Multipliable<Configuration> {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void loadActionOnItem(ConfigurationSection config, String key, Query item, SearchTree destination, Query.Types checkType) throws ParsingException  {
 		
-		Action range = actionParser.parse(config.getConfigurationSection(key));
+		Action range = actionParser.parse(config, key);
 		
 		// Check the query type
 		if (item.getQueryType() != checkType)

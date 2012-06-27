@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.Random;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -26,6 +28,11 @@ public class Action {
 	public Action() {
 		// Default constructor
 		rewards = new HashMap<String, Range>();;
+	}
+	
+	public Action(String rewardType, Range reward) {
+		this();
+		addReward(rewardType, reward);
 	}
 	
 	private Action(Message message, Map<String, Range> rewards) {
@@ -168,6 +175,30 @@ public class Action {
 		}
 		
 		return new Action(message, copy);
+	}
+	
+	@Override
+	public int hashCode() {
+		return new HashCodeBuilder(17, 31).
+	            append(message).
+	            append(rewards).
+	            toHashCode();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null)
+            return false;
+        if (obj == this)
+            return true;
+        if (obj.getClass() != getClass())
+            return false;
+
+        Action other = (Action) obj;
+        return new EqualsBuilder().
+            append(message, other.message).
+            append(rewards, other.rewards).
+            isEquals();
 	}
 
 	@Override
