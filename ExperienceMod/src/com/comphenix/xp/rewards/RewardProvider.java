@@ -4,6 +4,7 @@ import java.util.HashMap;
 import org.apache.commons.lang.NullArgumentException;
 
 import com.comphenix.xp.Configuration;
+import com.comphenix.xp.extra.ServiceProvider;
 import com.comphenix.xp.rewards.RewardTypes;
 
 /**
@@ -11,12 +12,14 @@ import com.comphenix.xp.rewards.RewardTypes;
  * 
  * @author Kristian
  */
-public class RewardProvider {
+public class RewardProvider extends ServiceProvider<RewardService> {
 	
-	private static String customUnsupported = "rewardType cannot be custom. Use getByString().";
-	private static String defaultRewardName = "DEFAULT";
+	public static String defaultRewardName = "DEFAULT";
 	
-	private HashMap<String, RewardService> nameLookup;
+	// Error messages
+	private static String customUnsupported = "rewardType cannot be CUSTOM.";
+	
+	// Enum type lookup
 	private HashMap<RewardTypes, RewardService> enumLookup;
 
 	private String defaultReward;
@@ -24,20 +27,22 @@ public class RewardProvider {
 	
 	public RewardProvider() {
 		// Default constructor
+		super();
 		this.nameLookup = new HashMap<String, RewardService>();
 		this.enumLookup = new HashMap<RewardTypes, RewardService>();
 	}
 	
 	public RewardProvider(RewardProvider reference, Configuration configuration) {
+		super();
 		this.nameLookup = reference.nameLookup;
 		this.enumLookup = reference.enumLookup;
 		this.configuration = configuration;
 	}
 	
 	/**
-	 * Returns the currently registered reward manager for this type.
-	 * @param rewardType type to search for.
-	 * @return The currently registered reward manager, or NULL if not found.
+	 * Returns the currently registered reward service for this type.
+	 * @param rewardType - type to search for.
+	 * @return The currently registered reward service, or NULL if not found.
 	 */
 	public RewardService getByEnum(RewardTypes rewardType) {
 		if (rewardType == null)
@@ -45,56 +50,41 @@ public class RewardProvider {
 		if (rewardType == RewardTypes.CUSTOM)
 			throw new IllegalArgumentException(customUnsupported);
 		if (rewardType == RewardTypes.DEFAULT)
-			return getByName(getDefaultReward());
+			return getByName(defaultRewardName);
 		
+		// Add configuration here too
 		return getConfigSpecific(enumLookup.get(rewardType));
 	}
 	
-	/**
-	 * Returns the currently registered reward manager with this name. The name 
-	 * should be conforming to the Java Enum convention.
-	 * @param rewardName name to search for.
-	 * @return The currently registered reward manager, or NULL if not found.
-	 */
+	@Override
 	public RewardService getByName(String rewardName) {
-		if (rewardName == null)
-			throw new NullArgumentException("rewardName");
-		if (rewardName.equalsIgnoreCase(defaultRewardName))
-			return nameLookup.get(getDefaultReward());
+		RewardService service;
 		
-		return getConfigSpecific(nameLookup.get(rewardName));
+		if (rewardName.equalsIgnoreCase(defaultRewardName))
+			service = super.getByName(getDefaultReward());
+		else
+			service = super.getByName(rewardName);
+		
+		// Add configuration
+		return getConfigSpecific(service);
 	}
 	
-	/**
-	 * Registers a reward manager in the system.
-	 * @param reward the reward manager to register.
-	 * @param override TRUE to override any previously registered managers with the same name or type. 
-	 * @return The previously registered manager with this type and name, or NULL otherwise.
-	 */
+	@Override
 	public RewardService register(RewardService reward, boolean override) {
 		if (reward == null)
 			throw new NullArgumentException("reward");
 		
 		RewardTypes type = reward.getRewardType();
-		String name = reward.getServiceName();
-		
-		if (type.isSpecialMarker()) {
-			throw new IllegalArgumentException("reward cannot be of type custom or default");
-		}
-		
-		// Note that the first check will always be FALSE if the type is a special marker
-		if (override) {
-			if (enumLookup.containsKey(type) || nameLookup.containsKey(name)) {
-					return getByName(name);
-			}
-		}
-		
-		// Add to special lookup
-		if (!type.isSpecialMarker()) {
+
+		// Add to lookup
+		if (type != RewardTypes.CUSTOM) {
 			enumLookup.put(type, reward);
+		} else if (type == RewardTypes.DEFAULT) {
+			throw new IllegalArgumentException("Reward type cannot be default.");
 		}
 		
-		return nameLookup.put(reward.getServiceName(), reward);
+		// Register with name
+		return super.register(reward, override);
 	}
 	
 	/**
@@ -114,20 +104,14 @@ public class RewardProvider {
 		
 		// Make sure to remove it from the name list too
 		if (removed != null)
-			nameLookup.remove(removed.getServiceName());
+			super.unregister(removed);
 		return removed;
 	}
 	
-	/**
-	 * Unregisters a specified reward manager.
-	 * @param rewardType the name of the reward manager to unregister.
-	 * @return The previously registered manager with this name, or NULL otherwise.
-	 */
+	@Override
 	public RewardService unregister(String rewardName) {
-		if (rewardName == null)
-			throw new NullArgumentException("rewardName");
 
-		RewardService removed = nameLookup.remove(rewardName);
+		RewardService removed = super.unregister(rewardName);
 		
 		if (!removed.getRewardType().isSpecialMarker())
 			enumLookup.remove(removed.getRewardType());
@@ -135,22 +119,13 @@ public class RewardProvider {
 	}
 	
 	/**
-	 * Determines whether or not the given reward has been registered.
-	 * @param name Name of the reward to check.
-	 * @return TRUE if it has, FALSE otherwise.
-	 */
-	public boolean containsReward(String name) {
-		return nameLookup.containsKey(name);
-	}
-	
-	/**
 	 * Determines whether or not the given reward type has been registered.
-	 * @param type Type of the reward to check.
+	 * @param type - type of the reward to check.
 	 * @return TRUE if it has, FALSE otherwise.
 	 */
 	public boolean containsReward(RewardTypes type) {
 		if (type == RewardTypes.DEFAULT)
-			return containsReward(defaultReward);
+			return containsService(getDefaultReward());
 		else if (type == RewardTypes.CUSTOM)
 			throw new IllegalArgumentException(customUnsupported);
 		

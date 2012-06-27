@@ -306,7 +306,7 @@ public class Configuration implements Multipliable<Configuration> {
 		String parsing = Utility.getEnumName(text);
 			
 		// Load reward name
-		if (text != null && rewardProvider.containsReward(parsing)) {
+		if (text != null && rewardProvider.containsService(parsing)) {
 			return parsing;
 		} else {
 			return null;

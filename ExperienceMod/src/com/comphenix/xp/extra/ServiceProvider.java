@@ -32,7 +32,7 @@ public class ServiceProvider<TService extends Service> {
 	/**
 	 * Registers a service in the system.
 	 * @param service - the service to register.
-	 * @param override - TRUE to override any previously registered managers with the same name or type. 
+	 * @param override - TRUE to override any previously registered services with the same name or type. 
 	 * @return The previously registered service with this name, or NULL otherwise.
 	 * @throws NullArgumentException If service is null.
 	 */
@@ -55,8 +55,8 @@ public class ServiceProvider<TService extends Service> {
 	
 	/**
 	 * Unregisters a specified service.
-	 * @param serviceName - the name of the reward manager to unregister.
-	 * @return The previously registered manager with this name, or NULL otherwise.
+	 * @param serviceName - the name of the service to unregister.
+	 * @return The previously registered service with this name, or NULL otherwise.
 	 * @throws NullArgumentException If serviceName is null.
 	 */
 	public TService unregister(String serviceName) {
