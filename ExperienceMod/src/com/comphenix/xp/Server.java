@@ -63,7 +63,7 @@ public class Server {
     }
     
     /**
-     * Retrieve the list of nearby players.
+     * Retrieve a list of nearby players.
      * @param world - the world to search in.
      * @param point - the origin point to search from.
      * @param radius - the maximum distance away from the origin point to search in.

@@ -162,6 +162,11 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		return YamlConfiguration.loadConfiguration(savedFile);
 	}
 	
+	/**
+	 * Reloads (if reload is TRUE) configurations. There's no need to call this after adding reward providers.
+	 * @param reload - if TRUE; reload configuration.
+	 * @throws IOException An I/O error occurred.
+	 */
 	public void loadDefaults(boolean reload) throws IOException {
 		
 		ConfigurationLoader loader;
@@ -263,6 +268,9 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		return debugEnabled;
 	}
 	
+	/**
+	 * Toggles debug messages.
+	 */
 	public void toggleDebug() {
 		debugEnabled = !debugEnabled;
 	}

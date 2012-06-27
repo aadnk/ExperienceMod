@@ -13,7 +13,19 @@ import org.apache.commons.lang.NullArgumentException;
  */
 public class ServiceProvider<TService extends Service> {
 
+	// Simple reference to the default service
+	public static String defaultServiceName = "DEFAULT";
+	
+	// List of services by name
 	protected Map<String, TService> nameLookup = new HashMap<String, TService>();
+	
+	// Default service
+	private String defaultService;
+	
+	// Make sure this value is set
+	public ServiceProvider(String defaultService) {
+		this.defaultService = defaultService;
+	}
 	
 	/**
 	 * Returns the currently registered service with this name. The name 
@@ -25,7 +37,9 @@ public class ServiceProvider<TService extends Service> {
 	public TService getByName(String serviceName) {
 		if (serviceName == null)
 			throw new NullArgumentException("serviceName");
-
+		else if (serviceName.equalsIgnoreCase(defaultServiceName))
+			return nameLookup.get(getDefaultService());
+		
 		return nameLookup.get(serviceName);
 	}
 	
@@ -41,6 +55,11 @@ public class ServiceProvider<TService extends Service> {
 			throw new NullArgumentException("service");
 		
 		String name = service.getServiceName();
+		
+		// Careful now.
+		if (name.equalsIgnoreCase(defaultService))
+			throw new IllegalArgumentException(
+					"Service cannot have the name DEfAULT. This name is reserved.");
 		
 		// Should we keep the old service?
 		if (override) {
@@ -62,6 +81,8 @@ public class ServiceProvider<TService extends Service> {
 	public TService unregister(String serviceName) {
 		if (serviceName == null)
 			throw new NullArgumentException("serviceName");
+		else if (serviceName.equalsIgnoreCase(defaultServiceName))
+			return nameLookup.remove(getDefaultService());
 
 		return nameLookup.remove(serviceName);
 	}
@@ -72,6 +93,9 @@ public class ServiceProvider<TService extends Service> {
 	 * @return TRUE if it has, FALSE otherwise.
 	 */
 	public boolean containsService(String serviceName) {
+		if (serviceName.equalsIgnoreCase(defaultService))
+			return nameLookup.containsKey(getDefaultService());
+		
 		return nameLookup.containsKey(serviceName);
 	}
 	
@@ -105,5 +129,21 @@ public class ServiceProvider<TService extends Service> {
 			throw new NullArgumentException("Service name cannot be null.");
 		else
 			return nameLookup.put(name, service);
+	}
+	
+	/**
+	 * Retrieves the default service by name.
+	 * @return Default service name.
+	 */
+	public String getDefaultService() {
+		return defaultService;
+	}
+
+	/**
+	 * Sets the default service by name.
+	 * @param defaultReward default service name.
+	 */
+	public void setDefaultService(String defaultReward) {
+		this.defaultService = defaultReward;
 	}
 }

@@ -2,7 +2,9 @@ package com.comphenix.xp.messages;
 
 import org.bukkit.command.CommandSender;
 
-public interface ChannelService {
+import com.comphenix.xp.extra.Service;
+
+public interface ChannelService extends Service {
 	
 	/**
 	 * Determines whether or not the channel with the given identifier exists.

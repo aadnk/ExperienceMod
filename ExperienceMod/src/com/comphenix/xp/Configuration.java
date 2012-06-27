@@ -523,12 +523,12 @@ public class Configuration implements Multipliable<Configuration> {
 		if (rewardProvider == null)
 			return null;
 		else
-			return rewardProvider.getDefaultReward();
+			return rewardProvider.getDefaultService();
 	}
 	
 	public void setDefaultRewardName(String rewardName) {
 		if (rewardProvider != null) {
-			rewardProvider.setDefaultReward(rewardName);
+			rewardProvider.setDefaultService(rewardName);
 		}
 	}
 }

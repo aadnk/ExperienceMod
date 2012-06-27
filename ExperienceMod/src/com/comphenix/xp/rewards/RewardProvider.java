@@ -14,26 +14,22 @@ import com.comphenix.xp.rewards.RewardTypes;
  */
 public class RewardProvider extends ServiceProvider<RewardService> {
 	
-	public static String defaultRewardName = "DEFAULT";
-	
 	// Error messages
 	private static String customUnsupported = "rewardType cannot be CUSTOM.";
 	
 	// Enum type lookup
 	private HashMap<RewardTypes, RewardService> enumLookup;
-
-	private String defaultReward;
 	private Configuration configuration;
 	
 	public RewardProvider() {
 		// Default constructor
-		super();
+		super("EXPERIENCE");
 		this.nameLookup = new HashMap<String, RewardService>();
 		this.enumLookup = new HashMap<RewardTypes, RewardService>();
 	}
 	
 	public RewardProvider(RewardProvider reference, Configuration configuration) {
-		super();
+		super(reference.getDefaultService());
 		this.nameLookup = reference.nameLookup;
 		this.enumLookup = reference.enumLookup;
 		this.configuration = configuration;
@@ -50,7 +46,7 @@ public class RewardProvider extends ServiceProvider<RewardService> {
 		if (rewardType == RewardTypes.CUSTOM)
 			throw new IllegalArgumentException(customUnsupported);
 		if (rewardType == RewardTypes.DEFAULT)
-			return getByName(defaultRewardName);
+			return getByName(defaultServiceName);
 		
 		// Add configuration here too
 		return getConfigSpecific(enumLookup.get(rewardType));
@@ -58,15 +54,9 @@ public class RewardProvider extends ServiceProvider<RewardService> {
 	
 	@Override
 	public RewardService getByName(String rewardName) {
-		RewardService service;
-		
-		if (rewardName.equalsIgnoreCase(defaultRewardName))
-			service = super.getByName(getDefaultReward());
-		else
-			service = super.getByName(rewardName);
 		
 		// Add configuration
-		return getConfigSpecific(service);
+		return getConfigSpecific(super.getByName(rewardName));
 	}
 	
 	@Override
@@ -80,7 +70,7 @@ public class RewardProvider extends ServiceProvider<RewardService> {
 		if (type != RewardTypes.CUSTOM) {
 			enumLookup.put(type, reward);
 		} else if (type == RewardTypes.DEFAULT) {
-			throw new IllegalArgumentException("Reward type cannot be default.");
+			throw new IllegalArgumentException("Reward type cannot be DEFAULT.");
 		}
 		
 		// Register with name
@@ -98,7 +88,7 @@ public class RewardProvider extends ServiceProvider<RewardService> {
 		if (rewardType == RewardTypes.CUSTOM)
 			throw new IllegalArgumentException(customUnsupported);
 		if (rewardType == RewardTypes.DEFAULT)
-			return unregister(getDefaultReward());
+			return super.unregister(defaultServiceName);
 		
 		RewardService removed = enumLookup.remove(rewardType);
 		
@@ -125,7 +115,7 @@ public class RewardProvider extends ServiceProvider<RewardService> {
 	 */
 	public boolean containsReward(RewardTypes type) {
 		if (type == RewardTypes.DEFAULT)
-			return containsService(getDefaultReward());
+			return containsService(getDefaultService());
 		else if (type == RewardTypes.CUSTOM)
 			throw new IllegalArgumentException(customUnsupported);
 		
@@ -155,32 +145,16 @@ public class RewardProvider extends ServiceProvider<RewardService> {
 	}
 	
 	/**
-	 * Retrieves the default reward manager name.
-	 * @return Default manager name.
-	 */
-	public String getDefaultReward() {
-		return defaultReward;
-	}
-
-	/**
-	 * Sets the default reward manager name.
-	 * @param defaultReward default manager name.
-	 */
-	public void setDefaultReward(String defaultReward) {
-		this.defaultReward = defaultReward;
-	}
-	
-	/**
 	 * Sets the default reward manager by type.
 	 * @param defaultReward default manager type.
 	 */
 	public void setDefaultReward(RewardTypes defaultType) {
 		if (defaultType == RewardTypes.DEFAULT)
-			throw new IllegalArgumentException("Cannot set the default with the default.");
+			throw new IllegalArgumentException("The default type cannot reference itself.");
 		else if (defaultType == RewardTypes.CUSTOM)
 			throw new IllegalArgumentException(customUnsupported);
 		
-		setDefaultReward(defaultType.name());
+		setDefaultService(defaultType.name());
 	}
 	
 	/**
