@@ -18,7 +18,6 @@ public interface ChannelService {
 	 */
 	public void announce(String channelID, String message);
 	
-	
 	/**
 	 * Sends a message with a sender on a given channel.
 	 * @param channelID - channel identifier. 

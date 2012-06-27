@@ -140,7 +140,8 @@ public class ExperienceListener implements Listener {
 			
 				// No configuration or default configuration found
 				if (config == null) {
-					debugger.printDebug(this, "Cannot find config for player %s in mining %s.", 
+					if (debugger != null)
+						debugger.printDebug(this, "Cannot find config for player %s in mining %s.", 
 							player.getName(), block);
 					
 				} else if (config.getSimpleBlockReward().containsKey(retrieveKey)) {
@@ -149,7 +150,8 @@ public class ExperienceListener implements Listener {
 								 rewardPlayer(config.getRewardProvider(), 
 										 	  random, player, block.getLocation());
 					
-					debugger.printDebug(this, "Block mined by %s: Spawned %d xp for item %s.", 
+					if (debugger != null)
+						debugger.printDebug(this, "Block mined by %s: Spawned %d xp for item %s.", 
 							player.getName(), exp, block.getType());
 				}
 			}
@@ -159,7 +161,8 @@ public class ExperienceListener implements Listener {
 
 				// No configuration or default configuration found
 				if (config == null) {
-					debugger.printDebug(this, "Cannot find config for player %s in mining %s.", 
+					if (debugger != null)
+						debugger.printDebug(this, "Cannot find config for player %s in mining %s.", 
 							player.getName(), block);
 					
 				} else if (config.getSimpleBonusReward().containsKey(retrieveKey)) {
@@ -168,7 +171,8 @@ public class ExperienceListener implements Listener {
 							 rewardPlayer(config.getRewardProvider(), 
 									 	  random, player, block.getLocation());
 					
-					debugger.printDebug(this, "Block destroyed by %s: Spawned %d xp for item %s.", 
+					if (debugger != null)
+						debugger.printDebug(this, "Block destroyed by %s: Spawned %d xp for item %s.", 
 							player.getName(), exp, block.getType());
 				}
 			}
@@ -199,7 +203,8 @@ public class ExperienceListener implements Listener {
 			
 			// No configuration or default configuration found
 			if (config == null) {
-				debugger.printDebug(this, "Cannot find config for player %s in fishing.", player.getName());
+				if (debugger != null)
+					debugger.printDebug(this, "Cannot find config for player %s in fishing.", player.getName());
 				return;
 			}
 				
@@ -222,7 +227,8 @@ public class ExperienceListener implements Listener {
 			if (action != null) {
 				int exp = action.rewardPlayer(config.getRewardProvider(), random, player);
 
-				debugger.printDebug(this, message, player.getName(), exp);
+				if (debugger != null)
+					debugger.printDebug(this, message, player.getName(), exp);
 			}
 		}
 	}
@@ -242,7 +248,8 @@ public class ExperienceListener implements Listener {
 				Configuration config = getConfiguration(player);
 				
 				if (config == null) {
-					debugger.printDebug(this, "No config found for block %s.", block);
+					if (debugger != null)
+						debugger.printDebug(this, "No config found for block %s.", block);
 					return;
 				}
 					
@@ -253,7 +260,8 @@ public class ExperienceListener implements Listener {
 					int exp = placeReward.get(retrieveKey).
 							   rewardPlayer(config.getRewardProvider(), random, player);
 
-					debugger.printDebug(this, "Block placed by %s: Spawned %d xp for item %s.", 
+					if (debugger != null)
+						debugger.printDebug(this, "Block placed by %s: Spawned %d xp for item %s.", 
 							player.getName(), exp, block.getType());
 				}
 			}
@@ -280,7 +288,8 @@ public class ExperienceListener implements Listener {
 			
 			// Guard
 			if (config == null) {
-				debugger.printDebug(this, "No config found for mob %d, query: %s", id, query);
+				if (debugger != null)
+					debugger.printDebug(this, "No config found for mob %d, query: %s", id, query);
 				return;
 			}
 			
@@ -294,13 +303,16 @@ public class ExperienceListener implements Listener {
 				int xp = action.rewardAnyone(config.getRewardProvider(), random, 
 						  entity.getWorld(), entity.getLocation());
 
-				debugger.printDebug(this, "Entity %d: Changed experience drop to %d", id, xp);
+				if (debugger != null)
+					debugger.printDebug(this, "Entity %d: Changed experience drop to %d", id, xp);
 			
 			} else if (config.isDefaultRewardsDisabled() && hasKiller) {
 				
 				// Disable all mob XP
 				event.setDroppedExp(0);
-				debugger.printDebug(this, "Entity %d: Default mob experience disabled.", id);
+				
+				if (debugger != null)
+					debugger.printDebug(this, "Entity %d: Default mob experience disabled.", id);
 	
 			} else if (!config.isDefaultRewardsDisabled() && hasKiller) {
 				
@@ -311,8 +323,10 @@ public class ExperienceListener implements Listener {
 					Range increase = new Range(expDropped * config.getMultiplier());
 					int expChanged = increase.sampleInt(random);
 					
-					debugger.printDebug(this, "Entity %d: Changed experience drop to %d", id, expChanged);
 					event.setDroppedExp(expChanged);
+					
+					if (debugger != null)
+						debugger.printDebug(this, "Entity %d: Changed experience drop to %d", id, expChanged);
 				}
 			}
 			
@@ -353,7 +367,8 @@ public class ExperienceListener implements Listener {
 					
 					// Guard again
 					if (config == null) {
-						debugger.printDebug(this, "No config found for %s with brewing %s.", player.getName(), toCraft);
+						if (debugger != null)
+							debugger.printDebug(this, "No config found for %s with brewing %s.", player.getName(), toCraft);
 						return;
 					}
 					
@@ -374,7 +389,7 @@ public class ExperienceListener implements Listener {
 					
 					if (config != null) {
 						handleInventory(event, config.getRewardProvider(), config.getSimpleCraftingReward(), false);
-					} else {
+					} else if (debugger != null) {
 						debugger.printDebug(this, "No config found for %s with crafting %s.", player.getName(), toCraft);
 					}
 				}
@@ -386,7 +401,7 @@ public class ExperienceListener implements Listener {
 					
 					if (config != null) {
 						handleInventory(event, config.getRewardProvider(), config.getSimpleSmeltingReward(), true);
-					} else {
+					} else if (debugger != null) {
 						debugger.printDebug(this, "No config found for %s with smelting %s.", player.getName(), toCraft);
 					}
 				}
@@ -428,7 +443,8 @@ public class ExperienceListener implements Listener {
 						provider, random, (Player) player, count);
 				
 				// Like above
-				debugger.printDebug(this, "User %s - spawned %d xp for item %s.", 
+				if (debugger != null)
+					debugger.printDebug(this, "User %s - spawned %d xp for item %s.", 
 						player.getName(), exp, toCraft.getType());
 			}
 		}
@@ -468,7 +484,8 @@ public class ExperienceListener implements Listener {
 							provider, random, (Player) player, newItemsCount);
 					
 					// We know this is from crafting
-					debugger.printDebug(this, "User %s - spawned %d xp for %d items of %s.", 
+					if (debugger != null)
+						debugger.printDebug(this, "User %s - spawned %d xp for %d items of %s.", 
 							player.getName(), permissionRewardCrafting, exp, 
 							newItemsCount, compareItem.getType());
 				}
@@ -524,10 +541,13 @@ public class ExperienceListener implements Listener {
 		if (player != null) {
 			// Permission check
 	        if(player.hasPermission(permissionKeepExp)){
-				debugger.printDebug(this, "Prevented experience loss for %s.", player.getName());
-				
+
 	            event.setDroppedExp(0);
 	            event.setKeepLevel(true);
+	            
+	            if (debugger != null)
+	        		debugger.printDebug(this, "Prevented experience loss for %s.", player.getName());
+	            
 	        } else {
 	        	event.setKeepLevel(false);
 	        }

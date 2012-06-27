@@ -94,8 +94,8 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			setupChat();
 		
 		// Load reward types
-		rewardProvider.register(new RewardExperience(), false);
-		rewardProvider.register(new RewardVirtual(), false);
+		rewardProvider.register(new RewardExperience(), true);
+		rewardProvider.register(new RewardVirtual(), true);
 		rewardProvider.setDefaultReward(RewardTypes.EXPERIENCE);
 		
 		// Don't register economy rewards unless we can
@@ -104,7 +104,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			rewardEconomy = new RewardEconomy(economy, this, itemListener); 
 			
 			// Associate everything
-			rewardProvider.register(rewardEconomy, false);
+			rewardProvider.register(rewardEconomy, true);
 			itemListener.setReward(rewardEconomy);
 			
 			// Register listener
@@ -258,10 +258,6 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		return chat != null;
 	}
 	
-	@Override
-	public void onDisable() {
-	}
-
 	@Override	
 	public boolean isDebugEnabled() {
 		return debugEnabled;

@@ -60,11 +60,11 @@ public class RewardEconomy implements RewardService {
 			
 			if (removeable > 0)
 				response = economy.withdrawPlayer(name, removeable);
-			else
+			else if (debugger != null)
 				debugger.printDebug(this, "Could not withdraw %d: Player %s is broke", amount, name);
 			
 			// Other error
-			if (response != null && !response.transactionSuccess())
+			if (response != null && !response.transactionSuccess() && debugger != null)
 				debugger.printDebug(this, "Coult not withdraw %d from player %s: %s", 
 								    amount, name, response.errorMessage);
 
@@ -73,7 +73,7 @@ public class RewardEconomy implements RewardService {
 			// Deposit money (shouldn't really fail)
 			response = economy.depositPlayer(name, amount);
 			
-			if (response != null && !response.transactionSuccess())
+			if (response != null && !response.transactionSuccess() && debugger != null)
 				debugger.printDebug(this, "Could not deposit %d to player %s: %s", 
 									amount, name, response.errorMessage);
 		}
@@ -85,7 +85,9 @@ public class RewardEconomy implements RewardService {
 
 		// See if we have to reward the player directly
 		if (economyItem == null || economyWorth == null || economyWorth < 1) {
-			debugger.printDebug(this, "Cannot find economy settings.");
+			if (debugger != null)
+				debugger.printDebug(this, "Cannot find economy settings. Reverting to direct currency.");
+			
 			reward(player, amount);
 		} else {
 			reward(player.getWorld(), point, amount);
