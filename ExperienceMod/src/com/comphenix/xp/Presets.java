@@ -1,16 +1,13 @@
 package com.comphenix.xp;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 
 import net.milkbowl.vault.chat.Chat;
 
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
 import com.comphenix.xp.lookup.PresetQuery;
@@ -38,26 +35,21 @@ public class Presets {
 	private PresetParser presetParser = new PresetParser();
 	private ParameterParser<String> stringParser = new ParameterParser<String>(new StringParser());
 	
-	// Cache of configurations
-	private HashMap<File, Configuration> configurationFiles;
 	private Debugger logger;
 	
 	// Chat
 	private Chat chat;
 	
-	public Presets(ConfigurationSection config, Debugger debugger, Chat chat, File dataFolder) {
+	public Presets(ConfigurationSection config, Debugger logger, Chat chat, ConfigurationLoader loader) {
 		if (chat == null)
 			throw new IllegalArgumentException("Vault (Chat) was not found.");
 		
-		this.logger = debugger;
 		this.presets = new PresetTree();
+		this.logger = logger;
 		this.chat = chat;
-		this.configurationFiles = new HashMap<File, Configuration>();
 		
 		if (config != null)
-			loadPresets(config, dataFolder);
-		
-		configurationFiles.clear();
+			loadPresets(config, loader);
 	}
 	
 	/**
@@ -103,7 +95,7 @@ public class Presets {
 		return presets.usesPresetNames();
 	}
 	
-	private void loadPresets(ConfigurationSection section, File dataFolder) {
+	private void loadPresets(ConfigurationSection section, ConfigurationLoader loader) {
 		for (String key : section.getKeys(false)) { 
 			
 			// Load query
@@ -112,7 +104,7 @@ public class Presets {
 			
 				// Load section
 				Configuration data = loadPreset(
-						section.getConfigurationSection(key), dataFolder);
+						section.getConfigurationSection(key), loader);
 				
 				// Remember if we have presets or not
 				data.setPreset(query.hasPresetNames());
@@ -127,10 +119,10 @@ public class Presets {
 		}
 	}
 	
-	private Configuration loadPreset(ConfigurationSection data, File dataFolder) {
+	private Configuration loadPreset(ConfigurationSection data, ConfigurationLoader loader) {
 		
-		List<Configuration> files = getConfigurations(data, dataFolder);
-		Configuration local = getLocal(data);
+		List<Configuration> files = getConfigurations(data, loader);
+		Configuration local = getLocal(data, loader);
 		Configuration result = null;
 		
 		// Local configuration has the highest priority
@@ -154,25 +146,27 @@ public class Presets {
 		return result.hasPreset();
 	}
 	
-	private Configuration getLocal(ConfigurationSection data) {
+	private Configuration getLocal(ConfigurationSection data, ConfigurationLoader loader) {
 		
-		if (data.isConfigurationSection(settingLocal))
-			return new Configuration(
-					data.getConfigurationSection(settingLocal), logger);
-		else
+		// Retrieve using the configuration section
+		if (data.isConfigurationSection(settingLocal)) {
+			return loader.getFromSection(data.getConfigurationSection(settingLocal));
+		} else {
 			return null;
+		}
 	}
 	
-	private List<Configuration> getConfigurations(ConfigurationSection data, File dataFolder) {
+	private List<Configuration> getConfigurations(ConfigurationSection data, ConfigurationLoader loader) {
 		
 		List<Configuration> result = new ArrayList<Configuration>();
 		
 		for (String path : getFiles(data)) {
 		
-			File absolutePath = new File(dataFolder, path);
+			// Load from folder
+			Configuration config = loader.getFromPath(path);
 			
-			if (absolutePath.exists())
-				result.add(loadFromFile(absolutePath));
+			if (config != null)
+				result.add(config);
 			else if (logger != null)
 				logger.printWarning(this, "Cannot find configuration file %s.", path);
 		}
@@ -188,24 +182,6 @@ public class Presets {
 			return data.getStringList(settingImportFile);
 		else
 			return Lists.newArrayList();
-	}
-	
-	private Configuration loadFromFile(File path) {
-		
-		if (!configurationFiles.containsKey(path)) {
-			
-			YamlConfiguration yaml = YamlConfiguration.loadConfiguration(path);
-			Configuration config = new Configuration(yaml, logger);
-			
-			// Cache 
-			configurationFiles.put(path, config);
-			return config;
-			
-		} else {
-			
-			// Return previously computed value
-			return configurationFiles.get(path);
-		}
 	}
 
 	public Collection<Configuration> getConfigurations() {

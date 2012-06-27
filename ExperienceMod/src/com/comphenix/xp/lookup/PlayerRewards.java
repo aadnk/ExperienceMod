@@ -3,8 +3,7 @@ package com.comphenix.xp.lookup;
 import java.util.Collection;
 import java.util.HashMap;
 
-
-import com.comphenix.xp.Range;
+import com.comphenix.xp.Action;
 import com.comphenix.xp.parser.Utility;
 import com.comphenix.xp.parser.ParsingException;
 
@@ -14,12 +13,12 @@ public class PlayerRewards implements Multipliable<PlayerRewards> {
 	private static HashMap<String, Rewards> lookup = new HashMap<String, Rewards>();
 	
 	// Reward types and their range of experiences
-	private HashMap<Rewards, Range> values;
+	private HashMap<Rewards, Action> values;
 	private double multiplier;
 
 	public PlayerRewards(double multiplier) {
 		this.multiplier = multiplier;
-		this.values = new HashMap<Rewards, Range>();
+		this.values = new HashMap<Rewards, Action>();
 	}
 	
 	// For cloning
@@ -52,7 +51,7 @@ public class PlayerRewards implements Multipliable<PlayerRewards> {
 		}
 	}
 	
-	public void put(String key, Range value) throws ParsingException {
+	public void put(String key, Action value) throws ParsingException {
 		
 		Rewards rewardType = Rewards.matchReward(key);
 		
@@ -73,8 +72,8 @@ public class PlayerRewards implements Multipliable<PlayerRewards> {
 		values.putAll(other.values);
 	}
 	
-	public Range get(Rewards key, Range defaultValue) {
-		Range result = values.get(key);
+	public Action get(Rewards key, Action defaultValue) {
+		Action result = values.get(key);
 	
 		// Return result or default value
 		return result != null ? result : defaultValue;
@@ -84,7 +83,7 @@ public class PlayerRewards implements Multipliable<PlayerRewards> {
 	 * Retrieve every reward stored.
 	 * @return Every reward.
 	 */
-	public Collection<Range> getValues() {
+	public Collection<Action> getValues() {
 		return values.values();
 	}
 
@@ -92,11 +91,11 @@ public class PlayerRewards implements Multipliable<PlayerRewards> {
 		return multiplier;
 	}
 	
-	public Range getFishingSuccess() {
-		return get(Rewards.FISHING_SUCCESS, Range.Default).multiply(multiplier);
+	public Action getFishingSuccess() {
+		return get(Rewards.FISHING_SUCCESS, Action.Default).multiply(multiplier);
 	}
 
-	public Range getFishingFailure() {
-		return get(Rewards.FISHING_FAILURE, Range.Default).multiply(multiplier);
+	public Action getFishingFailure() {
+		return get(Rewards.FISHING_FAILURE, Action.Default).multiply(multiplier);
 	}
 }

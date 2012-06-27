@@ -161,6 +161,8 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	
 	public void loadDefaults(boolean reload) throws IOException {
 		
+		ConfigurationLoader loader;
+		
 		// Read from disk again
 		if (reload || presets == null) {
 			
@@ -172,7 +174,8 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			loadConfig("config.yml", "Creating default configuration.");
 			
 			// Load it
-			presets = new Presets(presetList, this, chat, getDataFolder());
+			loader = new ConfigurationLoader(getDataFolder(), this, rewardProvider);
+			presets = new Presets(presetList, this, chat, loader);
 			setPresets(presets);
 			
 			// Vault is required here
@@ -185,30 +188,6 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 				checkIllegalPresets();
 			}
 			
-			// Check for problems
-			for (Configuration config : presets.getConfigurations()) {
-				
-				RewardTypes reward = config.getRewardType();
-				
-				// See if we actually can enable the economy
-				if (economy == null && reward == RewardTypes.ECONOMY) {
-					printWarning(this, "Cannot enable economy. VAULT plugin was not found.");
-					config.setRewardType(reward = RewardTypes.EXPERIENCE);
-				}
-				
-				// Set reward type
-				switch (reward) {
-				case EXPERIENCE:
-					config.setRewardManager();
-					break;
-				case VIRTUAL:
-					config.setRewardManager();
-					break;
-				case ECONOMY:
-					config.setRewardManager();
-					break;
-				}
-			}
 		}
 	}
 	

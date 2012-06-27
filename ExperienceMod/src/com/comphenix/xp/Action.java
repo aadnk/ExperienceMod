@@ -1,42 +1,52 @@
 package com.comphenix.xp;
 
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 
-import com.comphenix.xp.lookup.Multipliable;
 import com.comphenix.xp.messages.Message;
 import com.comphenix.xp.rewards.RewardProvider;
+import com.comphenix.xp.rewards.RewardTypes;
 import com.comphenix.xp.rewards.Rewardable;
 
-public class Action implements Multipliable<Action> {
+public class Action {
 
-	private Message message;
-	private List<RangedReward> rewards = new ArrayList<RangedReward>();
+	public static final Action Default = new Action();
 	
+	private Message message;
+	private Map<String, Range> rewards;
+
 	public Action() {
 		// Default constructor
+		rewards = new HashMap<String, Range>();;
 	}
 	
-	public Action(Range defaultAction) {
-		addReward("DEFAULT", defaultAction);
+	private Action(Message message, Map<String, Range> rewards) {
+		this.message = message;
+		this.rewards = rewards;
 	}
 	
 	public void addReward(String rewardType, Range range) {
-		rewards.add(new RangedReward(range, rewardType));
+		rewards.put(rewardType, range);
 	}
 	
 	public void removeReward(String rewardType) {
-		for (Iterator<RangedReward> it = rewards.iterator(); it.hasNext();) {
-			RangedReward item = it.next();
-			
-			if (item.rewardType.equals(rewardType))
-				it.remove();
-		}
+		rewards.remove(rewardType);
+	}
+	
+	public Range getReward(String name) {
+		return rewards.get(name);
+	}
+	
+	public Range getReward(RewardTypes type) {
+		return rewards.get(type.name());
 	}
 	
 	public void removeAll() {
@@ -47,18 +57,36 @@ public class Action implements Multipliable<Action> {
 	 * Rewards a player with the given amount of resources.
 	 * @param provider Reward provider that determines specifically how to reward players.
 	 * @param rnd Random number generator.
-	 * @param player The player to reward..
+	 * @param player The player to reward.
 	 * @return The amount of total resources that were given.
 	 */
 	public int rewardPlayer(RewardProvider provider, Random rnd, Player player) {
 		
+		// Give the reward once
+		return rewardPlayer(provider, rnd, player, 1);
+	}
+	
+	/**
+	 * Rewards a player with the given amount of resources.
+	 * @param provider Reward provider that determines specifically how to reward players.
+	 * @param rnd Random number generator.
+	 * @param player The player to reward.
+	 * @param count The number of times to give this resource.
+	 * @return The amount of total resources that were given.
+	 */
+	public int rewardPlayer(RewardProvider provider, Random rnd, Player player, int count) {
+		
 		int sum = 0;
 		
+		// No need to do anything
+		if (count == 0)
+			return 0;
+		
 		// Give every reward
-		for (RangedReward reward : rewards) {
+		for (Map.Entry<String, Range> entry : rewards.entrySet()) {
 			
-			Rewardable manager = provider.getByName(reward.rewardType);
-			int exp = reward.range.sampleInt(rnd);
+			Rewardable manager = provider.getByName(entry.getKey());
+			int exp = entry.getValue().sampleInt(rnd) * count;
 			
 			if (manager != null) {
 				manager.reward(player, exp);
@@ -82,13 +110,40 @@ public class Action implements Multipliable<Action> {
 		int sum = 0;
 		
 		// As the above
-		for (RangedReward reward : rewards) {
+		for (Map.Entry<String, Range> entry : rewards.entrySet()) {
 			
-			Rewardable manager = provider.getByName(reward.rewardType);
-			int exp = reward.range.sampleInt(rnd);
+			Rewardable manager = provider.getByName(entry.getKey());
+			int exp = entry.getValue().sampleInt(rnd);
 			
 			if (manager != null) {
 				manager.reward(player, point, exp);
+				sum += exp;
+			}
+		}
+		
+		return sum;
+	}
+	
+	/**
+	 * Spawns resources at the given location.
+	 * @param provider Reward provider that determines specifically how to award resources.
+	 * @param rnd Random number generator.
+	 * @param world The world where the resources should be spawned.
+	 * @param point The location to place the reward.
+	 * @return The amount of total resources that were given.
+	 */
+	public int rewardAnyone(RewardProvider provider, Random rnd, World world, Location point) {
+		
+		int sum = 0;
+		
+		// As the above
+		for (Map.Entry<String, Range> entry : rewards.entrySet()) {
+			
+			Rewardable manager = provider.getByName(entry.getKey());
+			int exp = entry.getValue().sampleInt(rnd);
+			
+			if (manager != null) {
+				manager.reward(world, point, exp);
 				sum += exp;
 			}
 		}
@@ -103,29 +158,31 @@ public class Action implements Multipliable<Action> {
 	public void setMessage(Message message) {
 		this.message = message;
 	}
-	
-	/**
-	 * Represents a reward.
-	 */
-	private static class RangedReward {
-		public Range range;
-		public String rewardType;
+
+	public Action multiply(double multiply) {
+
+		Map<String, Range> copy = new HashMap<String, Range>();
 		
-		public RangedReward(Range range, String rewardType) {
-			this.range = range;
-			this.rewardType = rewardType;
+		for (Map.Entry<String, Range> entry : rewards.entrySet()) {
+			copy.put(entry.getKey(), entry.getValue().multiply(multiply));
 		}
+		
+		return new Action(message, copy);
 	}
 
 	@Override
-	public Action withMultiplier(double newMultiplier) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public double getMultiplier() {
-		// TODO Auto-generated method stub
-		return 0;
+	public String toString() {
+		
+		List<String> textRewards = new ArrayList<String>();
+		
+		// Build list of rewards
+		for (Map.Entry<String, Range> entry : rewards.entrySet()) {
+			String key = entry.getKey();
+			Range value = entry.getValue();
+			
+			textRewards.add(String.format("%s: %s", key, value));
+		}
+		
+		return StringUtils.join(textRewards, ", ");
 	}
 }

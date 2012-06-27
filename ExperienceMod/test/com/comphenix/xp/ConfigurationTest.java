@@ -12,6 +12,8 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.junit.Test;
 
 import com.comphenix.xp.lookup.MobQuery;
+import com.comphenix.xp.rewards.RewardProvider;
+import com.comphenix.xp.rewards.RewardTypes;
 import com.google.common.collect.Lists;
 
 public class ConfigurationTest {
@@ -21,28 +23,31 @@ public class ConfigurationTest {
 		
 		Debugger debugger = new MockDebugger();
 		
+		RewardProvider provider = new RewardProvider();
+		provider.setDefaultReward(RewardTypes.EXPERIENCE);
+		
 		Configuration first = createConfig(
 				"multiplier: 1\n" +
 				"mobs:\n" + 
-				"  ?: 5\n", debugger);
+				"  ?: 5\n", debugger, provider);
 		
 		Configuration second = createConfig(
 				"multiplier: 1\n" +
 				"mobs:\n" + 
-				"  zombie: 0\n", debugger);
+				"  zombie: 0\n", debugger, provider);
 		
 		Configuration result = Configuration.fromMultiple(Lists.newArrayList(first, second), debugger);
 		
 		MobQuery queryBlace = MobQuery.fromAny(EntityType.BLAZE, DamageCause.ENTITY_ATTACK);
 		MobQuery queryZombie = MobQuery.fromAny(EntityType.ZOMBIE, DamageCause.ENTITY_ATTACK);
 		
-		assertEquals(new Range(5), result.getExperienceDrop().get(queryBlace));
-		assertEquals(new Range(0), result.getExperienceDrop().get(queryZombie));
+		assertEquals(new Range(5), result.getExperienceDrop().get(queryBlace).getReward(RewardTypes.EXPERIENCE));
+		assertEquals(new Range(0), result.getExperienceDrop().get(queryZombie).getReward(RewardTypes.EXPERIENCE));
 	}
 	
 	// Load configuration from text
-	private Configuration createConfig(String text, Debugger debugger) {
-		return new Configuration(fromText(text), debugger);
+	private Configuration createConfig(String text, Debugger debugger, RewardProvider provider) {
+		return new Configuration(fromText(text), debugger, provider);
 	}
 	
 	private YamlConfiguration fromText(String text) {

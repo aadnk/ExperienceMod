@@ -9,9 +9,9 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 
+import com.comphenix.xp.Action;
 import com.comphenix.xp.Configuration;
 import com.comphenix.xp.ExperienceMod;
-import com.comphenix.xp.Range;
 import com.comphenix.xp.lookup.ItemQuery;
 import com.comphenix.xp.lookup.MobQuery;
 import com.comphenix.xp.lookup.PotionQuery;
@@ -113,10 +113,10 @@ public class CommandExperienceMod implements CommandExecutor {
 			String text = StringUtils.join(args, " ", offset, args.length);
 			
 			MobQuery query = mobParser.parse(text);
-			List<Range> results = config.getExperienceDrop().getAllRanked(query);
+			List<Action> results = config.getExperienceDrop().getAllRanked(query);
 			
 			// Query result
-			displayRange(sender, results);
+			displayActions(sender, results);
 			
 		} catch (ParsingException e) {
 			plugin.respond(sender,
@@ -140,7 +140,7 @@ public class CommandExperienceMod implements CommandExecutor {
 			String text = StringUtils.join(args, " ", offset + 1, args.length);
 			
 			Query query = itemParser.parse(text);
-			List<Range> results = null;
+			List<Action> results = null;
 			
 			switch (type) {
 			case BLOCK:
@@ -168,7 +168,7 @@ public class CommandExperienceMod implements CommandExecutor {
 			}
 			
 			// Finally, display query result
-			displayRange(sender, results);
+			displayActions(sender, results);
 
 		} catch (IllegalArgumentException e) {
 			plugin.respond(sender,
@@ -180,17 +180,17 @@ public class CommandExperienceMod implements CommandExecutor {
 		}
 	}
 	
-	private void displayRange(CommandSender sender, List<Range> ranges) {
+	private void displayActions(CommandSender sender, List<Action> actions) {
 		
-		if (ranges == null || ranges.isEmpty()) {
+		if (actions == null || actions.isEmpty()) {
 			plugin.respond(sender, ChatColor.BLUE + "No results.");
 		} else {
 			
 			plugin.respond(sender, "Result in order of priority:");
 			
 			// Print every applicable range with the correct at the top
-			for (int i = 0; i < ranges.size(); i++) {
-				plugin.respond(sender, String.format(" %d. %s", i + 1, ranges.get(i)));
+			for (int i = 0; i < actions.size(); i++) {
+				plugin.respond(sender, String.format(" %d. %s", i + 1, actions.get(i)));
 			}
 		}
 	}

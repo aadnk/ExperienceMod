@@ -23,7 +23,7 @@ import java.util.Set;
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
-import com.comphenix.xp.Range;
+import com.comphenix.xp.Action;
 
 public class MobTree extends ActionTree<MobQuery> implements Multipliable<MobTree> {
 
@@ -119,7 +119,7 @@ public class MobTree extends ActionTree<MobQuery> implements Multipliable<MobTre
 	}
 
 	@Override
-	protected void putAllParameters(SearchTree<MobQuery, Range> other, Integer offset) {
+	protected void putAllParameters(SearchTree<MobQuery, Action> other, Integer offset) {
 		MobTree tree = (MobTree) other;
 
 		type.putAll(tree.type, offset);

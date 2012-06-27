@@ -10,6 +10,7 @@ import com.comphenix.xp.Range;
 import com.comphenix.xp.messages.Message;
 import com.comphenix.xp.parser.primitives.StringParser;
 import com.comphenix.xp.parser.text.ParameterParser;
+import com.comphenix.xp.rewards.RewardProvider;
 
 public class ActionParser extends Parser<ConfigurationSection, Action> {
 
@@ -17,6 +18,11 @@ public class ActionParser extends Parser<ConfigurationSection, Action> {
 	private static final String messageChannelSetting = "channels";
 	
 	private ParameterParser<String> textParsing = new ParameterParser<String>(new StringParser());
+	private RewardProvider provider;
+	
+	public ActionParser(RewardProvider provider) {
+		this.provider = provider;
+	}
 	
 	@Override
 	public Action parse(ConfigurationSection input) throws ParsingException {
@@ -29,7 +35,8 @@ public class ActionParser extends Parser<ConfigurationSection, Action> {
 		
 		// This is a default range value
 		if (topLevel != null) {
-			return new Action(topLevel);
+			result.addReward(provider.getDefaultReward(), topLevel);
+			return result;
 		}
 		
 		// If not, get sub-rewards

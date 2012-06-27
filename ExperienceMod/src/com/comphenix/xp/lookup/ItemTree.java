@@ -20,7 +20,7 @@ package com.comphenix.xp.lookup;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.comphenix.xp.Range;
+import com.comphenix.xp.Action;
 
 public class ItemTree extends ActionTree<ItemQuery> implements Multipliable<ItemTree> {
 
@@ -88,7 +88,7 @@ public class ItemTree extends ActionTree<ItemQuery> implements Multipliable<Item
 	}
 
 	@Override
-	protected void putAllParameters(SearchTree<ItemQuery, Range> other, Integer offset) {
+	protected void putAllParameters(SearchTree<ItemQuery, Action> other, Integer offset) {
 
 		ItemTree tree = (ItemTree) other;
 

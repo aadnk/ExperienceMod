@@ -47,7 +47,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.comphenix.xp.lookup.*;
 import com.comphenix.xp.parser.ParsingException;
-import com.comphenix.xp.rewards.Rewardable;
+import com.comphenix.xp.rewards.RewardProvider;
 import com.google.common.base.Objects;
 
 public class ExperienceListener implements Listener {
@@ -144,9 +144,10 @@ public class ExperienceListener implements Listener {
 							player.getName(), block);
 					
 				} else if (config.getSimpleBlockReward().containsKey(retrieveKey)) {
-					handleBlockEvent(, 
-							config.getRewardManager(), config.getSimpleBlockReward(), 
-							retrieveKey, block, player);
+
+					int exp = config.getSimpleBlockReward().get(retrieveKey).
+								 rewardPlayer(config.getRewardProvider(), 
+										 	  random, player, block.getLocation());
 					
 					debugger.printDebug(this, "Block mined by %s: Spawned %d xp for item %s.", 
 							player.getName(), exp, block.getType());
@@ -162,24 +163,18 @@ public class ExperienceListener implements Listener {
 							player.getName(), block);
 					
 				} else if (config.getSimpleBonusReward().containsKey(retrieveKey)) {
-					handleBlockEvent("Block destroyed by %s: Spawned %d xp for item %s.", 
-									 config.getRewardManager(), config.getSimpleBonusReward(), 
-									 retrieveKey, block, player);
+					
+					int exp = config.getSimpleBonusReward().get(retrieveKey).
+							 rewardPlayer(config.getRewardProvider(), 
+									 	  random, player, block.getLocation());
+					
+					debugger.printDebug(this, "Block destroyed by %s: Spawned %d xp for item %s.", 
+							player.getName(), exp, block.getType());
 				}
 			}
 			
 			// Done
 		}
-	}
-	
-	private void handleBlockEvent(String debugMessage, Rewardable manager, 
-								  ItemTree reward, ItemQuery query, 
-								  Block block, Player player) {
-		
-		int exp = reward.get(query).sampleInt(random);
-		
-		manager.reward(player, block.getLocation(), exp);
-		
 	}
 	
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true) 
@@ -196,7 +191,7 @@ public class ExperienceListener implements Listener {
 		Player player = event.getPlayer();
 		
 		String message = null;
-		Range reward = null;
+		Action action = null;
 
 		if (player != null && player.hasPermission(permissionRewardFishing)) {
 			
@@ -213,21 +208,20 @@ public class ExperienceListener implements Listener {
 			// Reward type
 			switch (event.getState()) {
 			case CAUGHT_FISH:
-				reward = playerReward.getFishingSuccess();
+				action = playerReward.getFishingSuccess();
 				message = "Fish caught by %s: Spawned %d xp.";
 				break;
 
 			case FAILED_ATTEMPT:
-				reward = playerReward.getFishingFailure();
+				action = playerReward.getFishingFailure();
 				message = "Fishing failed for %s: Spawned %d xp.";
 				break;
 			}
 			
-			// Has a reward been set?
-			if (reward != null) {
-				int exp = reward.sampleInt(random);
-				
-				config.getRewardManager().reward(player, player.getLocation(), exp);
+			// Has an action been set?
+			if (action != null) {
+				int exp = action.rewardPlayer(config.getRewardProvider(), random, player);
+
 				debugger.printDebug(this, message, player.getName(), exp);
 			}
 		}
@@ -256,8 +250,11 @@ public class ExperienceListener implements Listener {
 				ItemTree placeReward = config.getSimplePlacingReward();
 				
 				if (placeReward.containsKey(retrieveKey)) {
-					int exp = placeReward.get(retrieveKey).sampleInt(random);
-					config.getRewardManager().reward(player, exp);
+					int exp = placeReward.get(retrieveKey).
+							   rewardPlayer(config.getRewardProvider(), random, player);
+
+					debugger.printDebug(this, "Block placed by %s: Spawned %d xp for item %s.", 
+							player.getName(), exp, block.getType());
 				}
 			}
 		}
@@ -287,13 +284,16 @@ public class ExperienceListener implements Listener {
 				return;
 			}
 			
-			Range reward = config.getExperienceDrop().get(query);
+			Action action = config.getExperienceDrop().get(query);
 
 			// Make sure the reward has been changed
-			if (reward != null) {
-				int xp = reward.sampleInt(random);
+			if (action != null) {
 				
-				event.setDroppedExp(xp);
+				// Spawn the experience ourself
+				event.setDroppedExp(0);
+				int xp = action.rewardAnyone(config.getRewardProvider(), random, 
+						  entity.getWorld(), entity.getLocation());
+
 				debugger.printDebug(this, "Entity %d: Changed experience drop to %d", id, xp);
 			
 			} else if (config.isDefaultRewardsDisabled() && hasKiller) {
@@ -357,12 +357,12 @@ public class ExperienceListener implements Listener {
 						return;
 					}
 					
-					handleInventory(event, config.getRewardManager(), config.getSimpleBrewingReward(), true);
+					handleInventory(event, config.getRewardProvider(), config.getSimpleBrewingReward(), true);
 				
 					// Yes, this feels a bit like a hack to me too. Blame faulty design. Anyways, the point
 					// is that we get to check more complex potion matching rules, like "match all splash potions"
 					// or "match all level 2 regen potions (splash or not)".
-					handleInventory(event, config.getRewardManager(), 
+					handleInventory(event, config.getRewardProvider(), 
 							config.getComplexBrewingReward().getItemQueryAdaptor(), true);
 				}
 				
@@ -373,7 +373,7 @@ public class ExperienceListener implements Listener {
 					config = getConfiguration(player);
 					
 					if (config != null) {
-						handleInventory(event, config.getRewardManager(), config.getSimpleCraftingReward(), false);
+						handleInventory(event, config.getRewardProvider(), config.getSimpleCraftingReward(), false);
 					} else {
 						debugger.printDebug(this, "No config found for %s with crafting %s.", player.getName(), toCraft);
 					}
@@ -385,7 +385,7 @@ public class ExperienceListener implements Listener {
 					config = getConfiguration(player);
 					
 					if (config != null) {
-						handleInventory(event, config.getRewardManager(), config.getSimpleSmeltingReward(), true);
+						handleInventory(event, config.getRewardProvider(), config.getSimpleSmeltingReward(), true);
 					} else {
 						debugger.printDebug(this, "No config found for %s with smelting %s.", player.getName(), toCraft);
 					}
@@ -395,22 +395,22 @@ public class ExperienceListener implements Listener {
 		}
 	}
 	
-	private void handleInventory(InventoryClickEvent event, Rewardable manager, ItemTree rewards, boolean partialResults) {
+	private void handleInventory(InventoryClickEvent event, RewardProvider provider, ItemTree rewards, boolean partialResults) {
 		
 		HumanEntity player = event.getWhoClicked();
 		ItemStack toStore = event.getCursor();
 		ItemStack toCraft = event.getCurrentItem();
+		
 		ItemQuery retrieveKey = ItemQuery.fromExact(toCraft);
-
+		Action action = rewards.get(retrieveKey);
+		
 		// Make sure there is an experience reward
 		if (!hasExperienceReward(rewards, retrieveKey))
 			return;
-		
-		int expPerItem = rewards.get(retrieveKey).sampleInt(random);
-		
+
 		if (event.isShiftClick()) {
 			// Hack ahoy
-			schedulePostCraftingReward(player, manager, expPerItem, toCraft);
+			schedulePostCraftingReward(player, provider, action, toCraft);
 		} else {
 			
 			// The items are stored in the cursor. Make sure there's enough space.
@@ -423,11 +423,10 @@ public class ExperienceListener implements Listener {
 					count = Math.max(count / 2, 1);
 				}
 				
-				int exp = count * expPerItem;
-				
 				// Give the experience straight to the user
-				manager.reward((Player) player, exp);
-			
+				int exp = action.rewardPlayer(
+						provider, random, (Player) player, count);
+				
 				// Like above
 				debugger.printDebug(this, "User %s - spawned %d xp for item %s.", 
 						player.getName(), exp, toCraft.getType());
@@ -437,8 +436,8 @@ public class ExperienceListener implements Listener {
 	
 	// HACK! The API doesn't allow us to easily determine the resulting number of
 	// crafted items, so we're forced to compare the inventory before and after.
-	private void schedulePostCraftingReward(final HumanEntity player, final Rewardable manager, 
-											final int expPerItem, final ItemStack compareItem) {
+	private void schedulePostCraftingReward(final HumanEntity player, final RewardProvider provider, 
+											final Action action, final ItemStack compareItem) {
 		
 		final ItemStack[] preInv = player.getInventory().getContents();
 		final int ticks = 1; // May need adjusting
@@ -465,11 +464,12 @@ public class ExperienceListener implements Listener {
 				}
 				
 				if (newItemsCount > 0) {
-					manager.reward((Player) player, expPerItem * newItemsCount);
+					int exp = action.rewardPlayer(
+							provider, random, (Player) player, newItemsCount);
 					
 					// We know this is from crafting
 					debugger.printDebug(this, "User %s - spawned %d xp for %d items of %s.", 
-							player.getName(), permissionRewardCrafting, expPerItem * newItemsCount, 
+							player.getName(), permissionRewardCrafting, exp, 
 							newItemsCount, compareItem.getType());
 				}
 			}
@@ -489,7 +489,7 @@ public class ExperienceListener implements Listener {
 	
 	private boolean hasExperienceReward(ItemTree rewards, ItemQuery key) {
 		// Make sure there is any experience
-		return rewards.containsKey(key) && !rewards.get(key).equals(Range.Default);
+		return rewards.containsKey(key) && !rewards.get(key).equals(Action.Default);
 	}
 	
 	// Recipes are cancelled if there's isn't exactly enough space. 

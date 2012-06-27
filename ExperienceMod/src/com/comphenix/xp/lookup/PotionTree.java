@@ -22,7 +22,7 @@ import java.util.Set;
 
 import org.apache.commons.lang.NotImplementedException;
 import org.bukkit.potion.PotionType;
-import com.comphenix.xp.Range;
+import com.comphenix.xp.Action;
 
 public class PotionTree extends ActionTree<PotionQuery> implements Multipliable<PotionTree> {
 
@@ -110,7 +110,7 @@ public class PotionTree extends ActionTree<PotionQuery> implements Multipliable<
 	public ItemTree getItemQueryAdaptor() {
 		return new ItemTree() {
 			@Override
-			public Range get(ItemQuery element) {
+			public Action get(ItemQuery element) {
 				return PotionTree.this.get(new PotionQuery(element));
 			}
 
@@ -120,7 +120,7 @@ public class PotionTree extends ActionTree<PotionQuery> implements Multipliable<
 			}
 			
 			@Override
-			public Integer put(ItemQuery element, Range value) {
+			public Integer put(ItemQuery element, Action value) {
 				throw new NotImplementedException();
 			}
 			
@@ -137,7 +137,7 @@ public class PotionTree extends ActionTree<PotionQuery> implements Multipliable<
 	}
 	
 	@Override
-	protected void putAllParameters(SearchTree<PotionQuery, Range> other, Integer offset) {
+	protected void putAllParameters(SearchTree<PotionQuery, Action> other, Integer offset) {
 		PotionTree tree = (PotionTree) other;
 
 		type.putAll(tree.type, offset);

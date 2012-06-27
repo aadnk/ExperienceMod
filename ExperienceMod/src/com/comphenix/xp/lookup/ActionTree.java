@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.comphenix.xp.Range;
+import com.comphenix.xp.Action;
 
-public abstract class ActionTree<TKey> extends SearchTree<TKey, Range>{
+public abstract class ActionTree<TKey> extends SearchTree<TKey, Action>{
 
 	protected double multiplier;
 	
@@ -22,8 +22,8 @@ public abstract class ActionTree<TKey> extends SearchTree<TKey, Range>{
 	}
 	
 	@Override
-	public Range get(TKey element) {
-		Range result = super.get(element);
+	public Action get(TKey element) {
+		Action result = super.get(element);
 		
 		// Automatically include the multiplier
 		if (result != null)
@@ -37,13 +37,13 @@ public abstract class ActionTree<TKey> extends SearchTree<TKey, Range>{
 	 * @return Every stored range.
 	 */
 	@Override
-	public Collection<Range> getValues() {
+	public Collection<Action> getValues() {
 
 		// Add multiplier
-		List<Range> scaledValues = new ArrayList<Range>();
+		List<Action> scaledValues = new ArrayList<Action>();
 		
-		for (Range range : super.getValues()) {
-			scaledValues.add(range.multiply(multiplier));
+		for (Action action : super.getValues()) {
+			scaledValues.add(action.multiply(multiplier));
 		}
 		
 		return scaledValues;

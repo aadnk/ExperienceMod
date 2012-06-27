@@ -17,6 +17,7 @@ package com.comphenix.xp;
  *  02111-1307 USA
  */
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -32,6 +33,7 @@ import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.parser.text.ItemParser;
 import com.comphenix.xp.parser.text.MobParser;
 import com.comphenix.xp.rewards.RewardProvider;
+import com.comphenix.xp.rewards.RewardTypes;
 
 public class Configuration implements Multipliable<Configuration> {
 	
@@ -92,7 +94,7 @@ public class Configuration implements Multipliable<Configuration> {
 	
 	private ItemParser itemParser = new ItemParser();
 	private MobParser mobParser = new MobParser();
-	private ActionParser actionParser = new ActionParser();
+	private ActionParser actionParser;
 	
 	public Configuration(Debugger debugger) {
 		this.logger = debugger;
@@ -129,8 +131,10 @@ public class Configuration implements Multipliable<Configuration> {
 		this.checkRewards();
 	}
 	
-	public Configuration(ConfigurationSection config, Debugger debugger) {
+	public Configuration(ConfigurationSection config, Debugger debugger, RewardProvider provider) {
 		this.logger = debugger;
+		this.rewardProvider = provider;
+		this.actionParser = new ActionParser(provider);
 		loadFromConfig(config);
 	}
 	
@@ -196,7 +200,8 @@ public class Configuration implements Multipliable<Configuration> {
 		
 		// Economy drop item
 		try {
-			Query drop = itemParser.parse(config.getString(economyDropsSetting, ""));
+			String text = config.getString(economyDropsSetting, null);
+			Query drop = text != null ? itemParser.parse(text) : null;
 			
 			if (drop != null && drop instanceof ItemQuery) {
 				economyDropItem = ((ItemQuery) drop).toItemStack(1);
@@ -208,7 +213,11 @@ public class Configuration implements Multipliable<Configuration> {
 		
 		// Load reward type
 		String defaultReward = loadReward(config.getString(rewardTypeSetting, null));
-		setDefaultRewardName(defaultReward);
+		
+		// Use default type if nothing has been set
+		if (defaultReward != null)
+			setDefaultRewardName(defaultReward);
+		
 		initialize(multiplier);
 
 		// Load mob experience
@@ -233,32 +242,59 @@ public class Configuration implements Multipliable<Configuration> {
 		this.multiplier = multiplier;
 	}
 	
+	public Collection<Action> getActions() { 
+		
+		List<Action> actions = new ArrayList<Action>();
+		
+		// Copy the content of every single collection
+		actions.addAll(experienceDrop.getValues());
+		actions.addAll(simpleBlockReward.getValues());
+		actions.addAll(simpleBonusReward.getValues());
+		actions.addAll(simplePlacingReward.getValues());
+		actions.addAll(simpleSmeltingReward.getValues());
+		actions.addAll(simpleCraftingReward.getValues());
+		actions.addAll(simpleBrewingReward.getValues());
+		actions.addAll(complexBrewingReward.getValues());
+		actions.addAll(playerRewards.getValues());
+		return actions;
+	}
+	
 	private void checkRewards() {
+		
+		Collection<Action> actions = getActions();
+		
 		// Are any rewards negative
-		if (hasNegativeRewards()) {
+		if (hasNegativeRewards(actions)) {
 			logger.printWarning(this, 
 					"Cannot use negative rewards with the experience reward type.");
 		}
-	}
-	
-	private boolean hasNegativeRewards() {
 		
-		return hasNegativeRewards(experienceDrop.getValues()) ||
-				hasNegativeRewards(simpleBlockReward.getValues()) ||
-				hasNegativeRewards(simpleBonusReward.getValues()) ||
-				hasNegativeRewards(simplePlacingReward.getValues()) ||
-				hasNegativeRewards(simpleSmeltingReward.getValues()) ||
-				hasNegativeRewards(simpleCraftingReward.getValues()) ||
-				hasNegativeRewards(simpleBrewingReward.getValues()) ||
-				hasNegativeRewards(complexBrewingReward.getValues()) ||
-				hasNegativeRewards(playerRewards.getValues());
+		// Economy rewards when no economy is registered
+		if (rewardProvider.getByEnum(RewardTypes.ECONOMY) == null &&
+			hasEconomyReward(actions)) {
+			logger.printWarning(this, "VAULT was not found. Cannot use economy.");
+		}
+	}
+
+	private boolean hasEconomyReward(Collection<Action> values) {
+		
+		// See if we have an economy reward set
+		for (Action action : values) {
+			if (action.getReward("ECONOMY") != null)
+				return true;
+		}
+		
+		return false;
 	}
 	
-	private boolean hasNegativeRewards(Collection<Range> values) {
+	private boolean hasNegativeRewards(Collection<Action> values) {
 		
 		// Check every range
-		for (Range range : values) {
-			if (range.getStart() < 0 || range.getEnd() < 0)
+		for (Action action : values) {
+			
+			Range range = action.getReward("EXPERIENCE");
+				
+			if (range != null && range.getStart() < 0 || range.getEnd() < 0)
 				return true;
 		}
 		
@@ -269,13 +305,11 @@ public class Configuration implements Multipliable<Configuration> {
 	
 		String parsing = Utility.getEnumName(text);
 			
+		// Load reward name
 		if (text != null && rewardProvider.containsReward(parsing)) {
 			return parsing;
-			
 		} else {
-			// Print a warning too!
-			logger.printWarning(this, "Cannot find reward type: %s", text);
-			return rewardProvider.getDefaultReward();
+			return null;
 		}
 	}
 	
