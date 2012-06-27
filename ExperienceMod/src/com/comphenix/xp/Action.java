@@ -93,7 +93,9 @@ public class Action {
 		// Give every reward
 		for (Map.Entry<String, Range> entry : rewards.entrySet()) {
 			
-			RewardService manager = provider.getByName(entry.getKey());
+			String key = Utility.getEnumName(entry.getKey());
+			RewardService manager = provider.getByName(key);
+			
 			int exp = entry.getValue().sampleInt(rnd) * count;
 			
 			if (manager != null) {
@@ -120,7 +122,9 @@ public class Action {
 		// As the above
 		for (Map.Entry<String, Range> entry : rewards.entrySet()) {
 			
-			RewardService manager = provider.getByName(entry.getKey());
+			String key = Utility.getEnumName(entry.getKey());
+			RewardService manager = provider.getByName(key);
+			
 			int exp = entry.getValue().sampleInt(rnd);
 			
 			if (manager != null) {
@@ -147,7 +151,9 @@ public class Action {
 		// As the above
 		for (Map.Entry<String, Range> entry : rewards.entrySet()) {
 			
-			RewardService manager = provider.getByName(entry.getKey());
+			String key = Utility.getEnumName(entry.getKey());
+			RewardService manager = provider.getByName(key);
+			
 			int exp = entry.getValue().sampleInt(rnd);
 			
 			if (manager != null) {
