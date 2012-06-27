@@ -12,7 +12,7 @@ import com.comphenix.xp.parser.primitives.StringParser;
 import com.comphenix.xp.parser.text.ParameterParser;
 import com.comphenix.xp.rewards.RewardProvider;
 
-public class ActionParser {
+public class ActionParser extends ConfigurationParser<Action> {
 
 	private static final String messageTextSetting = "message";
 	private static final String messageChannelSetting = "channels";
