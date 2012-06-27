@@ -106,6 +106,9 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			// Associate everything
 			rewardProvider.register(rewardEconomy, false);
 			itemListener.setReward(rewardEconomy);
+			
+			// Register listener
+			manager.registerEvents(itemListener, this);
 		}
 		
 		try {

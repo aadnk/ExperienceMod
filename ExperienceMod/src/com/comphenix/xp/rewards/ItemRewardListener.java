@@ -34,6 +34,8 @@ public class ItemRewardListener implements Listener {
 			UUID id = item.getUniqueId();
 			Integer amount = queue.get(id);
 			
+			logger.printDebug(this, "Picked up %id.", id);
+			
 			if (amount != null) {
 				event.setCancelled(true);
 				reward.reward(player, amount);
@@ -71,7 +73,7 @@ public class ItemRewardListener implements Listener {
 			// Enqueue this future reward
 			queue.put(item.getUniqueId(), amount);
 			
-			logger.printDebug(this, "Pin reward %s to %d currency.", item, amount);
+			logger.printDebug(this, "Pin reward %s to %d currency.", item.getUniqueId(), amount);
 		}
 	}
 	
