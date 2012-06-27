@@ -19,7 +19,7 @@ import com.comphenix.xp.Debugger;
  * 
  * @author Kristian
  */
-public class RewardEconomy implements Rewardable {
+public class RewardEconomy implements RewardService {
 
 	private Economy economy;
 	private Debugger debugger;
@@ -140,7 +140,7 @@ public class RewardEconomy implements Rewardable {
 	}
 
 	@Override
-	public Rewardable clone(Configuration config) {
+	public RewardService clone(Configuration config) {
 		RewardEconomy copy = new RewardEconomy(economy, debugger, listener);
 		
 		copy.setEconomyItem(config.getEconomyDropItem());

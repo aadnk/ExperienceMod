@@ -5,9 +5,9 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 import com.comphenix.xp.rewards.RewardTypes;
-import com.comphenix.xp.rewards.Rewardable;
+import com.comphenix.xp.rewards.RewardService;
 
-public class MockRewardable implements Rewardable {
+public class MockRewardable implements RewardService {
 
 	private RewardTypes type;
 	
@@ -39,7 +39,7 @@ public class MockRewardable implements Rewardable {
 	}
 
 	@Override
-	public Rewardable clone(Configuration config) {
+	public RewardService clone(Configuration config) {
 		return new MockRewardable(type);
 	}
 }

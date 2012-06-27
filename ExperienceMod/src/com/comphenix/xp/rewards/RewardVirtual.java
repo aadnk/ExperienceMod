@@ -15,7 +15,7 @@ import com.comphenix.xp.Server;
  * 
  * @author Kristian
  */
-public class RewardVirtual implements Rewardable {
+public class RewardVirtual implements RewardService {
 
 	private double searchRadius = 20;
 	
@@ -139,7 +139,7 @@ public class RewardVirtual implements Rewardable {
 	}
 
 	@Override
-	public Rewardable clone(Configuration config) {
+	public RewardService clone(Configuration config) {
 		RewardVirtual copy = new RewardVirtual();
 		
 		copy.setSearchRadius(searchRadius);

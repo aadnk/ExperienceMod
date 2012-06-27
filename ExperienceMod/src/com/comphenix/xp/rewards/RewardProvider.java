@@ -16,16 +16,16 @@ public class RewardProvider {
 	private static String customUnsupported = "rewardType cannot be custom. Use getByString().";
 	private static String defaultRewardName = "DEFAULT";
 	
-	private HashMap<String, Rewardable> nameLookup;
-	private HashMap<RewardTypes, Rewardable> enumLookup;
+	private HashMap<String, RewardService> nameLookup;
+	private HashMap<RewardTypes, RewardService> enumLookup;
 
 	private String defaultReward;
 	private Configuration configuration;
 	
 	public RewardProvider() {
 		// Default constructor
-		this.nameLookup = new HashMap<String, Rewardable>();
-		this.enumLookup = new HashMap<RewardTypes, Rewardable>();
+		this.nameLookup = new HashMap<String, RewardService>();
+		this.enumLookup = new HashMap<RewardTypes, RewardService>();
 	}
 	
 	public RewardProvider(RewardProvider reference, Configuration configuration) {
@@ -39,7 +39,7 @@ public class RewardProvider {
 	 * @param rewardType type to search for.
 	 * @return The currently registered reward manager, or NULL if not found.
 	 */
-	public Rewardable getByEnum(RewardTypes rewardType) {
+	public RewardService getByEnum(RewardTypes rewardType) {
 		if (rewardType == null)
 			throw new NullArgumentException("rewardType");
 		if (rewardType == RewardTypes.CUSTOM)
@@ -56,7 +56,7 @@ public class RewardProvider {
 	 * @param rewardName name to search for.
 	 * @return The currently registered reward manager, or NULL if not found.
 	 */
-	public Rewardable getByName(String rewardName) {
+	public RewardService getByName(String rewardName) {
 		if (rewardName == null)
 			throw new NullArgumentException("rewardName");
 		if (rewardName.equalsIgnoreCase(defaultRewardName))
@@ -71,7 +71,7 @@ public class RewardProvider {
 	 * @param override TRUE to override any previously registered managers with the same name or type. 
 	 * @return The previously registered manager with this type and name, or NULL otherwise.
 	 */
-	public Rewardable register(Rewardable reward, boolean override) {
+	public RewardService register(RewardService reward, boolean override) {
 		if (reward == null)
 			throw new NullArgumentException("reward");
 		
@@ -102,7 +102,7 @@ public class RewardProvider {
 	 * @param rewardType the type of the reward manager to unregister.
 	 * @return The previously registered manager with this type, or NULL otherwise.
 	 */
-	public Rewardable unregister(RewardTypes rewardType) {
+	public RewardService unregister(RewardTypes rewardType) {
 		if (rewardType == null)
 			throw new NullArgumentException("rewardType");
 		if (rewardType == RewardTypes.CUSTOM)
@@ -110,7 +110,7 @@ public class RewardProvider {
 		if (rewardType == RewardTypes.DEFAULT)
 			return unregister(getDefaultReward());
 		
-		Rewardable removed = enumLookup.remove(rewardType);
+		RewardService removed = enumLookup.remove(rewardType);
 		
 		// Make sure to remove it from the name list too
 		if (removed != null)
@@ -123,11 +123,11 @@ public class RewardProvider {
 	 * @param rewardType the name of the reward manager to unregister.
 	 * @return The previously registered manager with this name, or NULL otherwise.
 	 */
-	public Rewardable unregister(String rewardName) {
+	public RewardService unregister(String rewardName) {
 		if (rewardName == null)
 			throw new NullArgumentException("rewardName");
 
-		Rewardable removed = nameLookup.remove(rewardName);
+		RewardService removed = nameLookup.remove(rewardName);
 		
 		if (!removed.getRewardType().isSpecialMarker())
 			enumLookup.remove(removed.getRewardType());
@@ -158,7 +158,7 @@ public class RewardProvider {
 	}
 	
 	// Make sure the reward manager has the correct configuration associated with it
-	private Rewardable getConfigSpecific(Rewardable reward) {
+	private RewardService getConfigSpecific(RewardService reward) {
 		
 		if (reward == null)
 			return null;

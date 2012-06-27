@@ -13,7 +13,7 @@ import com.comphenix.xp.Server;
  * 
  * @author Kristian
  */
-public class RewardExperience implements Rewardable {
+public class RewardExperience implements RewardService {
 
 	@Override
 	public void reward(Player player, int amount) {
@@ -57,7 +57,7 @@ public class RewardExperience implements Rewardable {
 	}
 
 	@Override
-	public Rewardable clone(Configuration config) {
+	public RewardService clone(Configuration config) {
 		return new RewardExperience();
 	}
 }

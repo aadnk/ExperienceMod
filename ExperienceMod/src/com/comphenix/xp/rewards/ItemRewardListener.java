@@ -19,7 +19,7 @@ public class ItemRewardListener implements Listener {
 	private static final int soundRadius = 5;
 	
 	private HashMap<UUID, Integer> queue = new HashMap<UUID, Integer>();
-	private Rewardable reward;
+	private RewardService reward;
 	private Debugger logger;
 	
 	public ItemRewardListener(Debugger logger) {
@@ -83,11 +83,11 @@ public class ItemRewardListener implements Listener {
 		}
 	}
 	
-	public Rewardable getReward() {
+	public RewardService getReward() {
 		return reward;
 	}
 
-	public void setReward(Rewardable reward) {
+	public void setReward(RewardService reward) {
 		this.reward = reward;
 	}
 }

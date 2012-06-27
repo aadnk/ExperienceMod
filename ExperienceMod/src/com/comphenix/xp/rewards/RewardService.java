@@ -12,7 +12,7 @@ import com.comphenix.xp.extra.Service;
  * 
  * @author Kristian
  */
-public interface Rewardable extends Service {
+public interface RewardService extends Service {
 	
 	/**
 	 * Rewards a player directly.
@@ -50,5 +50,5 @@ public interface Rewardable extends Service {
 	 * @param config Configuration file.
 	 * @return A new reward manager with the given settings.
 	 */
-	public Rewardable clone(Configuration config);
+	public RewardService clone(Configuration config);
 }

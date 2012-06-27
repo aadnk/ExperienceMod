@@ -17,7 +17,7 @@ import com.comphenix.xp.messages.Message;
 import com.comphenix.xp.parser.Utility;
 import com.comphenix.xp.rewards.RewardProvider;
 import com.comphenix.xp.rewards.RewardTypes;
-import com.comphenix.xp.rewards.Rewardable;
+import com.comphenix.xp.rewards.RewardService;
 
 public class Action {
 
@@ -93,7 +93,7 @@ public class Action {
 		// Give every reward
 		for (Map.Entry<String, Range> entry : rewards.entrySet()) {
 			
-			Rewardable manager = provider.getByName(entry.getKey());
+			RewardService manager = provider.getByName(entry.getKey());
 			int exp = entry.getValue().sampleInt(rnd) * count;
 			
 			if (manager != null) {
@@ -120,7 +120,7 @@ public class Action {
 		// As the above
 		for (Map.Entry<String, Range> entry : rewards.entrySet()) {
 			
-			Rewardable manager = provider.getByName(entry.getKey());
+			RewardService manager = provider.getByName(entry.getKey());
 			int exp = entry.getValue().sampleInt(rnd);
 			
 			if (manager != null) {
@@ -147,7 +147,7 @@ public class Action {
 		// As the above
 		for (Map.Entry<String, Range> entry : rewards.entrySet()) {
 			
-			Rewardable manager = provider.getByName(entry.getKey());
+			RewardService manager = provider.getByName(entry.getKey());
 			int exp = entry.getValue().sampleInt(rnd);
 			
 			if (manager != null) {
