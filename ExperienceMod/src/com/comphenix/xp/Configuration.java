@@ -294,7 +294,7 @@ public class Configuration implements Multipliable<Configuration> {
 			
 			Range range = action.getReward("EXPERIENCE");
 				
-			if (range != null && range.getStart() < 0 || range.getEnd() < 0)
+			if (range != null && (range.getStart() < 0 || range.getEnd() < 0))
 				return true;
 		}
 		

@@ -14,6 +14,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 import com.comphenix.xp.messages.Message;
+import com.comphenix.xp.parser.Utility;
 import com.comphenix.xp.rewards.RewardProvider;
 import com.comphenix.xp.rewards.RewardTypes;
 import com.comphenix.xp.rewards.Rewardable;
@@ -41,15 +42,15 @@ public class Action {
 	}
 	
 	public void addReward(String rewardType, Range range) {
-		rewards.put(rewardType, range);
+		rewards.put(Utility.getEnumName(rewardType), range);
 	}
 	
 	public void removeReward(String rewardType) {
-		rewards.remove(rewardType);
+		rewards.remove(Utility.getEnumName(rewardType));
 	}
 	
 	public Range getReward(String name) {
-		return rewards.get(name);
+		return rewards.get(Utility.getEnumName(name));
 	}
 	
 	public Range getReward(RewardTypes type) {

@@ -24,13 +24,18 @@ public class ConfigurationTest {
 		Debugger debugger = new MockDebugger();
 		
 		RewardProvider provider = new RewardProvider();
+		provider.register(new MockRewardable(RewardTypes.EXPERIENCE), false);
+		provider.register(new MockRewardable(RewardTypes.VIRTUAL), false);
+		provider.register(new MockRewardable(RewardTypes.ECONOMY), false);
 		provider.setDefaultReward(RewardTypes.EXPERIENCE);
 		String def = "EXPERIENCE";
 		
 		Configuration first = createConfig(
 				"multiplier: 1\n" +
 				"mobs:\n" + 
-				"  ?: 5\n", debugger, provider);
+				"  ?:\n" +
+				"    experience: 5\n" +
+				"    economy: 1\n", debugger, provider);
 		
 		Configuration second = createConfig(
 				"multiplier: 1\n" +
@@ -42,7 +47,10 @@ public class ConfigurationTest {
 		MobQuery queryBlace = MobQuery.fromAny(EntityType.BLAZE, DamageCause.ENTITY_ATTACK);
 		MobQuery queryZombie = MobQuery.fromAny(EntityType.ZOMBIE, DamageCause.ENTITY_ATTACK);
 		
-		Action blaceAction = new Action(def, new Range(5));
+		Action blaceAction = new Action();
+		blaceAction.addReward(def, new Range(5));
+		blaceAction.addReward("ECONOMY", new Range(1));
+		
 		Action zombieAction = new Action(def, new Range(0));
 		
 		assertEquals(blaceAction, result.getExperienceDrop().get(queryBlace));

@@ -41,18 +41,24 @@ public class ActionParser {
 			return result;
 		}
 		
+		ConfigurationSection values = input.getConfigurationSection(key);
+		
+		// See if this is a configuration section
+		if (values == null)
+			return null;
+		
 		// If not, get sub-rewards
-		for (String sub : input.getKeys(false)) {
+		for (String sub : values.getKeys(false)) {
 			
 			if (sub.equalsIgnoreCase(messageTextSetting)) {
 				text = input.getString(key);
 			} else if (sub.equalsIgnoreCase(messageChannelSetting)) {
 				channels = textParsing.parse(input.getString(key));
 			} else {
-				Range range = readRange(input.getConfigurationSection(key), sub, null);
+				Range range = readRange(values, sub, null);
 				
 				if (range != null) {
-					result.addReward(key, range);
+					result.addReward(sub, range);
 				}
 			}
 			
