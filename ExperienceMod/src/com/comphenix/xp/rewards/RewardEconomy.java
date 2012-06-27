@@ -84,9 +84,10 @@ public class RewardEconomy implements Rewardable {
 	public void reward(Player player, Location point, int amount) {
 
 		// See if we have to reward the player directly
-		if (economyItem == null || economyWorth == null || economyWorth < 1)
+		if (economyItem == null || economyWorth == null || economyWorth < 1) {
+			debugger.printDebug(this, "Cannot find economy settings.");
 			reward(player, amount);
-		else {
+		} else {
 			reward(player.getWorld(), point, amount);
 		}
 	}

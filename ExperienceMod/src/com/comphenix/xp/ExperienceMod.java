@@ -100,7 +100,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		
 		// Don't register economy rewards unless we can
 		if (hasEconomy()) {
-			itemListener = new ItemRewardListener();
+			itemListener = new ItemRewardListener(this);
 			rewardEconomy = new RewardEconomy(economy, this, itemListener); 
 			
 			// Associate everything

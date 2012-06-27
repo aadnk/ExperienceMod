@@ -11,10 +11,17 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.ItemDespawnEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 
+import com.comphenix.xp.Debugger;
+
 public class ItemRewardListener implements Listener {
 
 	private HashMap<UUID, Integer> queue = new HashMap<UUID, Integer>();
 	private Rewardable reward;
+	private Debugger logger;
+	
+	public ItemRewardListener(Debugger logger) {
+		this.logger = logger;
+	}
 	
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void onPlayerPickupItemEvent(PlayerPickupItemEvent event) {
@@ -33,6 +40,10 @@ public class ItemRewardListener implements Listener {
 				
 				queue.remove(id);
 				item.remove();
+				
+				// Replaced content
+				logger.printDebug(this, "Gave player %s currency instead of item %s (%s).", 
+						player.getName(), item.getItemStack(), id);
 			}
 		}
 	}
@@ -59,6 +70,8 @@ public class ItemRewardListener implements Listener {
 		
 			// Enqueue this future reward
 			queue.put(item.getUniqueId(), amount);
+			
+			logger.printDebug(this, "Pin reward %s to %d currency.", item, amount);
 		}
 	}
 	
