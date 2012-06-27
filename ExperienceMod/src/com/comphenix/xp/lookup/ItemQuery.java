@@ -52,7 +52,7 @@ public class ItemQuery implements Query {
 	
 	/**
 	 * Creates a query from the given material and data.
-	 * @param material material to create from.
+	 * @param material - material to create from.
 	 */
 	public static ItemQuery fromAny(Material material) {
 		return fromAny(material != null ? material.getId() : null, null);
@@ -60,8 +60,8 @@ public class ItemQuery implements Query {
 	
 	/**
 	 * Creates a query from the given material and data.
-	 * @param material material to create from.
-	 * @param durability durability to create from.
+	 * @param material - material to create from.
+	 * @param durability - durability to create from.
 	 */
 	public static ItemQuery fromAny(Material material, Integer durability) {
 		return fromAny(material != null ? material.getId() : null, durability);

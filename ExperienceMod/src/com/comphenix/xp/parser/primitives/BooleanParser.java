@@ -23,7 +23,7 @@ public class BooleanParser extends TextParser<List<Boolean>> {
 
 	/**
 	 * Parses the given parameter as a boolean. 
-	 * @param text Parameter to parse.
+	 * @param text - parameter to parse.
 	 * @return Boolean value if parsing succeeded, or NULL otherwise.
 	 */
 	@Override
@@ -63,7 +63,7 @@ public class BooleanParser extends TextParser<List<Boolean>> {
 	
 	/**
 	 * Transforms and returns the first non-null element from the left into an object. That element is removed.
-	 * @param tokens Queue of items.
+	 * @param tokens - queue of items.
 	 * @return List containing the removed object, OR an empty list if no object was removed.
 	 */
 	public List<Boolean> parseAny(Queue<String> tokens) throws ParsingException {

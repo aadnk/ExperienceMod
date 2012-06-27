@@ -63,9 +63,9 @@ public class Action {
 
 	/**
 	 * Rewards a player with the given amount of resources.
-	 * @param provider Reward provider that determines specifically how to reward players.
-	 * @param rnd Random number generator.
-	 * @param player The player to reward.
+	 * @param provider - reward provider that determines specifically how to reward players.
+	 * @param rnd - random number generator.
+	 * @param player - the player to reward.
 	 * @return The amount of total resources that were given.
 	 */
 	public int rewardPlayer(RewardProvider provider, Random rnd, Player player) {
@@ -76,10 +76,10 @@ public class Action {
 	
 	/**
 	 * Rewards a player with the given amount of resources.
-	 * @param provider Reward provider that determines specifically how to reward players.
-	 * @param rnd Random number generator.
-	 * @param player The player to reward.
-	 * @param count The number of times to give this resource.
+	 * @param provider - reward provider that determines specifically how to reward players.
+	 * @param rnd - random number generator.
+	 * @param player - the player to reward.
+	 * @param count - the number of times to give this resource.
 	 * @return The amount of total resources that were given.
 	 */
 	public int rewardPlayer(RewardProvider provider, Random rnd, Player player, int count) {
@@ -107,10 +107,10 @@ public class Action {
 	
 	/**
 	 * Rewards a given player with resources at a given location.
-	 * @param provider Reward provider that determines specifically how to reward players.
-	 * @param rnd Random number generator.
-	 * @param player The player to reward.
-	 * @param point The location to place the reward, if relevant.
+	 * @param provider - reward provider that determines specifically how to reward players.
+	 * @param rnd - random number generator.
+	 * @param player - the player to reward.
+	 * @param point - the location to place the reward, if relevant.
 	 * @return The amount of total resources that were given.
 	 */
 	public int rewardPlayer(RewardProvider provider, Random rnd, Player player, Location point) {
@@ -134,10 +134,10 @@ public class Action {
 	
 	/**
 	 * Spawns resources at the given location.
-	 * @param provider Reward provider that determines specifically how to award resources.
-	 * @param rnd Random number generator.
-	 * @param world The world where the resources should be spawned.
-	 * @param point The location to place the reward.
+	 * @param provider - reward provider that determines specifically how to award resources.
+	 * @param rnd - random number generator.
+	 * @param world - the world where the resources should be spawned.
+	 * @param point - the location to place the reward.
 	 * @return The amount of total resources that were given.
 	 */
 	public int rewardAnyone(RewardProvider provider, Random rnd, World world, Location point) {

@@ -8,12 +8,12 @@ import java.util.Queue;
  * Represents an object that transforms strings of text into objects.
  * 
  * @author Kristian
- * @param <TResult> Type of the resulting object.
+ * @param <TResult> - type of the resulting object.
  */
 public abstract class TextParser<TResult> extends Parser<String, TResult> {
 	/**
 	 * Transforms the given text into an object. 
-	 * @param text Text to parse.
+	 * @param - text Text to parse.
 	 * @return Result of the parsing.
 	 * @throws ParsingException The text cannot be transformed into a list of objects.
 	 */
@@ -22,7 +22,7 @@ public abstract class TextParser<TResult> extends Parser<String, TResult> {
 	 
 	/**
 	 * Transforms the head of the queue into a string of objects. No head is treated as an empty string.
-	 * @param tokens Queue of tokens.
+	 * @param tokens - queue of tokens.
 	 * @return The corresponding string of objects.
 	 * @throws ParsingException The head cannot be transformed into a list of objects.
 	 */
@@ -42,7 +42,7 @@ public abstract class TextParser<TResult> extends Parser<String, TResult> {
 	
 	/**
 	 * Reads tokens from (delimited by a vertical bar) a query rule body.
-	 * @param text Query rule body to read.
+	 * @param text - query rule body to read.
 	 * @return Queue of the tokens.
 	 */
 	protected Queue<String> getParameterQueue(String text) {
@@ -58,7 +58,7 @@ public abstract class TextParser<TResult> extends Parser<String, TResult> {
 	
 	/**
 	 * Attempt to parse integer.
-	 * @param input Text of the integer to parse.
+	 * @param input - text of the integer to parse.
 	 * @return The parsed integer if successful, or NULL if unsuccessful.
 	 */
 	public static Integer tryParse(String input) {
@@ -67,8 +67,8 @@ public abstract class TextParser<TResult> extends Parser<String, TResult> {
 	
 	/**
 	 * Attempt to parse integer.
-	 * @param input Text of the integer to parse.
-	 * @param defaultValue Value to return if the parsing was unsuccessful.
+	 * @param input - text of the integer to parse.
+	 * @param defaultValue - value to return if the parsing was unsuccessful.
 	 * @return The parsed integer if successful, or defaultValue if not.
 	 */
 	public static Integer tryParse(String input, Integer defaultValue) {

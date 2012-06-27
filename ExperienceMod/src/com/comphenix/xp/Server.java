@@ -64,9 +64,9 @@ public class Server {
     
     /**
      * Retrieve the list of nearby players.
-     * @param world The world to search in.
-     * @param point The origin point to search from.
-     * @param radius The maximum distance away from the origin point to search in.
+     * @param world - the world to search in.
+     * @param point - the origin point to search from.
+     * @param radius - the maximum distance away from the origin point to search in.
      * @return Every player within the radius distance from the given point.
      */
     public static List<Player> getNearbyPlayers(World world, Location point, double radius) {

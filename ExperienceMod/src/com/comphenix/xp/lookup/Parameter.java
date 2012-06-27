@@ -24,8 +24,8 @@ public class Parameter<TParam> {
 	
 	/**
 	 * Insert every parameter key and its corresponding ID list from the given parameter.
-	 * @param other Given parameter.
-	 * @param offsetID The amount to increment every ID in the given parameter.
+	 * @param other - given parameter.
+	 * @param offsetID - the amount to increment every ID in the given parameter.
 	 */
 	public void putAll(Parameter<TParam> other, Integer offsetID) {
 		

@@ -141,8 +141,8 @@ public class Configuration implements Multipliable<Configuration> {
 	/**
 	 * Merge a list of configurations into a new configuration.
 	 * 
-	 * @param configurations List of configurations.
-	 * @param debugger Debugger instance.
+	 * @param configurations - list of configurations.
+	 * @param debugger - debugger instance.
 	 * @return Merged configuration.
 	 */
 	public static Configuration fromMultiple(List<Configuration> configurations, Debugger debugger) {
@@ -423,8 +423,8 @@ public class Configuration implements Multipliable<Configuration> {
 
 	/**
 	 * Reads a double or integer from the configuration section.
-	 * @param config Configuration section to read from.
-	 * @param key The key to read.
+	 * @param config - configuration section to read from.
+	 * @param key - the key to read.
 	 * @return The double, or NULL if none were found.
 	 */
 	private double readDouble(ConfigurationSection config, String key, double defaultValue) {
@@ -447,7 +447,7 @@ public class Configuration implements Multipliable<Configuration> {
 	
 	/**
 	 * Whether or not this configuration is associated with a specified preset.
-	 * @param value new value.
+	 * @param value - new value.
 	 */
 	public void setPreset(boolean value) {
 		preset = value;

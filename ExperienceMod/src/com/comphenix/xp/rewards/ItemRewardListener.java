@@ -69,8 +69,8 @@ public class ItemRewardListener implements Listener {
 	
 	/**
 	 * Marks the given object for granting economy rewards.
-	 * @param item Item to mark.
-	 * @param amount The amount of currency to give.
+	 * @param item - item to mark.
+	 * @param amount - the amount of currency to give.
 	 */
 	public void pinReward(Item item, int amount) {
 		
