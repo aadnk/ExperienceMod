@@ -29,12 +29,12 @@ public class MockRewardable implements Rewardable {
 	}
 
 	@Override
-	public RewardTypes getType() {
+	public RewardTypes getRewardType() {
 		return type;
 	}
 
 	@Override
-	public String getRewardName() {
+	public String getServiceName() {
 		return type.name();
 	}
 

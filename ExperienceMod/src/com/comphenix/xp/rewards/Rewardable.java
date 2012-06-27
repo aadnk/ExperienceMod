@@ -5,13 +5,14 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 import com.comphenix.xp.Configuration;
+import com.comphenix.xp.extra.Service;
 
 /**
  * Represents a method of rewarding a player with resources.
  * 
  * @author Kristian
  */
-public interface Rewardable {
+public interface Rewardable extends Service {
 	
 	/**
 	 * Rewards a player directly.
@@ -41,17 +42,8 @@ public interface Rewardable {
 	 * Retrieves the reward type.
 	 * @return Reward type of this class.
 	 */
-	public RewardTypes getType();
+	public RewardTypes getRewardType();
 
-	/**
-	 * Retrieves a unique string identifying this reward. Will be used during parsing. 
-	 * 
-	 * Note that this string must conform to the Java enum convention (upper case, underscore for space).
-	 * 
-	 * Reserved names: DEFAULT, EXPERIENCE, VIRTUAL and ECONOMY.
-	 * @return A unique reward ID.
-	 */
-	public String getRewardName();
 	
 	/**
 	 * Clones this object with the settings from the given configuration.

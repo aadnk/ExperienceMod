@@ -5,6 +5,12 @@ import java.util.Map;
 
 import org.apache.commons.lang.NullArgumentException;
 
+/**
+ * Represents a string-based service registry.
+ * 
+ * @author Kristian
+ * @param <TService> - the type of each service that will be registered.
+ */
 public class ServiceProvider<TService extends Service> {
 
 	protected Map<String, TService> nameLookup = new HashMap<String, TService>();
@@ -43,7 +49,7 @@ public class ServiceProvider<TService extends Service> {
 			else
 				return null;
 		} else {
-			return nameLookup.put(name, service);
+			return setByName(name, service);
 		}
 	}
 	
@@ -57,9 +63,7 @@ public class ServiceProvider<TService extends Service> {
 		if (serviceName == null)
 			throw new NullArgumentException("serviceName");
 
-		TService removed = nameLookup.remove(serviceName);
-		
-		return removed;
+		return nameLookup.remove(serviceName);
 	}
 	
 	/**
@@ -88,5 +92,18 @@ public class ServiceProvider<TService extends Service> {
 			return nameLookup.remove(name);
 		else
 			return null;
+	}
+	
+	/**
+	 * Called by the register function to associate a service with a name.
+	 * @param name - name of the service to register.
+	 * @param service - service to register.
+	 * @throws NullArgumentException Service name cannot be null.
+	 */
+	protected TService setByName(String name, TService service) {
+		if (name == null)
+			throw new NullArgumentException("Service name cannot be null.");
+		else
+			return nameLookup.put(name, service);
 	}
 }

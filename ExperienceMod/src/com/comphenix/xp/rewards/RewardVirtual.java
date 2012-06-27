@@ -129,13 +129,13 @@ public class RewardVirtual implements Rewardable {
 	}
 	
 	@Override
-	public RewardTypes getType() {
+	public RewardTypes getRewardType() {
 		return RewardTypes.VIRTUAL;
 	}
 
 	@Override
-	public String getRewardName() {
-		return getType().name();
+	public String getServiceName() {
+		return getRewardType().name();
 	}
 
 	@Override

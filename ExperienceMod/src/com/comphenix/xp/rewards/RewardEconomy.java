@@ -114,13 +114,13 @@ public class RewardEconomy implements Rewardable {
 	}
 
 	@Override
-	public RewardTypes getType() {
+	public RewardTypes getRewardType() {
 		return RewardTypes.ECONOMY;
 	}
 
 	@Override
-	public String getRewardName() {
-		return getType().name();
+	public String getServiceName() {
+		return getRewardType().name();
 	}
 	
 	public ItemStack getEconomyItem() {

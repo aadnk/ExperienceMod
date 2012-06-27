@@ -13,4 +13,5 @@ public interface Service {
 	 * @return A unique reward ID.
 	 */
 	public String getServiceName();
+
 }

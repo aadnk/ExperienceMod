@@ -75,8 +75,8 @@ public class RewardProvider {
 		if (reward == null)
 			throw new NullArgumentException("reward");
 		
-		RewardTypes type = reward.getType();
-		String name = reward.getRewardName();
+		RewardTypes type = reward.getRewardType();
+		String name = reward.getServiceName();
 		
 		if (type.isSpecialMarker()) {
 			throw new IllegalArgumentException("reward cannot be of type custom or default");
@@ -94,7 +94,7 @@ public class RewardProvider {
 			enumLookup.put(type, reward);
 		}
 		
-		return nameLookup.put(reward.getRewardName(), reward);
+		return nameLookup.put(reward.getServiceName(), reward);
 	}
 	
 	/**
@@ -114,7 +114,7 @@ public class RewardProvider {
 		
 		// Make sure to remove it from the name list too
 		if (removed != null)
-			nameLookup.remove(removed.getRewardName());
+			nameLookup.remove(removed.getServiceName());
 		return removed;
 	}
 	
@@ -129,8 +129,8 @@ public class RewardProvider {
 
 		Rewardable removed = nameLookup.remove(rewardName);
 		
-		if (!removed.getType().isSpecialMarker())
-			enumLookup.remove(removed.getType());
+		if (!removed.getRewardType().isSpecialMarker())
+			enumLookup.remove(removed.getRewardType());
 		return removed;
 	}
 	
