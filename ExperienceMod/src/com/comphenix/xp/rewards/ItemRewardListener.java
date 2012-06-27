@@ -3,6 +3,7 @@ package com.comphenix.xp.rewards;
 import java.util.HashMap;
 import java.util.UUID;
 
+import org.bukkit.Effect;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -15,6 +16,8 @@ import com.comphenix.xp.Debugger;
 
 public class ItemRewardListener implements Listener {
 
+	private static final int soundRadius = 5;
+	
 	private HashMap<UUID, Integer> queue = new HashMap<UUID, Integer>();
 	private Rewardable reward;
 	private Debugger logger;
@@ -42,6 +45,9 @@ public class ItemRewardListener implements Listener {
 				
 				queue.remove(id);
 				item.remove();
+				
+				// Just play a sound
+				player.getWorld().playEffect(item.getLocation(), Effect.CLICK1, soundRadius);
 				
 				// Replaced content
 				logger.printDebug(this, "Gave player %s currency instead of item %s (%s).", 
