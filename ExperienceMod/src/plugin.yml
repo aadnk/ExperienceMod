@@ -7,7 +7,7 @@ dev-url: http://dev.bukkit.org/server-mods/experiencemod/
 
 main: com.comphenix.xp.ExperienceMod
 database: false
-softdepend: [Vault]
+softdepend: [Vault, HeroChat]
 
 commands:
    experiencemod:

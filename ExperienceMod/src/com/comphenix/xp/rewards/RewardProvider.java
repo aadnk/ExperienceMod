@@ -60,7 +60,7 @@ public class RewardProvider extends ServiceProvider<RewardService> {
 	}
 	
 	@Override
-	public RewardService register(RewardService reward, boolean override) {
+	public RewardService register(RewardService reward, boolean setDefault) {
 		if (reward == null)
 			throw new NullArgumentException("reward");
 		
@@ -74,7 +74,7 @@ public class RewardProvider extends ServiceProvider<RewardService> {
 		}
 		
 		// Register with name
-		return super.register(reward, override);
+		return super.register(reward, setDefault);
 	}
 	
 	/**

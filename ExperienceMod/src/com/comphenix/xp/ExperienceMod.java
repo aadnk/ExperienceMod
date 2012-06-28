@@ -38,6 +38,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.comphenix.xp.commands.CommandExperienceMod;
 import com.comphenix.xp.commands.CommandSpawnExp;
+import com.comphenix.xp.messages.ChannelProvider;
+import com.comphenix.xp.messages.HeroService;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.parser.Utility;
 import com.comphenix.xp.rewards.ItemRewardListener;
@@ -66,6 +68,8 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	private ItemRewardListener itemListener;
 	
 	private RewardProvider rewardProvider;
+	private ChannelProvider channelProvider;
+	
 	private Presets presets;
 	
 	// Commands
@@ -86,17 +90,21 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		commandExperienceMod = new CommandExperienceMod(this);
 		commandSpawn = new CommandSpawnExp(this);
 		rewardProvider = new RewardProvider();
+		channelProvider = new ChannelProvider();
 		
 		// Load economy, if it exists
 		if (!hasEconomy())
-			setupEconomy();
+			economy = getRegistration(Economy.class);
 		if (!hasChat())
-			setupChat();
+			chat = getRegistration(Chat.class);
 		
 		// Load reward types
 		rewardProvider.register(new RewardExperience(), true);
 		rewardProvider.register(new RewardVirtual(), true);
 		rewardProvider.setDefaultReward(RewardTypes.EXPERIENCE);
+		
+		// Load channel providers
+		channelProvider.register(new HeroService(), true);
 		
 		// Don't register economy rewards unless we can
 		if (hasEconomy()) {
@@ -224,34 +232,20 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			}
 		}
 	}
-	
-	private void setupEconomy()
+
+	private <TClass> TClass getRegistration(Class<TClass> type)
     {
 		try {
-	        RegisteredServiceProvider<Economy> economyProvider = getServer().getServicesManager().getRegistration(Economy.class);
+	        RegisteredServiceProvider<TClass> registry = getServer().getServicesManager().getRegistration(type);
 	        
-	        if (economyProvider != null) {
-	            economy = economyProvider.getProvider();
-	        }
-        
-		} catch (NoClassDefFoundError e) {
-			// No vault
-			return;
-		}
-    }
-	
-	private void setupChat()
-    {
-		try {
-	        RegisteredServiceProvider<Chat> chatProvider = getServer().getServicesManager().getRegistration(Chat.class);
-	        
-	        if (chatProvider != null) {
-	            chat = chatProvider.getProvider();
-	        }
+	        if (registry != null) 
+	            return registry.getProvider();
+	        else
+	        	return null;
 
 		} catch (NoClassDefFoundError e) {
 			// No vault
-			return;
+			return null;
 		}
     }
 	

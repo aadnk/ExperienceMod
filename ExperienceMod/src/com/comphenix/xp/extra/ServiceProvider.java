@@ -46,11 +46,11 @@ public class ServiceProvider<TService extends Service> {
 	/**
 	 * Registers a service in the system.
 	 * @param service - the service to register.
-	 * @param override - TRUE to override any previously registered services with the same name or type. 
+	 * @param setDefault - TRUE to make this service default if the registration is successful. 
 	 * @return The previously registered service with this name, or NULL otherwise.
 	 * @throws NullArgumentException If service is null.
 	 */
-	public TService register(TService service, boolean override) {
+	public TService register(TService service, boolean setDefault) {
 		if (service == null)
 			throw new NullArgumentException("service");
 		
@@ -60,16 +60,15 @@ public class ServiceProvider<TService extends Service> {
 		if (name.equalsIgnoreCase(defaultService))
 			throw new IllegalArgumentException(
 					"Service cannot have the name DEfAULT. This name is reserved.");
+
+		TService result = setByName(name, service);
 		
-		// Should we keep the old service?
-		if (override) {
-			if (nameLookup.containsKey(name)) 
-				return getByName(name);
-			else
-				return null;
-		} else {
-			return setByName(name, service);
+		// Should we update the default?
+		if (result != null) {
+			setDefaultService(name);
 		}
+		
+		return result;
 	}
 	
 	/**

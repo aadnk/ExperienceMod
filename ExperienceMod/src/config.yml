@@ -1,6 +1,9 @@
 multiplier: 1
 default rewards disabled: false
 reward type: experience
+economy drop: slime ball
+economy drop worth: 1
+virtual scan radius: 20
 
 mobs:
   enderman:
