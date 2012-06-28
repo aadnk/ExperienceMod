@@ -14,6 +14,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 import com.comphenix.xp.messages.ChannelProvider;
+import com.comphenix.xp.messages.ChannelService;
 import com.comphenix.xp.messages.Message;
 import com.comphenix.xp.parser.Utility;
 import com.comphenix.xp.rewards.RewardProvider;
@@ -169,12 +170,13 @@ public class Action {
 	public void emoteMessages(ChannelProvider provider, Player player) {
 	
 		List<String> channels = getChannels(provider, message);
+		ChannelService service = provider.getDefaultService();
 		
 		// Guard against NULL messages
-		if (channels != null) {
+		if (channels != null && service != null) {
 			// Transmit the message on all the channels
 			for (String channel : channels) {
-				provider.getDefaultService().emote(channel, message.getText(), player);
+				service.emote(channel, message.getText(), player);
 			}
 		}
 	}
@@ -182,11 +184,12 @@ public class Action {
 	public void announceMessages(ChannelProvider provider) {
 
 		List<String> channels = getChannels(provider, message);
+		ChannelService service = provider.getDefaultService();
 		
-		if (channels != null) {
+		if (channels != null &&  service != null) {
 			// Like above, only without the player
 			for (String channel : channels) {
-				provider.getDefaultService().announce(channel, message.getText());
+				service.announce(channel, message.getText());
 			}
 		}
 	}
