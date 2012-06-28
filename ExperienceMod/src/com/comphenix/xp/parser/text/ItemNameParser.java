@@ -10,21 +10,26 @@ import com.comphenix.xp.parser.Utility;
 
 public class ItemNameParser extends TextParser<Integer> {
 
-	private static HashMap<String, Material> alternativeNames = new HashMap<String, Material>();
+	private static HashMap<String, Material> lookupMaterial = new HashMap<String, Material>();
 	
 	static {
-		alternativeNames.put("WOOL_DYE", Material.INK_SACK);
-		alternativeNames.put("WOOL_DYES", Material.INK_SACK);
-		alternativeNames.put("SLAB", Material.STEP);
-		alternativeNames.put("DOUBLE_SLAB", Material.DOUBLE_STEP);
-		alternativeNames.put("STONE_BRICK", Material.SMOOTH_BRICK);
-		alternativeNames.put("STONE_BRICK_STAIRS", Material.SMOOTH_STAIRS);
-		alternativeNames.put("HUGE_BROWN_MUSHROOM", Material.HUGE_MUSHROOM_1);
-		alternativeNames.put("HUGE_RED_MUSHROOM", Material.HUGE_MUSHROOM_2);
-		alternativeNames.put("SILVERFISH_BLOCK", Material.MONSTER_EGGS);
-		alternativeNames.put("RECORD_1", Material.GOLD_RECORD);
-		alternativeNames.put("RECORD_2", Material.GREEN_RECORD);
-		alternativeNames.put("BOTTLE_O_ENCHANTING", Material.EXP_BOTTLE);
+		lookupMaterial.put("WOOLDYE", Material.INK_SACK);
+		lookupMaterial.put("WOOLDYES", Material.INK_SACK);
+		lookupMaterial.put("SLAB", Material.STEP);
+		lookupMaterial.put("DOUBLESLAB", Material.DOUBLE_STEP);
+		lookupMaterial.put("STONEBRICK", Material.SMOOTH_BRICK);
+		lookupMaterial.put("STONEBRICKSTAIRS", Material.SMOOTH_STAIRS);
+		lookupMaterial.put("HUGEBROWNMUSHROOM", Material.HUGE_MUSHROOM_1);
+		lookupMaterial.put("HUGEREDMUSHROOM", Material.HUGE_MUSHROOM_2);
+		lookupMaterial.put("SILVERFISHBLOCK", Material.MONSTER_EGGS);
+		lookupMaterial.put("RECORD1", Material.GOLD_RECORD);
+		lookupMaterial.put("RECORD2", Material.GREEN_RECORD);
+		lookupMaterial.put("BOTTLEOENCHANTING", Material.EXP_BOTTLE);
+		
+		// Add every other material with no spaces
+		for (Material material : Material.values()) {
+			lookupMaterial.put(material.name().replace("_", ""), material);
+		}
 	}
 	
 	/**
@@ -39,25 +44,15 @@ public class ItemNameParser extends TextParser<Integer> {
 		if (Utility.isNullOrIgnoreable(text))
 			throw new ParsingException("Text cannot be empty or null.");
 		
-		Material material = Material.matchMaterial(text);
+		// Try both integers and named values
 		Integer itemID = tryParse(text);
-		
-		// Is this an item?
-		if (itemID == null) {
-			
-			if (material != null) {
-				itemID = material.getId();
+		String filtered = Utility.getEnumName(text).replace("_", "");
 
-			} else {
-				// Try some additional values
-				String filtered = Utility.getEnumName(text);
-
-				if (alternativeNames.containsKey(filtered))
-					itemID = alternativeNames.get(filtered).getId();
-				else
-					throw ParsingException.fromFormat("Unable to find item %s.", text);
-			}
-		}
+		// Use the lookup table
+		if (lookupMaterial.containsKey(filtered))
+			return lookupMaterial.get(filtered).getId();
+		else if (itemID == null)
+			throw ParsingException.fromFormat("Unable to find item %s.", text);
 
 		return itemID;
 	}
