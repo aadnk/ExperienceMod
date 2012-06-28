@@ -110,9 +110,12 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		if (HeroService.exists()) {
 			channelProvider.register(new HeroService());
 			channelProvider.setDefaultName(HeroService.NAME);
+			currentLogger.info("Using HeroChat for channels.");
+			
 		} else {
 			channelProvider.register(new StandardService( getServer() ));
 			channelProvider.setDefaultName(StandardService.NAME);
+			currentLogger.info("Using standard chat.");
 		}
 		
 		// Don't register economy rewards unless we can
