@@ -168,17 +168,22 @@ public class Action {
 	
 	public void emoteMessages(ChannelProvider provider, Player player) {
 	
-		// Transmit the message on all the channels
-		for (String channel : message.getChannels()) {
-			provider.getDefaultService().emote(channel, message.getText(), player);
+		// Guard against NULL messages
+		if (message != null) {
+			// Transmit the message on all the channels
+			for (String channel : message.getChannels()) {
+				provider.getDefaultService().emote(channel, message.getText(), player);
+			}
 		}
 	}
 	
 	public void announceMessages(ChannelProvider provider) {
 
-		// Like above, only without the player
-		for (String channel : message.getChannels()) {
-			provider.getDefaultService().announce(channel, message.getText());
+		if (message != null) {
+			// Like above, only without the player
+			for (String channel : message.getChannels()) {
+				provider.getDefaultService().announce(channel, message.getText());
+			}
 		}
 	}
 	
