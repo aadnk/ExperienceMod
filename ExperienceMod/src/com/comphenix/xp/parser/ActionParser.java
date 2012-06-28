@@ -37,7 +37,7 @@ public class ActionParser extends ConfigurationParser<Action> {
 		
 		// This is a default range value
 		if (topLevel != null) {
-			result.addReward(provider.getDefaultService(), topLevel);
+			result.addReward(provider.getDefaultName(), topLevel);
 			return result;
 		}
 		

@@ -106,7 +106,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		// Load channel providers if we can
 		if (HeroService.exists()) {
 			channelProvider.register(new HeroService());
-			channelProvider.setDefaultService(HeroService.NAME);
+			channelProvider.setDefaultName(HeroService.NAME);
 		}
 		
 		// Don't register economy rewards unless we can

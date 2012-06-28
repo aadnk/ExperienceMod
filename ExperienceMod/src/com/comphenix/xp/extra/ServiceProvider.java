@@ -20,11 +20,11 @@ public class ServiceProvider<TService extends Service> {
 	protected Map<String, TService> nameLookup = new HashMap<String, TService>();
 	
 	// Default service
-	private String defaultService;
+	private String defaultName;
 	
 	// Make sure this value is set
-	public ServiceProvider(String defaultService) {
-		this.defaultService = defaultService;
+	public ServiceProvider(String defaultName) {
+		this.defaultName = defaultName;
 	}
 	
 	/**
@@ -38,7 +38,7 @@ public class ServiceProvider<TService extends Service> {
 		if (serviceName == null)
 			throw new NullArgumentException("serviceName");
 		else if (serviceName.equalsIgnoreCase(defaultServiceName))
-			return nameLookup.get(getDefaultService());
+			return nameLookup.get(getDefaultName());
 		
 		return nameLookup.get(serviceName);
 	}
@@ -73,7 +73,7 @@ public class ServiceProvider<TService extends Service> {
 		if (serviceName == null)
 			throw new NullArgumentException("serviceName");
 		else if (serviceName.equalsIgnoreCase(defaultServiceName))
-			return nameLookup.remove(getDefaultService());
+			return nameLookup.remove(getDefaultName());
 
 		return nameLookup.remove(serviceName);
 	}
@@ -85,7 +85,7 @@ public class ServiceProvider<TService extends Service> {
 	 */
 	public boolean containsService(String serviceName) {
 		if (serviceName.equalsIgnoreCase(defaultServiceName))
-			return nameLookup.containsKey(getDefaultService());
+			return nameLookup.containsKey(getDefaultName());
 		
 		return nameLookup.containsKey(serviceName);
 	}
@@ -126,15 +126,15 @@ public class ServiceProvider<TService extends Service> {
 	 * Retrieves the default service by name.
 	 * @return Default service name.
 	 */
-	public String getDefaultService() {
-		return defaultService;
+	public String getDefaultName() {
+		return defaultName;
 	}
 
 	/**
 	 * Sets the default service by name.
-	 * @param defaultReward default service name.
+	 * @param defaultName default service name.
 	 */
-	public void setDefaultService(String defaultReward) {
-		this.defaultService = defaultReward;
+	public void setDefaultName(String defaultName) {
+		this.defaultName = defaultName;
 	}
 }

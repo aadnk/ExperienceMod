@@ -29,7 +29,7 @@ public class RewardProvider extends ServiceProvider<RewardService> {
 	}
 	
 	public RewardProvider(RewardProvider reference, Configuration configuration) {
-		super(reference.getDefaultService());
+		super(reference.getDefaultName());
 		this.nameLookup = reference.nameLookup;
 		this.enumLookup = reference.enumLookup;
 		this.configuration = configuration;
@@ -115,7 +115,7 @@ public class RewardProvider extends ServiceProvider<RewardService> {
 	 */
 	public boolean containsReward(RewardTypes type) {
 		if (type == RewardTypes.DEFAULT)
-			return containsService(getDefaultService());
+			return containsService(getDefaultName());
 		else if (type == RewardTypes.CUSTOM)
 			throw new IllegalArgumentException(customUnsupported);
 		
@@ -154,7 +154,7 @@ public class RewardProvider extends ServiceProvider<RewardService> {
 		else if (defaultType == RewardTypes.CUSTOM)
 			throw new IllegalArgumentException(customUnsupported);
 		
-		setDefaultService(defaultType.name());
+		setDefaultName(defaultType.name());
 	}
 	
 	/**
