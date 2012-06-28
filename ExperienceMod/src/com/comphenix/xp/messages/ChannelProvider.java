@@ -3,6 +3,8 @@ package com.comphenix.xp.messages;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.bukkit.entity.Player;
+
 import com.comphenix.xp.extra.ServiceProvider;
 
 /**
@@ -14,6 +16,7 @@ import com.comphenix.xp.extra.ServiceProvider;
 public class ChannelProvider extends ServiceProvider<ChannelService> {
 
 	private List<String> defaultChannels = new ArrayList<String>();
+	private MessageFormatter messageFormatter;
 
 	public ChannelProvider() {
 		super(HeroService.NAME);
@@ -22,10 +25,23 @@ public class ChannelProvider extends ServiceProvider<ChannelService> {
 	public ChannelProvider(ChannelProvider other) {
 		super(other.getDefaultName());
 		setDefaultChannels(other.getDefaultChannels());
+		setMessageFormatter(other.getMessageFormatter());
 	}
 	
 	public ChannelProvider(String defaultService) {
 		super(defaultService);
+	}
+	
+	public MessageFormatter getFormatter(Player player, Integer experience) {
+		return messageFormatter.createView(player, experience);
+	}
+	
+	public MessageFormatter getMessageFormatter() {
+		return messageFormatter;
+	}
+
+	public void setMessageFormatter(MessageFormatter messageFormatter) {
+		this.messageFormatter = messageFormatter;
 	}
 	
 	public List<String> getDefaultChannels() {

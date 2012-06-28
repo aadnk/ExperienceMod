@@ -148,9 +148,11 @@ public class ExperienceListener implements Listener {
 				} else if (config.getSimpleBlockReward().containsKey(retrieveKey)) {
 
 					Action action = config.getSimpleBlockReward().get(retrieveKey);
-					Integer exp = action.rewardPlayer(config.getRewardProvider(), 
-									random, player, block.getLocation());
-					action.emoteMessages(config.getChannelProvider(), player);
+					RewardProvider rewards = config.getRewardProvider();
+					ChannelProvider channels = config.getChannelProvider();
+					
+					Integer exp = action.rewardPlayer(rewards, random, player, block.getLocation());
+					action.emoteMessages(channels, channels.getFormatter(player, exp), player);
 					
 					if (debugger != null)
 						debugger.printDebug(this, "Block mined by %s: Spawned %d xp for item %s.", 
@@ -170,9 +172,11 @@ public class ExperienceListener implements Listener {
 				} else if (config.getSimpleBonusReward().containsKey(retrieveKey)) {
 					
 					Action action = config.getSimpleBonusReward().get(retrieveKey);
-					Integer exp = action.rewardPlayer(config.getRewardProvider(), 
-									random, player, block.getLocation());
-					action.emoteMessages(config.getChannelProvider(), player);
+					RewardProvider rewards = config.getRewardProvider();
+					ChannelProvider channels = config.getChannelProvider();
+					
+					Integer exp = action.rewardPlayer(rewards, random, player, block.getLocation());
+					action.emoteMessages(channels, channels.getFormatter(player, exp), player);
 					
 					if (debugger != null)
 						debugger.printDebug(this, "Block destroyed by %s: Spawned %d xp for item %s.", 
@@ -212,6 +216,7 @@ public class ExperienceListener implements Listener {
 			}
 				
 			PlayerRewards playerReward = config.getPlayerRewards();
+			ChannelProvider channels = config.getChannelProvider();
 			
 			// Reward type
 			switch (event.getState()) {
@@ -230,7 +235,7 @@ public class ExperienceListener implements Listener {
 			if (action != null) {
 				int exp = action.rewardPlayer(config.getRewardProvider(), random, player);
 
-				action.emoteMessages(config.getChannelProvider(), player);
+				action.emoteMessages(channels, channels.getFormatter(player, exp), player);
 				
 				if (debugger != null)
 					debugger.printDebug(this, message, player.getName(), exp);
@@ -263,10 +268,13 @@ public class ExperienceListener implements Listener {
 				
 				if (placeReward.containsKey(retrieveKey)) {
 					Action action = placeReward.get(retrieveKey);
-					Integer exp = action.rewardPlayer(config.getRewardProvider(), random, player);
+					RewardProvider rewards = config.getRewardProvider();
+					ChannelProvider channels = config.getChannelProvider();
+					
+					Integer exp = action.rewardPlayer(rewards, random, player);
 					
 					// Print messages
-					action.emoteMessages(config.getChannelProvider(), player);
+					action.emoteMessages(channels, channels.getFormatter(player, exp), player);
 					
 					if (debugger != null)
 						debugger.printDebug(this, "Block placed by %s: Spawned %d xp for item %s.", 
@@ -308,10 +316,11 @@ public class ExperienceListener implements Listener {
 				
 				// Spawn the experience ourself
 				event.setDroppedExp(0);
-				Integer xp = action.rewardAnyone(config.getRewardProvider(), random, 
-						  entity.getWorld(), entity.getLocation());
-
-				action.announceMessages(config.getChannelProvider());
+				RewardProvider rewards = config.getRewardProvider();
+				ChannelProvider channels = config.getChannelProvider();
+				Integer xp = action.rewardAnyone(rewards, random, entity.getWorld(), entity.getLocation());
+				
+				action.announceMessages(channels, channels.getFormatter(null, xp));
 				
 				if (debugger != null)
 					debugger.printDebug(this, "Entity %d: Changed experience drop to %d", id, xp);
@@ -423,10 +432,10 @@ public class ExperienceListener implements Listener {
 		}
 	}
 	
-	private void handleInventory(InventoryClickEvent event, RewardProvider provider, 
-								 ChannelProvider channels, ItemTree rewards, boolean partialResults) {
+	private void handleInventory(InventoryClickEvent event, RewardProvider rewardsProvider, 
+								 ChannelProvider channelsProvider, ItemTree rewards, boolean partialResults) {
 		
-		HumanEntity player = event.getWhoClicked();
+		Player player = (Player) event.getWhoClicked();
 		ItemStack toStore = event.getCursor();
 		ItemStack toCraft = event.getCurrentItem();
 		
@@ -439,7 +448,7 @@ public class ExperienceListener implements Listener {
 
 		if (event.isShiftClick()) {
 			// Hack ahoy
-			schedulePostCraftingReward(player, provider, action, toCraft);
+			schedulePostCraftingReward(player, rewardsProvider, action, toCraft);
 		} else {
 			
 			// The items are stored in the cursor. Make sure there's enough space.
@@ -453,8 +462,8 @@ public class ExperienceListener implements Listener {
 				}
 				
 				// Give the experience straight to the user
-				Integer exp = action.rewardPlayer(provider, random, (Player) player, count);
-				action.emoteMessages(channels, (Player) player);
+				Integer exp = action.rewardPlayer(rewardsProvider, random, player, count);
+				action.emoteMessages(channelsProvider, channelsProvider.getFormatter(player, exp), player);
 				
 				// Like above
 				if (debugger != null)

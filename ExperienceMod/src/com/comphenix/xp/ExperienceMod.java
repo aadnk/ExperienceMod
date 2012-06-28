@@ -40,6 +40,7 @@ import com.comphenix.xp.commands.CommandExperienceMod;
 import com.comphenix.xp.commands.CommandSpawnExp;
 import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.messages.HeroService;
+import com.comphenix.xp.messages.MessageFormatter;
 import com.comphenix.xp.messages.StandardService;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.parser.Utility;
@@ -92,6 +93,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		commandSpawn = new CommandSpawnExp(this);
 		rewardProvider = new RewardProvider();
 		channelProvider = new ChannelProvider();
+		channelProvider.setMessageFormatter(new MessageFormatter());
 		
 		// Load economy, if it exists
 		if (!hasEconomy())
