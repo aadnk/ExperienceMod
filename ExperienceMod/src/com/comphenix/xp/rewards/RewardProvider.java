@@ -78,9 +78,9 @@ public class RewardProvider extends ServiceProvider<RewardService> {
 	}
 	
 	/**
-	 * Unregisters a specified reward manager.
-	 * @param rewardType the type of the reward manager to unregister.
-	 * @return The previously registered manager with this type, or NULL otherwise.
+	 * Unregisters a specified reward service.
+	 * @param rewardType the type of the reward service to unregister.
+	 * @return The previously registered service with this type, or NULL otherwise.
 	 */
 	public RewardService unregister(RewardTypes rewardType) {
 		if (rewardType == null)
@@ -136,17 +136,17 @@ public class RewardProvider extends ServiceProvider<RewardService> {
 	/**
 	 * Creates a copy of this reward provider with shallow references to the same list of rewards, except with a different
 	 * internal default reward type. This allows multiple copies of the provider to reference the same rewards, but use
-	 * a different default reward manager.
-	 * @param config Configuration settings for the different managers.
-	 * @return A shallow copy of this reward manager.
+	 * a different default reward service.
+	 * @param config Configuration settings for the different services.
+	 * @return A shallow copy of this reward service provider.
 	 */
 	public RewardProvider createView(Configuration config) {
 		return new RewardProvider(this, config);
 	}
 	
 	/**
-	 * Sets the default reward manager by type.
-	 * @param defaultReward default manager type.
+	 * Sets the default reward service by type.
+	 * @param defaultType default reward service type.
 	 */
 	public void setDefaultReward(RewardTypes defaultType) {
 		if (defaultType == RewardTypes.DEFAULT)
@@ -158,7 +158,7 @@ public class RewardProvider extends ServiceProvider<RewardService> {
 	}
 	
 	/**
-	 * Retrieves the configuration containing settings for different reward managers.
+	 * Retrieves the configuration containing settings for different reward services.
 	 * @return The configuration file.
 	 */
 	public Configuration getConfiguration() {
@@ -166,7 +166,7 @@ public class RewardProvider extends ServiceProvider<RewardService> {
 	}
 
 	/**
-	 * Sets the configuration containing settings for different reward managers.
+	 * Sets the configuration containing settings for different reward services.
 	 * @param configuration New configuration.
 	 */
 	public void setConfiguration(Configuration configuration) {
