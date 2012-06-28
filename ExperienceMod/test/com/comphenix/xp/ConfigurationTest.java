@@ -24,9 +24,9 @@ public class ConfigurationTest {
 		Debugger debugger = new MockDebugger();
 		
 		RewardProvider provider = new RewardProvider();
-		provider.register(new MockRewardable(RewardTypes.EXPERIENCE), false);
-		provider.register(new MockRewardable(RewardTypes.VIRTUAL), false);
-		provider.register(new MockRewardable(RewardTypes.ECONOMY), false);
+		provider.register(new MockRewardable(RewardTypes.EXPERIENCE));
+		provider.register(new MockRewardable(RewardTypes.VIRTUAL));
+		provider.register(new MockRewardable(RewardTypes.ECONOMY));
 		provider.setDefaultReward(RewardTypes.EXPERIENCE);
 		String def = "EXPERIENCE";
 		

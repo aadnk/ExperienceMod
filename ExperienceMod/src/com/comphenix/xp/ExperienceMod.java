@@ -99,12 +99,13 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			chat = getRegistration(Chat.class);
 		
 		// Load reward types
-		rewardProvider.register(new RewardExperience(), true);
-		rewardProvider.register(new RewardVirtual(), true);
+		rewardProvider.register(new RewardExperience());
+		rewardProvider.register(new RewardVirtual());
 		rewardProvider.setDefaultReward(RewardTypes.EXPERIENCE);
 		
 		// Load channel providers
-		channelProvider.register(new HeroService(), true);
+		channelProvider.register(new HeroService());
+		channelProvider.setDefaultService(HeroService.NAME);
 		
 		// Don't register economy rewards unless we can
 		if (hasEconomy()) {
@@ -112,7 +113,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			rewardEconomy = new RewardEconomy(economy, this, itemListener); 
 			
 			// Associate everything
-			rewardProvider.register(rewardEconomy, true);
+			rewardProvider.register(rewardEconomy);
 			itemListener.setReward(rewardEconomy);
 			
 			// Register listener

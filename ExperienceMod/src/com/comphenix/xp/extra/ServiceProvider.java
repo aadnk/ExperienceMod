@@ -46,29 +46,21 @@ public class ServiceProvider<TService extends Service> {
 	/**
 	 * Registers a service in the system.
 	 * @param service - the service to register.
-	 * @param setDefault - TRUE to make this service default if the registration is successful. 
 	 * @return The previously registered service with this name, or NULL otherwise.
 	 * @throws NullArgumentException If service is null.
 	 */
-	public TService register(TService service, boolean setDefault) {
+	public TService register(TService service) {
 		if (service == null)
 			throw new NullArgumentException("service");
 		
 		String name = service.getServiceName();
 		
 		// Careful now.
-		if (name.equalsIgnoreCase(defaultService))
+		if (name.equalsIgnoreCase(defaultServiceName))
 			throw new IllegalArgumentException(
 					"Service cannot have the name DEfAULT. This name is reserved.");
 
-		TService result = setByName(name, service);
-		
-		// Should we update the default?
-		if (result != null) {
-			setDefaultService(name);
-		}
-		
-		return result;
+		return setByName(name, service);
 	}
 	
 	/**
@@ -92,7 +84,7 @@ public class ServiceProvider<TService extends Service> {
 	 * @return TRUE if it has, FALSE otherwise.
 	 */
 	public boolean containsService(String serviceName) {
-		if (serviceName.equalsIgnoreCase(defaultService))
+		if (serviceName.equalsIgnoreCase(defaultServiceName))
 			return nameLookup.containsKey(getDefaultService());
 		
 		return nameLookup.containsKey(serviceName);

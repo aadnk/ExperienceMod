@@ -8,6 +8,8 @@ import com.dthielke.herochat.Herochat;
 
 public class HeroService implements ChannelService {
 
+	public static final String NAME = "HEROCHAT";
+	
 	public HeroService() {
 
 		try {
@@ -62,6 +64,6 @@ public class HeroService implements ChannelService {
 	
 	@Override
 	public String getServiceName() {
-		return "HEROCHAT";
+		return NAME;
 	}
 }

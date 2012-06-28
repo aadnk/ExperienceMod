@@ -11,7 +11,7 @@ import com.comphenix.xp.extra.ServiceProvider;
 public class ChannelProvider extends ServiceProvider<ChannelService> {
 
 	public ChannelProvider() {
-		super("HEROCHAT");
+		super(HeroService.NAME);
 	}
 	
 	public ChannelProvider(String defaultService) {
