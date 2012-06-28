@@ -29,7 +29,7 @@ public class HeroService implements ChannelService {
 				return false;
 			
 			// Cannot load plugin
-		} catch (Exception e) {
+		} catch (NoClassDefFoundError e) {
 			return false;
 		}
 	}
