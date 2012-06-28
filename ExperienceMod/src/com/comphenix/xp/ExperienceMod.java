@@ -40,6 +40,7 @@ import com.comphenix.xp.commands.CommandExperienceMod;
 import com.comphenix.xp.commands.CommandSpawnExp;
 import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.messages.HeroService;
+import com.comphenix.xp.messages.StandardService;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.parser.Utility;
 import com.comphenix.xp.rewards.ItemRewardListener;
@@ -107,6 +108,9 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		if (HeroService.exists()) {
 			channelProvider.register(new HeroService());
 			channelProvider.setDefaultName(HeroService.NAME);
+		} else {
+			channelProvider.register(new StandardService( getServer() ));
+			channelProvider.setDefaultName(StandardService.NAME);
 		}
 		
 		// Don't register economy rewards unless we can
