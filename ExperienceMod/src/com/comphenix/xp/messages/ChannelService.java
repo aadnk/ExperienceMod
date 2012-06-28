@@ -1,6 +1,6 @@
 package com.comphenix.xp.messages;
 
-import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 import com.comphenix.xp.extra.Service;
 
@@ -26,5 +26,5 @@ public interface ChannelService extends Service {
 	 * @param message - message to broadcast.
 	 * @param sender - sender to include in the message.
 	 */
-	public void emote(String channelID, String message, CommandSender sender);
+	public void emote(String channelID, String message, Player sender);
 }
