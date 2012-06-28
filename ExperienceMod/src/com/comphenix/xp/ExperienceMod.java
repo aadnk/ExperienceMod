@@ -96,10 +96,15 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		channelProvider.setMessageFormatter(new MessageFormatter());
 		
 		// Load economy, if it exists
-		if (!hasEconomy())
-			economy = getRegistration(Economy.class);
-		if (!hasChat())
-			chat = getRegistration(Chat.class);
+		try {
+			if (!hasEconomy())
+				economy = getRegistration(Economy.class);
+			if (!hasChat())
+				chat = getRegistration(Chat.class);
+		
+		} catch (NoClassDefFoundError e) {
+			// No vault
+		}
 		
 		// Load reward types
 		rewardProvider.register(new RewardExperience());
@@ -129,6 +134,9 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			
 			// Register listener
 			manager.registerEvents(itemListener, this);
+			
+			// Inform the player
+			currentLogger.info("Economy enabled.");
 		}
 		
 		try {
@@ -221,6 +229,10 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	
 	// Check for illegal presets
 	private void checkIllegalPresets() {
+
+		// With no Vault this is impossible
+		if (chat == null)
+			return;
 		
 		for (String group : chat.getGroups()) {
 			for (World world : getServer().getWorlds()) {
@@ -247,18 +259,12 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 
 	private <TClass> TClass getRegistration(Class<TClass> type)
     {
-		try {
-	        RegisteredServiceProvider<TClass> registry = getServer().getServicesManager().getRegistration(type);
-	        
-	        if (registry != null) 
-	            return registry.getProvider();
-	        else
-	        	return null;
-
-		} catch (NoClassDefFoundError e) {
-			// No vault
-			return null;
-		}
+        RegisteredServiceProvider<TClass> registry = getServer().getServicesManager().getRegistration(type);
+        
+        if (registry != null) 
+            return registry.getProvider();
+        else
+        	return null;
     }
 	
 	private boolean hasEconomy() {

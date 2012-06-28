@@ -41,8 +41,6 @@ public class Presets {
 	private Chat chat;
 	
 	public Presets(ConfigurationSection config, Debugger logger, Chat chat, ConfigurationLoader loader) {
-		if (chat == null)
-			throw new IllegalArgumentException("Vault (Chat) was not found.");
 		
 		this.presets = new PresetTree();
 		this.logger = logger;
