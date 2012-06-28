@@ -30,7 +30,7 @@ public class MessageFormatter {
 		// TODO: Add more variables.
 		return message.
 				replace("{player}", source != null ? source.getDisplayName() : "Unknown").
-				replace("{exp}", experience != null ? experience.toString() : "N/A");
+				replace("{experience}", experience != null ? experience.toString() : "N/A");
 	}
 
 	public Player getSource() {
