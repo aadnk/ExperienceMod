@@ -103,9 +103,11 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		rewardProvider.register(new RewardVirtual());
 		rewardProvider.setDefaultReward(RewardTypes.EXPERIENCE);
 		
-		// Load channel providers
-		channelProvider.register(new HeroService());
-		channelProvider.setDefaultService(HeroService.NAME);
+		// Load channel providers if we can
+		if (HeroService.exists()) {
+			channelProvider.register(new HeroService());
+			channelProvider.setDefaultService(HeroService.NAME);
+		}
 		
 		// Don't register economy rewards unless we can
 		if (hasEconomy()) {
@@ -191,7 +193,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			loadConfig("config.yml", "Creating default configuration.");
 			
 			// Load it
-			loader = new ConfigurationLoader(getDataFolder(), this, rewardProvider);
+			loader = new ConfigurationLoader(getDataFolder(), this, rewardProvider, channelProvider);
 			presets = new Presets(presetList, this, chat, loader);
 			setPresets(presets);
 			
@@ -201,7 +203,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 				
 			} else {
 				
-				// Show more warnings
+				// Show potentially more warnings
 				checkIllegalPresets();
 			}
 			
@@ -290,6 +292,10 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		return rewardProvider;
 	}
 
+	public ChannelProvider getChannelProvider() {
+		return channelProvider;
+	}
+	
 	public ItemRewardListener getItemListener() {
 		return itemListener;
 	}

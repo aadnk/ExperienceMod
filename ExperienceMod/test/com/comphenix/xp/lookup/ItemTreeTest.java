@@ -15,6 +15,7 @@ import com.comphenix.xp.Action;
 import com.comphenix.xp.Configuration;
 import com.comphenix.xp.Debugger;
 import com.comphenix.xp.Range;
+import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.rewards.RewardProvider;
 import com.comphenix.xp.rewards.RewardTypes;
@@ -28,8 +29,9 @@ public class ItemTreeTest {
     public static void loadDefaultConfiguration() {
 		InputStream file = ItemTreeTest.class.getResourceAsStream("/config.yml");
 		YamlConfiguration defaultFile = YamlConfiguration.loadConfiguration(file);
-		RewardProvider provider = new RewardProvider();
-		provider.setDefaultReward(RewardTypes.EXPERIENCE);
+		RewardProvider rewards = new RewardProvider();
+		ChannelProvider channels = new ChannelProvider();
+		rewards.setDefaultReward(RewardTypes.EXPERIENCE);
 		
 		Debugger injected = new Debugger() {
 			public void printWarning(Object sender, String message, Object... params) {
@@ -43,7 +45,7 @@ public class ItemTreeTest {
 		};
 		
 		// Load the default configuration
-		configuration = new Configuration(defaultFile, injected, provider);
+		configuration = new Configuration(defaultFile, injected, rewards, channels);
     }
 	
 	@Test

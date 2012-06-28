@@ -46,6 +46,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.comphenix.xp.lookup.*;
+import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.rewards.RewardProvider;
 import com.google.common.base.Objects;
@@ -146,9 +147,10 @@ public class ExperienceListener implements Listener {
 					
 				} else if (config.getSimpleBlockReward().containsKey(retrieveKey)) {
 
-					int exp = config.getSimpleBlockReward().get(retrieveKey).
-								 rewardPlayer(config.getRewardProvider(), 
-										 	  random, player, block.getLocation());
+					Action action = config.getSimpleBlockReward().get(retrieveKey);
+					Integer exp = action.rewardPlayer(config.getRewardProvider(), 
+									random, player, block.getLocation());
+					action.emoteMessages(config.getChannelProvider(), player);
 					
 					if (debugger != null)
 						debugger.printDebug(this, "Block mined by %s: Spawned %d xp for item %s.", 
@@ -167,9 +169,10 @@ public class ExperienceListener implements Listener {
 					
 				} else if (config.getSimpleBonusReward().containsKey(retrieveKey)) {
 					
-					int exp = config.getSimpleBonusReward().get(retrieveKey).
-							 rewardPlayer(config.getRewardProvider(), 
-									 	  random, player, block.getLocation());
+					Action action = config.getSimpleBonusReward().get(retrieveKey);
+					Integer exp = action.rewardPlayer(config.getRewardProvider(), 
+									random, player, block.getLocation());
+					action.emoteMessages(config.getChannelProvider(), player);
 					
 					if (debugger != null)
 						debugger.printDebug(this, "Block destroyed by %s: Spawned %d xp for item %s.", 
@@ -227,6 +230,8 @@ public class ExperienceListener implements Listener {
 			if (action != null) {
 				int exp = action.rewardPlayer(config.getRewardProvider(), random, player);
 
+				action.emoteMessages(config.getChannelProvider(), player);
+				
 				if (debugger != null)
 					debugger.printDebug(this, message, player.getName(), exp);
 			}
@@ -257,9 +262,12 @@ public class ExperienceListener implements Listener {
 				ItemTree placeReward = config.getSimplePlacingReward();
 				
 				if (placeReward.containsKey(retrieveKey)) {
-					int exp = placeReward.get(retrieveKey).
-							   rewardPlayer(config.getRewardProvider(), random, player);
-
+					Action action = placeReward.get(retrieveKey);
+					Integer exp = action.rewardPlayer(config.getRewardProvider(), random, player);
+					
+					// Print messages
+					action.emoteMessages(config.getChannelProvider(), player);
+					
 					if (debugger != null)
 						debugger.printDebug(this, "Block placed by %s: Spawned %d xp for item %s.", 
 							player.getName(), exp, block.getType());
@@ -300,9 +308,11 @@ public class ExperienceListener implements Listener {
 				
 				// Spawn the experience ourself
 				event.setDroppedExp(0);
-				int xp = action.rewardAnyone(config.getRewardProvider(), random, 
+				Integer xp = action.rewardAnyone(config.getRewardProvider(), random, 
 						  entity.getWorld(), entity.getLocation());
 
+				action.announceMessages(config.getChannelProvider());
+				
 				if (debugger != null)
 					debugger.printDebug(this, "Entity %d: Changed experience drop to %d", id, xp);
 			
@@ -372,12 +382,13 @@ public class ExperienceListener implements Listener {
 						return;
 					}
 					
-					handleInventory(event, config.getRewardProvider(), config.getSimpleBrewingReward(), true);
+					handleInventory(event, config.getRewardProvider(), config.getChannelProvider(),
+								    config.getSimpleBrewingReward(), true);
 				
 					// Yes, this feels a bit like a hack to me too. Blame faulty design. Anyways, the point
 					// is that we get to check more complex potion matching rules, like "match all splash potions"
 					// or "match all level 2 regen potions (splash or not)".
-					handleInventory(event, config.getRewardProvider(), 
+					handleInventory(event, config.getRewardProvider(), config.getChannelProvider(),
 							config.getComplexBrewingReward().getItemQueryAdaptor(), true);
 				}
 				
@@ -388,7 +399,8 @@ public class ExperienceListener implements Listener {
 					config = getConfiguration(player);
 					
 					if (config != null) {
-						handleInventory(event, config.getRewardProvider(), config.getSimpleCraftingReward(), false);
+						handleInventory(event, config.getRewardProvider(), config.getChannelProvider(),
+										config.getSimpleCraftingReward(), false);
 					} else if (debugger != null) {
 						debugger.printDebug(this, "No config found for %s with crafting %s.", player.getName(), toCraft);
 					}
@@ -400,7 +412,8 @@ public class ExperienceListener implements Listener {
 					config = getConfiguration(player);
 					
 					if (config != null) {
-						handleInventory(event, config.getRewardProvider(), config.getSimpleSmeltingReward(), true);
+						handleInventory(event, config.getRewardProvider(), config.getChannelProvider(),
+										config.getSimpleSmeltingReward(), true);
 					} else if (debugger != null) {
 						debugger.printDebug(this, "No config found for %s with smelting %s.", player.getName(), toCraft);
 					}
@@ -410,7 +423,8 @@ public class ExperienceListener implements Listener {
 		}
 	}
 	
-	private void handleInventory(InventoryClickEvent event, RewardProvider provider, ItemTree rewards, boolean partialResults) {
+	private void handleInventory(InventoryClickEvent event, RewardProvider provider, 
+								 ChannelProvider channels, ItemTree rewards, boolean partialResults) {
 		
 		HumanEntity player = event.getWhoClicked();
 		ItemStack toStore = event.getCursor();
@@ -439,8 +453,8 @@ public class ExperienceListener implements Listener {
 				}
 				
 				// Give the experience straight to the user
-				int exp = action.rewardPlayer(
-						provider, random, (Player) player, count);
+				Integer exp = action.rewardPlayer(provider, random, (Player) player, count);
+				action.emoteMessages(channels, (Player) player);
 				
 				// Like above
 				if (debugger != null)

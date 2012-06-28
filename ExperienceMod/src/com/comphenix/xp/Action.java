@@ -13,6 +13,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
+import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.messages.Message;
 import com.comphenix.xp.parser.Utility;
 import com.comphenix.xp.rewards.RewardProvider;
@@ -163,6 +164,17 @@ public class Action {
 		}
 		
 		return sum;
+	}
+	
+	public void emoteMessages(ChannelProvider provider, Player player) {
+		
+		
+		
+	}
+	
+	public void announceMessages(ChannelProvider channelProvider) {
+
+		
 	}
 	
 	public Message getMessage() {

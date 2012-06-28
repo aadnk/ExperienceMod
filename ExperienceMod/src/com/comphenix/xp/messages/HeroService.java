@@ -11,14 +11,26 @@ public class HeroService implements ChannelService {
 	public static final String NAME = "HEROCHAT";
 	
 	public HeroService() {
-
+		// Make sure we haven't screwed up
+		if (!exists())
+			throw new IllegalArgumentException("HeroChat hasn't been enabled.");
+	}
+	
+	/**
+	 * Determines whether or not the HeroChat plugin is loaded AND enabled.
+	 * @return TRUE if it is, FALSE otherwise.
+	 */
+	public static boolean exists() {
 		try {
 			// Make sure
-			if (!Herochat.getPlugin().isEnabled())
-				throw new Exception("Not enabled");
+			if (Herochat.getPlugin().isEnabled())
+				return true;
+			else
+				return false;
 			
+			// Cannot load plugin
 		} catch (Exception e) {
-			throw new IllegalArgumentException("HeroChat hasn't been enabled.");
+			return false;
 		}
 	}
 	

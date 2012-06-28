@@ -12,6 +12,7 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.junit.Test;
 
 import com.comphenix.xp.lookup.MobQuery;
+import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.rewards.RewardProvider;
 import com.comphenix.xp.rewards.RewardTypes;
 import com.google.common.collect.Lists;
@@ -59,7 +60,7 @@ public class ConfigurationTest {
 	
 	// Load configuration from text
 	private Configuration createConfig(String text, Debugger debugger, RewardProvider provider) {
-		return new Configuration(fromText(text), debugger, provider);
+		return new Configuration(fromText(text), debugger, provider, new ChannelProvider());
 	}
 	
 	private YamlConfiguration fromText(String text) {

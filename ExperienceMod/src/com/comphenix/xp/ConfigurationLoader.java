@@ -7,6 +7,7 @@ import java.util.Map;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
+import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.rewards.RewardProvider;
 
 public class ConfigurationLoader {
@@ -16,12 +17,14 @@ public class ConfigurationLoader {
 	
 	private File rootPath;
 	private Debugger logger;
-	private RewardProvider provider;
+	private RewardProvider rewardProvider;
+	private ChannelProvider channelProvider;
 	
-	public ConfigurationLoader(File rootPath, Debugger logger, RewardProvider provider) {
+	public ConfigurationLoader(File rootPath, Debugger logger, RewardProvider rewardProvider, ChannelProvider channelProvider) {
 		this.rootPath = rootPath;
 		this.logger = logger;
-		this.provider = provider;
+		this.rewardProvider = rewardProvider;
+		this.channelProvider = channelProvider;
 		
 		this.configurationFiles = new HashMap<File, Configuration>();
 	}
@@ -42,7 +45,7 @@ public class ConfigurationLoader {
 	
 	public Configuration getFromSection(ConfigurationSection data) {
 
-		return new Configuration(data, logger, provider);
+		return new Configuration(data, logger, rewardProvider, channelProvider);
 	}
 	
 	private Configuration loadFromFile(File path) {
@@ -50,7 +53,7 @@ public class ConfigurationLoader {
 		if (!configurationFiles.containsKey(path)) {
 			
 			YamlConfiguration yaml = YamlConfiguration.loadConfiguration(path);
-			Configuration config = new Configuration(yaml, logger, provider);
+			Configuration config = new Configuration(yaml, logger, rewardProvider, channelProvider);
 			
 			// Cache 
 			configurationFiles.put(path, config);

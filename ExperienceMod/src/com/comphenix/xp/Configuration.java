@@ -27,6 +27,7 @@ import org.bukkit.inventory.ItemStack;
 
 import com.comphenix.xp.lookup.*;
 import com.comphenix.xp.lookup.Query.Types;
+import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.parser.ActionParser;
 import com.comphenix.xp.parser.Utility;
 import com.comphenix.xp.parser.ParsingException;
@@ -81,6 +82,7 @@ public class Configuration implements Multipliable<Configuration> {
 	private double scanRadiusSetting;
 	
 	private RewardProvider rewardProvider;
+	private ChannelProvider channelProvider;
 
 	private MobTree experienceDrop;
 	private ItemTree simpleBlockReward;
@@ -109,6 +111,8 @@ public class Configuration implements Multipliable<Configuration> {
 		// Copy (and change) scalars
 		this.multiplier = newMultiplier;
 		this.logger = other.logger;
+		this.channelProvider = other.channelProvider;
+		
 		this.defaultRewardsDisabled = other.defaultRewardsDisabled;
 		this.economyItemWorth = other.economyItemWorth;
 		this.economyDropItem = other.economyDropItem;
@@ -131,9 +135,10 @@ public class Configuration implements Multipliable<Configuration> {
 		this.checkRewards();
 	}
 	
-	public Configuration(ConfigurationSection config, Debugger debugger, RewardProvider provider) {
+	public Configuration(ConfigurationSection config, Debugger debugger, RewardProvider provider, ChannelProvider channels) {
 		this.logger = debugger;
 		this.rewardProvider = provider;
+		this.channelProvider = channels;
 		this.actionParser = new ActionParser(provider);
 		loadFromConfig(config);
 	}
@@ -505,6 +510,10 @@ public class Configuration implements Multipliable<Configuration> {
 	
 	public RewardProvider getRewardProvider() {
 		return rewardProvider;
+	}
+	
+	public ChannelProvider getChannelProvider() {
+		return channelProvider;
 	}
 	
 	public void setRewardManager(RewardProvider rewardProvider) {
