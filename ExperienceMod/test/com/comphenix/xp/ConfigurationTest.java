@@ -13,6 +13,7 @@ import org.junit.Test;
 
 import com.comphenix.xp.lookup.MobQuery;
 import com.comphenix.xp.messages.ChannelProvider;
+import com.comphenix.xp.messages.Message;
 import com.comphenix.xp.rewards.RewardProvider;
 import com.comphenix.xp.rewards.RewardTypes;
 import com.google.common.collect.Lists;
@@ -36,7 +37,9 @@ public class ConfigurationTest {
 				"mobs:\n" + 
 				"  ?:\n" +
 				"    experience: 5\n" +
-				"    economy: 1\n", debugger, provider);
+				"    economy: 1\n" + 
+				"    message: 'hei'\n" + 
+				"    channels: [mining, general]", debugger, provider);
 		
 		Configuration second = createConfig(
 				"multiplier: 1\n" +
@@ -51,6 +54,7 @@ public class ConfigurationTest {
 		Action blaceAction = new Action();
 		blaceAction.addReward(def, new Range(5));
 		blaceAction.addReward("ECONOMY", new Range(1));
+		blaceAction.setMessage(new Message("hei", "mining", "general"));
 		
 		Action zombieAction = new Action(def, new Range(0));
 		

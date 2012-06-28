@@ -1,7 +1,10 @@
 package com.comphenix.xp.messages;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 
@@ -9,6 +12,16 @@ public class Message {
 
 	private String text;
 	private List<String> channels;
+	
+	// Default
+	public Message() {
+		this.channels = new ArrayList<String>();
+	}
+	
+	public Message(String text, String... channels) {
+		this.text = text;
+		this.channels = new ArrayList<String>(Arrays.asList(channels));
+	}
 	
 	public String getText() {
 		return text;
@@ -45,5 +58,11 @@ public class Message {
             append(text, other.text).
             append(channels, other.channels).
             isEquals();
+	}
+	
+	@Override
+	public String toString() {
+		// Convert to a more readable format
+		return String.format("[%s, %s]", text, StringUtils.join(channels, ", "));
 	}
 }

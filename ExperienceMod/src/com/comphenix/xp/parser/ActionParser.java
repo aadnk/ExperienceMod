@@ -8,16 +8,13 @@ import org.bukkit.configuration.ConfigurationSection;
 import com.comphenix.xp.Action;
 import com.comphenix.xp.Range;
 import com.comphenix.xp.messages.Message;
-import com.comphenix.xp.parser.primitives.StringParser;
-import com.comphenix.xp.parser.text.ParameterParser;
 import com.comphenix.xp.rewards.RewardProvider;
 
 public class ActionParser extends ConfigurationParser<Action> {
 
 	private static final String messageTextSetting = "message";
 	private static final String messageChannelSetting = "channels";
-	
-	private ParameterParser<String> textParsing = new ParameterParser<String>(new StringParser());
+
 	private RewardProvider provider;
 	
 	public ActionParser(RewardProvider provider) {
@@ -51,9 +48,9 @@ public class ActionParser extends ConfigurationParser<Action> {
 		for (String sub : values.getKeys(false)) {
 			
 			if (sub.equalsIgnoreCase(messageTextSetting)) {
-				text = input.getString(key);
+				text = values.getString(sub);
 			} else if (sub.equalsIgnoreCase(messageChannelSetting)) {
-				channels = textParsing.parse(input.getString(key));
+				channels = readStrings(values, sub);
 			} else {
 				Range range = readRange(values, sub, null);
 				
@@ -71,6 +68,19 @@ public class ActionParser extends ConfigurationParser<Action> {
 			message.setChannels(channels);
 			result.setMessage(message);
 		}
+		
+		return result;
+	}
+	
+	private List<String> readStrings(ConfigurationSection config, String key) {
+		
+		List<String> result = new ArrayList<String>();
+		
+		// Retrieve string elements
+		if (config.isString(key))
+			result.add(config.getString(key));
+		else if (config.isList(key))
+			result.addAll(config.getStringList(key));
 		
 		return result;
 	}

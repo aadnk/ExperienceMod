@@ -167,14 +167,19 @@ public class Action {
 	}
 	
 	public void emoteMessages(ChannelProvider provider, Player player) {
-		
-		
-		
+	
+		// Transmit the message on all the channels
+		for (String channel : message.getChannels()) {
+			provider.getDefaultService().emote(channel, message.getText(), player);
+		}
 	}
 	
-	public void announceMessages(ChannelProvider channelProvider) {
+	public void announceMessages(ChannelProvider provider) {
 
-		
+		// Like above, only without the player
+		for (String channel : message.getChannels()) {
+			provider.getDefaultService().announce(channel, message.getText());
+		}
 	}
 	
 	public Message getMessage() {
@@ -233,6 +238,9 @@ public class Action {
 			textRewards.add(String.format("%s: %s", key, value));
 		}
 		
-		return StringUtils.join(textRewards, ", ");
+		return String.format("%s %s", 
+				StringUtils.join(textRewards, ", "),
+				message
+		);
 	}
 }

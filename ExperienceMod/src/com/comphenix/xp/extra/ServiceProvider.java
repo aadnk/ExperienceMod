@@ -137,4 +137,12 @@ public class ServiceProvider<TService extends Service> {
 	public void setDefaultName(String defaultName) {
 		this.defaultName = defaultName;
 	}
+	
+	/**
+	 * Retrieves the default service.
+	 * @return The default service, or NULL if not found.
+	 */
+	public TService getDefaultService() {
+		return getByName(getDefaultName());
+	}
 }
