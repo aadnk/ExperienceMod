@@ -68,6 +68,7 @@ public class Configuration implements Multipliable<Configuration> {
 	private static final String economyDropsSetting = "economy drop";
 	private static final String economyWorthSetting = "economy drop worth";
 	private static final String virtualScanRadiusSetting = "virtual scan radius";
+	private static final String defaultChannelsSetting = "default channels";
 	
 	private static final double defaultScanRadius = 20;
 	
@@ -111,15 +112,18 @@ public class Configuration implements Multipliable<Configuration> {
 		// Copy (and change) scalars
 		this.multiplier = newMultiplier;
 		this.logger = other.logger;
-		this.channelProvider = other.channelProvider;
 		
 		this.defaultRewardsDisabled = other.defaultRewardsDisabled;
 		this.economyItemWorth = other.economyItemWorth;
 		this.economyDropItem = other.economyDropItem;
 		this.scanRadiusSetting = other.scanRadiusSetting;
 		
+		// Copy providers
 		if (other.rewardProvider != null) {
 			this.rewardProvider = other.rewardProvider.createView(this);
+		}
+		if (other.channelProvider != null) {
+			this.channelProvider = other.channelProvider.createView();
 		}
 		
 		// Copy (shallow) trees
@@ -200,9 +204,10 @@ public class Configuration implements Multipliable<Configuration> {
 		defaultRewardsDisabled = config.getBoolean(defaultRewardsSetting, true);
 		scanRadiusSetting = readDouble(config, virtualScanRadiusSetting, defaultScanRadius);
 		
+		// Economy item settings
 		economyItemWorth = config.getInt(economyWorthSetting, 1);
 		economyDropItem = null;
-		
+
 		// Economy drop item
 		try {
 			String text = config.getString(economyDropsSetting, null);
@@ -215,6 +220,9 @@ public class Configuration implements Multipliable<Configuration> {
 		} catch (ParsingException e) {
 			logger.printWarning(this, "Cannot load economy drop type: %s", e.getMessage());
 		}
+		
+		// Default message channels
+		channelProvider.setDefaultChannels(actionParser.readStrings(config, defaultChannelsSetting));
 		
 		// Load reward type
 		String defaultReward = loadReward(config.getString(rewardTypeSetting, null));

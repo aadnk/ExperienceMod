@@ -168,10 +168,12 @@ public class Action {
 	
 	public void emoteMessages(ChannelProvider provider, Player player) {
 	
+		List<String> channels = getChannels(provider, message);
+		
 		// Guard against NULL messages
-		if (message != null) {
+		if (channels != null) {
 			// Transmit the message on all the channels
-			for (String channel : message.getChannels()) {
+			for (String channel : channels) {
 				provider.getDefaultService().emote(channel, message.getText(), player);
 			}
 		}
@@ -179,14 +181,31 @@ public class Action {
 	
 	public void announceMessages(ChannelProvider provider) {
 
-		if (message != null) {
+		List<String> channels = getChannels(provider, message);
+		
+		if (channels != null) {
 			// Like above, only without the player
-			for (String channel : message.getChannels()) {
+			for (String channel : channels) {
 				provider.getDefaultService().announce(channel, message.getText());
 			}
 		}
 	}
 	
+	private List<String> getChannels(ChannelProvider provider, Message message) {
+		
+		// Guard against NULL
+		if (message == null)
+			return null;
+		
+		// See if we can return a list of channels
+		if (message.getChannels() != null)
+			return message.getChannels();
+		else if (provider != null && provider.getDefaultChannels() != null)
+			return provider.getDefaultChannels();
+		else
+			return null; 
+	}
+	 
 	public Message getMessage() {
 		return message;
 	}

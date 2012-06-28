@@ -30,7 +30,7 @@ public class ActionParser extends ConfigurationParser<Action> {
 		Range topLevel = readRange(input, key, null);
 		
 		String text = null;
-		List<String> channels = new ArrayList<String>();
+		List<String> channels = null;
 		
 		// This is a default range value
 		if (topLevel != null) {
@@ -72,7 +72,7 @@ public class ActionParser extends ConfigurationParser<Action> {
 		return result;
 	}
 	
-	private List<String> readStrings(ConfigurationSection config, String key) {
+	public List<String> readStrings(ConfigurationSection config, String key) {
 		
 		List<String> result = new ArrayList<String>();
 		
@@ -81,6 +81,8 @@ public class ActionParser extends ConfigurationParser<Action> {
 			result.add(config.getString(key));
 		else if (config.isList(key))
 			result.addAll(config.getStringList(key));
+		else
+			return null; // No data
 		
 		return result;
 	}

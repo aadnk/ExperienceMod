@@ -15,7 +15,6 @@ public class Message {
 	
 	// Default
 	public Message() {
-		this.channels = new ArrayList<String>();
 	}
 	
 	public Message(String text, String... channels) {
