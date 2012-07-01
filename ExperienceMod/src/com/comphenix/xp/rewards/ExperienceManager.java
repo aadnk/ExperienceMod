@@ -1,48 +1,14 @@
 package com.comphenix.xp.rewards;
 
-import java.util.Arrays;
-
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 /**
- * @author des
- * 
- * Adapted from ExperienceUtils code originally in ScrollingMenuSign.
- * 
- * Credit to nisovin (http://forums.bukkit.org/threads/experienceutils-make-giving-taking-exp-a-bit-more-intuitive.54450/#post-1067480) for an
- * implementation that avoids the problems of getTotalExperience(), which doesn't work properly after a player has enchanted something.
+ * Code is based on net.ess3.craftbukkit.SetExpFix from Essentials.
  */
 public class ExperienceManager {
-	private static int xpRequiredForNextLevel[];
-	private static int xpTotalToReachLevel[];
 
 	private final String playerName;
-
-	static {
-		initLookupTables(25);
-	}
-
-	/**
-	 * Initialize the XP lookup tables. Basing this on observations noted in https://bukkit.atlassian.net/browse/BUKKIT-47
-	 * 
-	 * 7 XP to get to level 1, 17 to level 2, 31 to level 3... At each level, the increment to get to the next level increases 
-	 * alternately by 3 and 4
-	 * 
-	 * @param maxLevel The highest level handled by the lookup tables
-	 */
-	private static void initLookupTables(int maxLevel) {
-		xpRequiredForNextLevel = new int[maxLevel];
-		xpTotalToReachLevel = new int[maxLevel];
-
-		xpTotalToReachLevel[0] = 0;
-		int incr = 7;
-		for (int i = 1; i < xpTotalToReachLevel.length; i++) {
-			xpRequiredForNextLevel[i - 1] = incr;
-			xpTotalToReachLevel[i] = xpTotalToReachLevel[i - 1] + incr;
-			incr += (i % 2 == 0) ? 4 : 3;
-		}
-	}
 
 	/**
 	 * Create a new ExperienceManager for the given player.
@@ -70,26 +36,18 @@ public class ExperienceManager {
 	}
 
 	/**
-	 * Adjust the player's XP by the given amount in an intelligent fashion.
-	 * Works around some of the non-intuitive behaviour of the basic Bukkit
-	 * player.giveExp() method.
-	 * 
+	 * Adjust the player's XP by the given amount.
 	 * @param amt Amount of XP, may be negative
 	 */
 	public void changeExp(int amt) {
+		
 		int xp = getCurrentExp() + amt;
+		
 		if (xp < 0)
 			xp = 0;
 
-		Player player = getPlayer();
-		int curLvl = player.getLevel();
-		int newLvl = getLevelForExp(xp);
-		if (curLvl != newLvl) {
-			player.setLevel(newLvl);
-		}
-
-		float pct = ((float) (xp - getXpForLevel(newLvl)) / (float) xpRequiredForNextLevel[newLvl]);
-		player.setExp(pct);
+		// Update experience
+		setTotalExperience(xp);
 	}
 
 	/**
@@ -99,9 +57,57 @@ public class ExperienceManager {
 	 */
 	public int getCurrentExp() {
 		Player player = getPlayer();
-		int lvl = player.getLevel();
-		return getXpForLevel(lvl)
-				+ (int) (xpRequiredForNextLevel[lvl] * player.getExp());
+		int exp = (int) Math.round(getExpToLevel(player) * player.getExp());
+		int currentLevel = player.getLevel();
+
+		// Slow, but should work
+		while (currentLevel > 0) {
+			currentLevel--;
+			exp += getExpToLevel(currentLevel);
+		}
+		return exp;
+	}
+	
+	/**
+	 * This method is used to update both the recorded total experience and displayed total experience.
+	 * @param exp - new experience.
+	 */
+	public void setTotalExperience(final int exp) {
+		
+		Player player = getPlayer();
+		
+		if (exp < 0) {
+			throw new IllegalArgumentException("Experience is negative!");
+		}
+		
+		player.setExp(0);
+		player.setLevel(0);
+		player.setTotalExperience(0);
+
+		int amount = exp;
+		
+		// Give the correct amount of experience every level
+		while (amount > 0) {
+			final int expToLevel = getExpToLevel(player);
+			amount -= expToLevel;
+			if (amount >= 0) {
+				// give until next level
+				player.giveExp(expToLevel);
+			} else {
+				// give the rest
+				amount += expToLevel;
+				player.giveExp(amount);
+				amount = 0;
+			}
+		}
+	}
+
+	private static int getExpToLevel(final Player player) {
+		return getExpToLevel(player.getLevel());
+	}
+
+	private static int getExpToLevel(final int level) {
+		return 7 + (level * 7 >> 1);
 	}
 
 	/**
@@ -112,31 +118,5 @@ public class ExperienceManager {
 	 */
 	public boolean hasExp(int amt) {
 		return getCurrentExp() >= amt;
-	}
-
-	/**
-	 * Get the level that the given amount of XP falls within.
-	 * 
-	 * @param exp The amount to check for.
-	 * @return The level that a player with this amount total XP would be.
-	 */
-	public int getLevelForExp(int exp) {
-		if (exp <= 0)
-			return 0;
-		int pos = Arrays.binarySearch(xpTotalToReachLevel, exp);
-		return pos < 0 ? -pos - 2 : pos;
-	}
-
-	/**
-	 * Return the total XP needed to be the given level.
-	 * 
-	 * @param level The level to check for.
-	 * @return The amount of XP needed for the level.
-	 */
-	public int getXpForLevel(int level) {
-		if (level >= xpTotalToReachLevel.length) {
-			initLookupTables(level * 2);
-		}
-		return xpTotalToReachLevel[level];
 	}
 }

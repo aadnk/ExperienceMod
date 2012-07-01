@@ -9,7 +9,7 @@ import org.junit.Test;
 
 public class RangeTest {
 
-	private static final int REPEAT_COUNT = 100000;
+	private static final int REPEAT_COUNT = 1000000;
 	
 	private static Random rnd;
 	
@@ -62,6 +62,20 @@ public class RangeTest {
 
 		if (Math.abs(expected - average) > 0.1) {
 			fail("Expected value differs too much.");
+		}
+	}
+	
+	@Test
+	public void testSmallRange() {
+
+		Range range = new Range(0.9, 3.1);
+		int[] counts = SampleValues(range, REPEAT_COUNT);
+		
+		double expected = 0.1 / (3.1 - 0.9);
+		double actual = counts[0] / (double) REPEAT_COUNT;
+
+		if (Math.abs(expected - actual) > 0.1) {
+			fail("Small range value differs too much.");
 		}
 	}
 	

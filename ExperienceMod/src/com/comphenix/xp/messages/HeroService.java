@@ -29,6 +29,9 @@ public class HeroService implements ChannelService {
 				return false;
 			
 			// Cannot load plugin
+		
+		} catch (NullPointerException e)  {
+			return false;
 		} catch (NoClassDefFoundError e) {
 			return false;
 		}
