@@ -17,16 +17,22 @@ FEATURES
     * Drop experience when players are manipulating items or blocks:
      * By the name and durability
      * By potion effect, level, extended duration, and more.
+    * Broadcast a message to the server or a specific channel (HeroChat only) 
+      when experience is being awarded.
+    * Use a different configuration for every world, or even particular players or groups.
+    * Add experience to fishing! 
     * Set a range of experience to drop. Can handle decimal numbers. 
     * Use permissions to decide who will be affected by the modifications. 
     * Prevent experience loss upon death.
     * Reward experience through currency (requires the Vault plugin). 
+     * Drop currency items instead of being given currency directly. 
     
 TO INSTALL
 
     Copy the ExperienceMod.jar file to the Bukkit plugin folder.
 
-    Optionally, if you need to reward people with currency, install Vault.
+    Optionally, if you need to reward people with currency, install Vault. 
+    Install HeroChat if you wish to send messages on channels.
     
 HOW TO COMPILE
 
