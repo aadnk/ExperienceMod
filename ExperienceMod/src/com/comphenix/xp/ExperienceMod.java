@@ -66,6 +66,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	private Chat chat;
 	
 	private ExperienceListener listener;
+	private ExperienceEnhancements enchancer;
 	private ExperienceInformer informer;
 	private ItemRewardListener itemListener;
 	
@@ -146,6 +147,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			
 			// Register listeners
 			manager.registerEvents(listener, this);
+			manager.registerEvents(enchancer, this);
 			manager.registerEvents(informer, this);
 		
 		} catch (IOException e) {
@@ -325,6 +327,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		// Create a new listener if necessary
 		if (listener == null) {
 			listener = new ExperienceListener(this, this, presets);
+			enchancer = new ExperienceEnhancements(this);
 		} else {
 			listener.setPresets(presets);
 		}

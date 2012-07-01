@@ -37,7 +37,6 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 import org.bukkit.event.entity.EntityDeathEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType.SlotType;
 import org.bukkit.event.player.PlayerFishEvent;
@@ -52,7 +51,6 @@ import com.google.common.base.Objects;
 
 public class ExperienceListener implements Listener {
 	
-	private final String permissionKeepExp = "experiencemod.keepexp";
 	private final String permissionRewardSmelting = "experiencemod.rewards.smelting";
 	private final String permissionRewardBrewing = "experiencemod.rewards.brewing";
 	private final String permissionRewardCrafting = "experiencemod.rewards.crafting";
@@ -565,28 +563,7 @@ public class ExperienceListener implements Listener {
 			return addition.getAmount();
 		}
 	}
-	
-	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-	public void onPlayerDeathEvent(PlayerDeathEvent event) {
 		
-		Player player = event.getEntity();
-		
-		if (player != null) {
-			// Permission check
-	        if(player.hasPermission(permissionKeepExp)){
-
-	            event.setDroppedExp(0);
-	            event.setKeepLevel(true);
-	            
-	            if (debugger != null)
-	        		debugger.printDebug(this, "Prevented experience loss for %s.", player.getName());
-	            
-	        } else {
-	        	event.setKeepLevel(false);
-	        }
-		}
-	}
-	
 	private boolean hasItems(ItemStack stack) {
 		return stack != null && stack.getAmount() > 0;
 	}
