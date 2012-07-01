@@ -65,8 +65,11 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	private Economy economy;
 	private Chat chat;
 	
-	private ExperienceListener listener;
-	private ExperienceEnhancements enchancer;
+	private ExperienceBlockListener xpBlockListener;
+	private ExperienceItemListener xpItemListener;
+	private ExperienceMobListener xpMobListener;
+	private ExperienceEnhancements xpEnchancer;
+	
 	private ExperienceInformer informer;
 	private ItemRewardListener itemListener;
 	
@@ -146,8 +149,10 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			loadDefaults(false);
 			
 			// Register listeners
-			manager.registerEvents(listener, this);
-			manager.registerEvents(enchancer, this);
+			manager.registerEvents(xpBlockListener, this);
+			manager.registerEvents(xpItemListener, this);
+			manager.registerEvents(xpMobListener, this);
+			manager.registerEvents(xpEnchancer, this);
 			manager.registerEvents(informer, this);
 		
 		} catch (IOException e) {
@@ -298,10 +303,6 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		return economy;
 	}
 	
-	public ExperienceListener getListener() {
-		return listener;
-	}
-	
 	public ExperienceInformer getInformer() {
 		return informer;
 	}
@@ -325,11 +326,15 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	private void setPresets(Presets presets) {
 		
 		// Create a new listener if necessary
-		if (listener == null) {
-			listener = new ExperienceListener(this, this, presets);
-			enchancer = new ExperienceEnhancements(this);
+		if (xpBlockListener == null || xpItemListener == null || xpMobListener == null) {
+			xpItemListener = new ExperienceItemListener(this, this, presets);
+			xpBlockListener = new ExperienceBlockListener(this, presets);
+			xpMobListener = new ExperienceMobListener(this, presets);
+			xpEnchancer = new ExperienceEnhancements(this);
 		} else {
-			listener.setPresets(presets);
+			xpItemListener.setPresets(presets);
+			xpBlockListener.setPresets(presets);
+			xpMobListener.setPresets(presets);
 		}
 	}
 	
