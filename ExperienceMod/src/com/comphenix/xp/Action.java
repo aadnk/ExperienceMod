@@ -29,6 +29,8 @@ public class Action {
 	private Message message;
 	private Map<String, Range> rewards;
 
+	private Debugger debugger;
+	
 	public Action() {
 		// Default constructor
 		rewards = new HashMap<String, Range>();;
@@ -39,9 +41,10 @@ public class Action {
 		addReward(rewardType, reward);
 	}
 	
-	private Action(Message message, Map<String, Range> rewards) {
+	private Action(Message message, Map<String, Range> rewards, Debugger debugger) {
 		this.message = message;
 		this.rewards = rewards;
+		this.debugger = debugger;
 	}
 	
 	public void addReward(String rewardType, Range range) {
@@ -171,6 +174,7 @@ public class Action {
 	public void emoteMessages(ChannelProvider provider, MessageFormatter formatter, Player player) {
 	
 		List<String> channels = getChannels(provider, message);
+		List<String> failures = new ArrayList<String>();
 		ChannelService service = provider.getDefaultService();
 		
 		// Guard against NULL messages
@@ -178,22 +182,44 @@ public class Action {
 			// Transmit the message on all the channels
 			for (String channel : channels) {
 				String text = message.getText();
-				service.emote(channel, formatter.formatMessage(text), player);
+				
+				try {
+					service.emote(channel, formatter.formatMessage(text), player);
+				} catch (IllegalArgumentException e) {
+					failures.add(channel);
+				}
 			}
+		}
+		
+		// Print warnings
+		if (debugger != null && !failures.isEmpty()) {
+			debugger.printDebug(this, "Cannot find channels: %s", 
+					StringUtils.join(failures, ", "));
 		}
 	}
 	
 	public void announceMessages(ChannelProvider provider, MessageFormatter formatter) {
 
 		List<String> channels = getChannels(provider, message);
+		List<String> failures = new ArrayList<String>();
 		ChannelService service = provider.getDefaultService();
-
+		
 		if (channels != null &&  service != null) {
 			// Like above, only without the player
 			for (String channel : channels) {
 				String text = message.getText();
-				service.announce(channel, formatter.formatMessage(text));
+				
+				try {
+					service.announce(channel, formatter.formatMessage(text));
+				} catch (IllegalArgumentException e) {
+					failures.add(channel);
+				}
 			}
+		}
+		
+		if (debugger != null && !failures.isEmpty()) {
+			debugger.printDebug(this, "Cannot find channels: %s",
+					StringUtils.join(failures, ", "));
 		}
 	}
 	
@@ -228,7 +254,7 @@ public class Action {
 			copy.put(entry.getKey(), entry.getValue().multiply(multiply));
 		}
 		
-		return new Action(message, copy);
+		return new Action(message, copy, debugger);
 	}
 	
 	@Override
@@ -272,5 +298,13 @@ public class Action {
 				StringUtils.join(textRewards, ", "),
 				message
 		);
+	}
+	
+	public Debugger getDebugger() {
+		return debugger;
+	}
+
+	public void setDebugger(Debugger debugger) {
+		this.debugger = debugger;
 	}
 }

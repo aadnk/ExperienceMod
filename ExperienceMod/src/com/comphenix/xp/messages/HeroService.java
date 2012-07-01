@@ -29,7 +29,6 @@ public class HeroService implements ChannelService {
 				return false;
 			
 			// Cannot load plugin
-		
 		} catch (NullPointerException e)  {
 			return false;
 		} catch (NoClassDefFoundError e) {
@@ -39,30 +38,42 @@ public class HeroService implements ChannelService {
 	
 	@Override
 	public boolean hasChannel(String channelID) {
-		// See if this channel exists
-		return Herochat.getChannelManager().hasChannel(channelID);
+		try {
+			// See if this channel exists
+			return Herochat.getChannelManager().hasChannel(channelID);
+		} catch (NullPointerException e) {
+			return false;
+		}
 	}
 
 	@Override
 	public void announce(String channelID, String message) {
 	
-		// Stores channels in a HashMap, so it should return NULL if the channel doesn't exist 
-		Channel channel = Herochat.getChannelManager().getChannel(channelID);
+		try {
+			getChannel(channelID).announce(message);
 			
-		if (channel == null) {
-			throw new IllegalArgumentException("Channel doesn't exist.");
+			// Handle this too
+		} catch (NullPointerException e) {
+			throw new IllegalArgumentException("Cannot find HeroChat channel manager.");
 		}
-		
-		channel.announce(message);
 	}
 
 	@Override
 	public void emote(String channelID, String message, Player sender) {
 
-		Chatter playerChatter = Herochat.getChatterManager().getChatter(sender);
+		try {
+			Chatter playerChatter = Herochat.getChatterManager().getChatter(sender);
+			
+			if (playerChatter == null)
+				throw new IllegalArgumentException("Player doesn't have a chatter channel.");
+			
+			// Emote for this character
+			getChannel(channelID).emote(playerChatter, message);
 		
-		// Emote for this character
-		getChannel(channelID).emote(playerChatter, message);
+		// Handle this too
+		} catch (NullPointerException e) {
+			throw new IllegalArgumentException("Cannot find HeroChat channel manager.");
+		}
 	}
 
 	private Channel getChannel(String channelID) {

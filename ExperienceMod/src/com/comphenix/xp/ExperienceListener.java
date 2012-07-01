@@ -27,7 +27,6 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
-import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -152,6 +151,7 @@ public class ExperienceListener implements Listener {
 					ChannelProvider channels = config.getChannelProvider();
 					
 					Integer exp = action.rewardPlayer(rewards, random, player, block.getLocation());
+					action.setDebugger(debugger);
 					action.emoteMessages(channels, channels.getFormatter(player, exp), player);
 					
 					if (debugger != null)
@@ -235,6 +235,7 @@ public class ExperienceListener implements Listener {
 			if (action != null) {
 				int exp = action.rewardPlayer(config.getRewardProvider(), random, player);
 
+				action.setDebugger(debugger);
 				action.emoteMessages(channels, channels.getFormatter(player, exp), player);
 				
 				if (debugger != null)
@@ -274,6 +275,7 @@ public class ExperienceListener implements Listener {
 					Integer exp = action.rewardPlayer(rewards, random, player);
 					
 					// Print messages
+					action.setDebugger(debugger);
 					action.emoteMessages(channels, channels.getFormatter(player, exp), player);
 					
 					if (debugger != null)
@@ -320,6 +322,7 @@ public class ExperienceListener implements Listener {
 				ChannelProvider channels = config.getChannelProvider();
 				Integer xp = action.rewardAnyone(rewards, random, entity.getWorld(), entity.getLocation());
 				
+				action.setDebugger(debugger);
 				action.announceMessages(channels, channels.getFormatter(null, xp));
 				
 				if (debugger != null)
@@ -446,9 +449,12 @@ public class ExperienceListener implements Listener {
 		if (!hasExperienceReward(rewards, retrieveKey))
 			return;
 
+		// Set debugger
+		action.setDebugger(debugger);
+		
 		if (event.isShiftClick()) {
 			// Hack ahoy
-			schedulePostCraftingReward(player, rewardsProvider, action, toCraft);
+			schedulePostCraftingReward(player, rewardsProvider, channelsProvider, action, toCraft);
 		} else {
 			
 			// The items are stored in the cursor. Make sure there's enough space.
@@ -475,7 +481,8 @@ public class ExperienceListener implements Listener {
 	
 	// HACK! The API doesn't allow us to easily determine the resulting number of
 	// crafted items, so we're forced to compare the inventory before and after.
-	private void schedulePostCraftingReward(final HumanEntity player, final RewardProvider provider, 
+	private void schedulePostCraftingReward(final Player player, final RewardProvider provider, 
+											final ChannelProvider channelsProvider,
 											final Action action, final ItemStack compareItem) {
 		
 		final ItemStack[] preInv = player.getInventory().getContents();
@@ -503,9 +510,12 @@ public class ExperienceListener implements Listener {
 				}
 				
 				if (newItemsCount > 0) {
-					int exp = action.rewardPlayer(
-							provider, random, (Player) player, newItemsCount);
+					int exp = action.rewardPlayer(provider, 
+							random, player, newItemsCount);
 					
+					// Display messages
+					action.emoteMessages(channelsProvider, channelsProvider.getFormatter(player, exp), player);
+
 					// We know this is from crafting
 					if (debugger != null)
 						debugger.printDebug(this, "User %s - spawned %d xp for %d items of %s.", 

@@ -104,6 +104,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		
 		} catch (NoClassDefFoundError e) {
 			// No vault
+		} catch (NullPointerException e) {
 		}
 		
 		// Load reward types
