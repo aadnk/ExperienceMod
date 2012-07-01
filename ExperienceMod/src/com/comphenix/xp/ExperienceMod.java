@@ -38,6 +38,10 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.comphenix.xp.commands.CommandExperienceMod;
 import com.comphenix.xp.commands.CommandSpawnExp;
+import com.comphenix.xp.listeners.ExperienceBlockListener;
+import com.comphenix.xp.listeners.ExperienceEnhancements;
+import com.comphenix.xp.listeners.ExperienceItemListener;
+import com.comphenix.xp.listeners.ExperienceMobListener;
 import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.messages.HeroService;
 import com.comphenix.xp.messages.MessageFormatter;

@@ -1,4 +1,4 @@
-package com.comphenix.xp;
+package com.comphenix.xp.listeners;
 
 import org.apache.commons.lang.Validate;
 import org.bukkit.entity.Player;
@@ -7,6 +7,8 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.enchantment.PrepareItemEnchantEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+
+import com.comphenix.xp.Debugger;
 
 public class ExperienceEnhancements implements Listener {
 	

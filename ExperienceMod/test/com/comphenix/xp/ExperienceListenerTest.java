@@ -6,12 +6,14 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.junit.Test;
 
+import com.comphenix.xp.listeners.ExperienceItemListener;
+
 public class ExperienceListenerTest {
 
 	@Test
 	public void testCraftingCount() {
 	
-		ExperienceListener listener = new ExperienceListener(null, new MockDebugger(), null);
+		ExperienceItemListener listener = new ExperienceItemListener(null, new MockDebugger(), null);
 		
 		ItemStack store = null;
 		ItemStack crafted = new ItemStack(Material.IRON_INGOT, 2);
@@ -20,5 +22,4 @@ public class ExperienceListenerTest {
 		
 		assertEquals(2, count);
 	}
-
 }

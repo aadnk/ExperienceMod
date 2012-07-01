@@ -1,4 +1,4 @@
-package com.comphenix.xp;
+package com.comphenix.xp.listeners;
 
 import java.util.Random;
 
@@ -14,6 +14,10 @@ import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.comphenix.xp.Action;
+import com.comphenix.xp.Configuration;
+import com.comphenix.xp.Debugger;
+import com.comphenix.xp.Presets;
 import com.comphenix.xp.lookup.ItemQuery;
 import com.comphenix.xp.lookup.ItemTree;
 import com.comphenix.xp.lookup.PlayerRewards;

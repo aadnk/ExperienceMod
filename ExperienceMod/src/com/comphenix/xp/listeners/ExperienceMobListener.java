@@ -1,4 +1,4 @@
-package com.comphenix.xp;
+package com.comphenix.xp.listeners;
 
 import java.util.HashMap;
 import java.util.Random;
@@ -14,6 +14,11 @@ import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 
+import com.comphenix.xp.Action;
+import com.comphenix.xp.Configuration;
+import com.comphenix.xp.Debugger;
+import com.comphenix.xp.Presets;
+import com.comphenix.xp.Range;
 import com.comphenix.xp.lookup.MobQuery;
 import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.parser.ParsingException;
