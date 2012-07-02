@@ -11,16 +11,18 @@ import org.bukkit.entity.Player;
 public class StandardService implements ChannelService {
 
 	public static final String NAME = "STANDARD";
-
 	private static Map<String, Channels> channelList = new HashMap<String, Channels>();
 	
 	public enum Channels {
 		GLOBAL,
 		WORLD,
-		PRIVATE;
-		
-		private Channels() {
-			channelList.put(this.name(), this);
+		PRIVATE
+	}
+	
+	// Associate every value
+	static {
+		for (Channels value : Channels.values()) {
+			channelList.put(value.name(), value);
 		}
 	}
 	
