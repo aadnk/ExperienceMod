@@ -48,7 +48,8 @@ public class Configuration implements Multipliable<Configuration> {
 		PLACE("PLACE", "PLACING", "PLACING_RESULT"),
 		SMELTING("SMELTING", "SMELTING_RESULT"),
 		CRAFTING("CRAFTING", "CRAFTING_RESULT"),
-		BREWING("BREWING", "BREWING_RESULT");
+		BREWING("BREWING", "BREWING_RESULT"),
+		UNKNOWN();
 		
 		private ActionTypes(String... names) {
 			for (String name : names) {
@@ -57,7 +58,10 @@ public class Configuration implements Multipliable<Configuration> {
 		}
 		
 		public static ActionTypes matchAction(String action) {
-			return lookup.get(Utility.getEnumName(action));
+			if (lookup == null)
+				return UNKNOWN;
+			else
+				return lookup.get(Utility.getEnumName(action));
 		}
 	}
 		
@@ -361,7 +365,24 @@ public class Configuration implements Multipliable<Configuration> {
 				// Read the different rewards
 				for (String action : itemSection.getKeys(false)) {
 					
-					switch (ActionTypes.matchAction(action)) {
+					ActionTypes type = ActionTypes.matchAction(action);
+					
+					if (type == null) {
+						
+						// Catch some misunderstanding here
+						if (action.equalsIgnoreCase("message") || action.equalsIgnoreCase("channels")) {
+							logger.printWarning(this, 
+								"Message and channel list must be inside an action (block, smelting, ect.).");
+						} else {
+							logger.printWarning(this, 
+								"Unrecogized action %s under item %s.", action, key);
+						}
+						
+						break;
+					}
+					
+					// Switch on the block type
+					switch (type) {
 					case BLOCK:
 						loadActionOnItem(itemSection, action, item, simpleBlockReward, Query.Types.Items);
 						break;
@@ -382,8 +403,6 @@ public class Configuration implements Multipliable<Configuration> {
 							isItemType ? simpleBrewingReward : complexBrewingReward,
 							isItemType ? Query.Types.Items : Query.Types.Potions);
 						break;
-					default:
-						logger.printWarning(this, "Unrecogized action %s under item %s.", action, key);
 					}
 				}
 

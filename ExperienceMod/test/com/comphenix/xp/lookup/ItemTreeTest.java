@@ -2,6 +2,8 @@ package com.comphenix.xp.lookup;
 
 import static org.junit.Assert.*;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.Arrays;
 
@@ -26,8 +28,9 @@ public class ItemTreeTest {
 	private static Configuration configuration;
 	
 	@BeforeClass
-    public static void loadDefaultConfiguration() {
-		InputStream file = ItemTreeTest.class.getResourceAsStream("/config.yml");
+    public static void loadDefaultConfiguration() throws FileNotFoundException {
+		//InputStream file = ItemTreeTest.class.getResourceAsStream("/config.yml");
+		InputStream file = new FileInputStream("E:\\Games\\Minecraft\\Test Server\\plugins\\ExperienceMod\\config.yml");
 		YamlConfiguration defaultFile = YamlConfiguration.loadConfiguration(file);
 		RewardProvider rewards = new RewardProvider();
 		ChannelProvider channels = new ChannelProvider();
