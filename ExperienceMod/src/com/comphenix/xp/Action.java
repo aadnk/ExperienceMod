@@ -184,7 +184,11 @@ public class Action {
 				String text = message.getText();
 				
 				try {
-					service.emote(channel, formatter.formatMessage(text), player);
+					if (service.hasChannel(channel))
+						service.emote(channel, formatter.formatMessage(text), player);
+					else
+						failures.add(channel);
+					
 				} catch (IllegalArgumentException e) {
 					failures.add(channel);
 				}
@@ -210,7 +214,11 @@ public class Action {
 				String text = message.getText();
 				
 				try {
-					service.announce(channel, formatter.formatMessage(text));
+					if (service.hasChannel(channel))
+						service.announce(channel, formatter.formatMessage(text));
+					else
+						failures.add(channel);
+						
 				} catch (IllegalArgumentException e) {
 					failures.add(channel);
 				}
