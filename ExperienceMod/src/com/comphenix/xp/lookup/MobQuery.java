@@ -43,6 +43,7 @@ public class MobQuery implements Query {
 	private List<Boolean> spawner;
 	private List<Boolean> baby;
 	private List<Boolean> tamed;
+	private List<Boolean> playerKill;
 	
 	// Optimize away object creations
 	private static List<EntityType> noTypes = new ArrayList<EntityType>();
@@ -53,19 +54,19 @@ public class MobQuery implements Query {
 	 * Universal query.
 	 */
 	public static MobQuery fromAny() {
-		return new MobQuery(noTypes, noDamages, noBooleans, noBooleans, noBooleans);
+		return new MobQuery(noTypes, noDamages, noBooleans, noBooleans, noBooleans, noBooleans);
 	}	
 	
 	public static MobQuery fromAny(EntityType type) {
-		return fromAny(type, null, null, null, null);
+		return fromAny(type, null, null, null, null, null);
 	}
 	
 	public static MobQuery fromAny(EntityType type, DamageCause cause) {
-		return fromAny(type, cause, null, null, null);
+		return fromAny(type, cause, null, null, null, null);
 	}
 
-	public static MobQuery fromAny(EntityType type, DamageCause deathCause, 
-			 					  SpawnReason reason, Boolean baby, Boolean tamed) {
+	public static MobQuery fromAny(EntityType type, DamageCause deathCause, SpawnReason reason, 
+							       Boolean baby, Boolean tamed, Boolean playerKill) {
 		
 		List<Boolean> spawner;
 		
@@ -79,11 +80,12 @@ public class MobQuery implements Query {
 				 	Utility.getElementList(deathCause),
 				 	spawner,
 				 	Utility.getElementList(baby),
-				 	Utility.getElementList(tamed)
+				 	Utility.getElementList(tamed),
+				 	Utility.getElementList(playerKill)
 		);
 	}
 	
-	public static MobQuery fromExact(LivingEntity entity, SpawnReason reason) {
+	public static MobQuery fromExact(LivingEntity entity, SpawnReason reason, boolean playerKill) {
 		EntityDamageEvent cause = entity.getLastDamageCause();
 		DamageCause deathCause = null;
 		
@@ -104,29 +106,31 @@ public class MobQuery implements Query {
 		}
 
 		// Load directly
-		return fromExact(entity.getType(), deathCause, reason, paramBaby, paramTamed);
+		return fromExact(entity.getType(), deathCause, reason, paramBaby, paramTamed, playerKill);
 	}
 
-	public static MobQuery fromExact(EntityType type, DamageCause deathCause, 
-									 SpawnReason reason, Boolean baby, Boolean tamed) {
+	public static MobQuery fromExact(EntityType type, DamageCause deathCause, SpawnReason reason, 
+									 Boolean baby, Boolean tamed, Boolean playerKill) {
 		return new MobQuery(
 				Lists.newArrayList(type), 
 				Lists.newArrayList(deathCause),
 				Lists.newArrayList(reason == null ? null : 
 					(reason == SpawnReason.SPAWNER)),
 				Lists.newArrayList(baby),
-				Lists.newArrayList(tamed)
+				Lists.newArrayList(tamed),
+				Lists.newArrayList(playerKill)
 		);
 	}
 	
 	
-	public MobQuery(List<EntityType> type, List<DamageCause> deathCause,
-			List<Boolean> spawner, List<Boolean> baby, List<Boolean> tamed) {
+	public MobQuery(List<EntityType> type, List<DamageCause> deathCause, List<Boolean> spawner, 
+					List<Boolean> baby, List<Boolean> tamed, List<Boolean> playerKill) {
 		this.type = type;
 		this.deathCause = deathCause;
 		this.spawner = spawner;
 		this.baby = baby;
 		this.tamed = tamed;
+		this.playerKill = playerKill;
 	}
 
 	public List<DamageCause> getDeathCause() {
@@ -149,6 +153,10 @@ public class MobQuery implements Query {
 		return tamed;
 	}
 	
+	public List<Boolean> getPlayerKill() {
+		return playerKill;
+	}
+	
 	public boolean hasType() {
 		return type != null && !type.isEmpty();
 	}
@@ -169,6 +177,10 @@ public class MobQuery implements Query {
 		return tamed != null && !tamed.isEmpty();
 	}
 	
+	public boolean hasPlayerKill() {
+		return playerKill != null && !playerKill.isEmpty();
+	}
+	
 	@Override
 	public int hashCode() {
 		return new HashCodeBuilder(17, 31).
@@ -177,6 +189,7 @@ public class MobQuery implements Query {
 	            append(spawner).
 	            append(baby).
 	            append(tamed).
+	            append(playerKill).
 	            toHashCode();
 	}
 
@@ -196,18 +209,20 @@ public class MobQuery implements Query {
             append(spawner, other.spawner).
             append(baby, other.baby).
             append(tamed, other.tamed).
+            append(playerKill, other.playerKill).
             isEquals();
 	}
 	
 	@Override
 	public String toString() {
 		// TODO Auto-generated method stub
-		return String.format("%s|%s|%s|%s|%s", 
+		return String.format("%s|%s|%s|%s|%s|%s", 
 							hasType() ? StringUtils.join(type, ", ") : "",
 							hasDeathCause() ? StringUtils.join(deathCause, ", ") : "",
 						    Utility.formatBoolean("spawner", spawner),
 							Utility.formatBoolean("baby", baby),
-							Utility.formatBoolean("tamed", tamed));
+							Utility.formatBoolean("tamed", tamed),
+							Utility.formatBoolean("playerKill", playerKill));
 	}
 	
 	@Override

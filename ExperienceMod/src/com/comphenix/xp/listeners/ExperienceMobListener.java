@@ -97,7 +97,7 @@ public class ExperienceMobListener implements Listener {
 		if (entity != null && isMob(entity)) {
 			
 			Integer id = entity.getEntityId();
-			MobQuery query = MobQuery.fromExact(entity, spawnReasonLookup.get(id));
+			MobQuery query = MobQuery.fromExact(entity, spawnReasonLookup.get(id), hasKiller);
 
 			if (hasKiller)
 				config = getConfiguration(entity.getKiller());

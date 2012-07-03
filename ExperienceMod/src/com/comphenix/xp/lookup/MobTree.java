@@ -33,6 +33,7 @@ public class MobTree extends ActionTree<MobQuery> implements Multipliable<MobTre
 	protected Parameter<Boolean> spawner;
 	protected Parameter<Boolean> baby;
 	protected Parameter<Boolean> tamed;
+	protected Parameter<Boolean> playerKill;
 	
 	// For cloning
 	protected MobTree(MobTree other, double newMultiplier) { 
@@ -46,6 +47,7 @@ public class MobTree extends ActionTree<MobQuery> implements Multipliable<MobTre
 		this.spawner = other.spawner;
 		this.baby = other.baby;
 		this.tamed = other.tamed;
+		this.playerKill = other.playerKill;
 	}
 	
 	public MobTree(double multiplier) {
@@ -55,6 +57,7 @@ public class MobTree extends ActionTree<MobQuery> implements Multipliable<MobTre
 		this.spawner = new Parameter<Boolean>();
 		this.baby = new Parameter<Boolean>();
 		this.tamed = new Parameter<Boolean>();
+		this.playerKill = new Parameter<Boolean>();
 	}
 
 	@Override
@@ -87,6 +90,10 @@ public class MobTree extends ActionTree<MobQuery> implements Multipliable<MobTre
 			tamed.put(source.getTamed(), id); paramCount++;
 		}
 		
+		if (source.hasPlayerKill()) {
+			playerKill.put(source.getPlayerKill(), id); paramCount++;
+		}
+		
 		return paramCount;
 	}
 
@@ -115,6 +122,10 @@ public class MobTree extends ActionTree<MobQuery> implements Multipliable<MobTre
 			tamed.retain(candidates, source.getTamed());
 		}
 		
+		if (source.hasPlayerKill()) {
+			playerKill.retain(candidates, source.getPlayerKill());
+		}
+		
 		return candidates;
 	}
 
@@ -127,5 +138,6 @@ public class MobTree extends ActionTree<MobQuery> implements Multipliable<MobTre
 		spawner.putAll(tree.spawner, offset);
 		baby.putAll(tree.baby, offset);
 		tamed.putAll(tree.tamed, offset);
+		playerKill.putAll(tree.playerKill, offset);
 	}
 }

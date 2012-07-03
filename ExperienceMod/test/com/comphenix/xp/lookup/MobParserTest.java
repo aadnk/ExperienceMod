@@ -17,8 +17,8 @@ public class MobParserTest {
 		
 		MobQuery universal = MobQuery.fromAny();
 		MobQuery allZombies = MobQuery.fromAny(EntityType.ZOMBIE);
-		MobQuery fallingZombies = MobQuery.fromAny(EntityType.ZOMBIE, DamageCause.FALL, null, null, null);
-		MobQuery spawnedMobs = MobQuery.fromAny(null, null, SpawnReason.SPAWNER, null, null);
+		MobQuery fallingZombies = MobQuery.fromAny(EntityType.ZOMBIE, DamageCause.FALL, null, null, null, null);
+		MobQuery spawnedMobs = MobQuery.fromAny(null, null, SpawnReason.SPAWNER, null, null, null);
 		
 		MobParser parser = new MobParser();
 		

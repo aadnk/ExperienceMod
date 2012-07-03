@@ -37,6 +37,7 @@ public class MobParser extends TextParser<MobQuery> {
 	private BooleanParser spawnerParser = new BooleanParser("spawner");
 	private BooleanParser babyParser = new BooleanParser("baby");
 	private BooleanParser tamedParser = new BooleanParser("tamed");
+	private BooleanParser playerParser = new BooleanParser("player");
 	
 	@Override
 	public MobQuery parse(String text) throws ParsingException {
@@ -61,6 +62,7 @@ public class MobParser extends TextParser<MobQuery> {
 		List<Boolean> spawner = spawnerParser.parseAny(tokens);
 		List<Boolean> baby = babyParser.parseAny(tokens);
 		List<Boolean> tamed = tamedParser.parseAny(tokens);
+		List<Boolean> player = playerParser.parseAny(tokens);
 
 		// If there are some tokens left, a problem occured
 		if (!tokens.isEmpty()) {
@@ -72,6 +74,6 @@ public class MobParser extends TextParser<MobQuery> {
 				throw ParsingException.fromFormat("Unknown item tokens: %s", StringUtils.join(tokens, ", "));
 		}
 		
-		return new MobQuery(types, causes, spawner, baby, tamed);
+		return new MobQuery(types, causes, spawner, baby, tamed, player);
 	}
 }
