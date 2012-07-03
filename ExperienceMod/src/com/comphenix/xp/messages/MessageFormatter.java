@@ -1,5 +1,6 @@
 package com.comphenix.xp.messages;
 
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 public class MessageFormatter {
@@ -30,7 +31,8 @@ public class MessageFormatter {
 		// TODO: Add more variables.
 		return message.
 				replace("{player}", source != null ? source.getDisplayName() : "Unknown").
-				replace("{experience}", experience != null ? experience.toString() : "N/A");
+				replace("{experience}", experience != null ? experience.toString() : "N/A").
+				replaceAll("&(?=[0-9a-fxA-FX])", Character.toString(ChatColor.COLOR_CHAR));
 	}
 
 	public Player getSource() {
