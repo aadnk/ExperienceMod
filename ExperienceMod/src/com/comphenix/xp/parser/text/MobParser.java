@@ -31,7 +31,7 @@ import com.comphenix.xp.parser.primitives.BooleanParser;
 
 public class MobParser extends TextParser<MobQuery> {
 	
-	private ParameterParser<EntityType> entityTypeParser = new ParameterParser<EntityType>(new MobEntityTypeParser());
+	private ParameterParser<MobMatcher> entityTypeParser = new ParameterParser<MobMatcher>(new MobEntityTypeParser());
 	private ParameterParser<DamageCause> damageCauseParser = new ParameterParser<DamageCause>(new MobDamageCauseParser());
 	
 	private BooleanParser spawnerParser = new BooleanParser("spawner");
@@ -50,7 +50,7 @@ public class MobParser extends TextParser<MobQuery> {
 		List<DamageCause> causes = null;
 		
 		try {
-			types = entityTypeParser.parse(tokens);
+			types = MobMatcher.convertToTypes(entityTypeParser.parse(tokens));
 			causes = damageCauseParser.parse(tokens);
 			
 		} catch (ParsingException e) {

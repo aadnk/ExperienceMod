@@ -13,12 +13,12 @@ import java.util.Queue;
 public abstract class TextParser<TResult> {
 	/**
 	 * Transforms the given text into an object. 
-	 * @param - text Text to parse.
+	 * @param text - text to parse.
 	 * @return Result of the parsing.
 	 * @throws ParsingException The text cannot be transformed into a list of objects.
 	 */
 	public abstract TResult parse(String text) throws ParsingException;
-	 
+	
 	/**
 	 * Transforms the head of the queue into a string of objects. No head is treated as an empty string.
 	 * @param tokens - queue of tokens.
