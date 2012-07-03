@@ -141,6 +141,17 @@ public class MobMatcher {
 			return category.getMembers();
 	}
 	
+	/**
+	 * Adds every EntityType that matches the current rule to the given list.
+	 * @param destination - the given list to add entity types.
+	 */
+	public void addToList(List<EntityType> destination) {
+		if (category == Category.SPECIFIC)
+			destination.add(getSpecific());
+		else
+			destination.addAll(getEntityTypes());
+	}
+	
 	
 	/**
 	 * Flattens the entity list in every matcher.
@@ -151,7 +162,7 @@ public class MobMatcher {
 		List<EntityType> entityTypes = new ArrayList<EntityType>();
 		
 		for (MobMatcher matcher : matchers) {
-			entityTypes.addAll(matcher.getEntityTypes());
+			matcher.addToList(entityTypes);
 		}
 		
 		// Flatten
