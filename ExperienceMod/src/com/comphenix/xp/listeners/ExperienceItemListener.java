@@ -270,8 +270,7 @@ public class ExperienceItemListener implements Listener {
 					// We know this is from crafting
 					if (debugger != null)
 						debugger.printDebug(this, "User %s - spawned %d xp for %d items of %s.", 
-							player.getName(), permissionRewardCrafting, exp, 
-							newItemsCount, compareItem.getType());
+							player.getName(), exp, newItemsCount, compareItem.getType());
 				}
 			}
 		}, ticks);
