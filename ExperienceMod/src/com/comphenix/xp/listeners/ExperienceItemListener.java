@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.BrewEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType.SlotType;
 import org.bukkit.event.player.PlayerFishEvent;
@@ -118,6 +119,31 @@ public class ExperienceItemListener implements Listener {
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+	public void onBrewEvent(BrewEvent event) {
+		
+		// Reset the potion markers
+		if (event != null &&
+			event.getContents() != null) {
+			
+			for (ItemStack stack : event.getContents().getContents()) {
+			
+				// Find all potions in the brewing stand
+				if (hasItems(stack) && stack.getType() == Material.POTION) {
+					
+					PotionMarker marker = new PotionMarker(stack.getDurability());
+					
+					// Reset potion markers
+					marker.reset();
+					stack.setDurability(marker.toDurability());
+				}
+			}
+			
+			if (debugger != null)
+				debugger.printDebug(this, "Reset potion markers in brewing stand %s", event.getBlock().getLocation());
+		}
+	}
+	
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onInventoryClickEvent(InventoryClickEvent event) {
 
 		Player player = (Player) event.getWhoClicked();
@@ -125,17 +151,18 @@ public class ExperienceItemListener implements Listener {
 		
 		Configuration config = null;
 
-		// Was this from a result slot (crafting, smelting or brewing)?
-		if (player != null &&
-		    event.getInventory() != null &&
-		    event.getSlotType() == SlotType.RESULT &&
-		    hasItems(toCraft)) {
+		// Crafting, smelting and potion check
+		boolean isCraftResult = event.getSlotType() == SlotType.RESULT;
+		boolean isPotionResult = event.getSlot() < 3;
+
+		// Make sure we have a player, inventory and item
+		if (player != null && event.getInventory() != null && hasItems(toCraft)) {
 			
 			// Handle different types
 			switch (event.getInventory().getType()) {
 			case BREWING:
 				// Do not proceed if the user isn't permitted
-				if (player.hasPermission(permissionRewardBrewing)) {
+				if (isPotionResult && player.hasPermission(permissionRewardBrewing)) {
 					config = getConfiguration(player);
 					
 					// Guard again
@@ -145,25 +172,32 @@ public class ExperienceItemListener implements Listener {
 						return;
 					}
 					
-					handleInventory(event, config.getRewardProvider(), config.getChannelProvider(),
-								    config.getSimpleBrewingReward(), true);
-				
+					// Prepare rewards and actions
+					RewardableAction future = potionItemReward(config);
+					Action simpleAction = getAction(toCraft, config.getSimpleBrewingReward());
+					
 					// Yes, this feels a bit like a hack to me too. Blame faulty design. Anyways, the point
 					// is that we get to check more complex potion matching rules, like "match all splash potions"
 					// or "match all level 2 regen potions (splash or not)".
-					handleInventory(event, config.getRewardProvider(), config.getChannelProvider(),
-							config.getComplexBrewingReward().getItemQueryAdaptor(), true);
+					Action complexAction = getAction(toCraft, config.getComplexBrewingReward().getItemQueryAdaptor());
+					
+					handleInventory(event, simpleAction, future, true);
+					handleInventory(event, complexAction, future, true);
 				}
 				
 				break;
 			case CRAFTING:
 			case WORKBENCH:
-				if (player.hasPermission(permissionRewardCrafting)) {
-					config = getConfiguration(player);
+				if (isCraftResult && player.hasPermission(permissionRewardCrafting)) {
 					
+					config = getConfiguration(player);
+
 					if (config != null) {
-						handleInventory(event, config.getRewardProvider(), config.getChannelProvider(),
-										config.getSimpleCraftingReward(), false);
+						RewardableAction future = genericItemReward(config);
+						Action action = getAction(toCraft, config.getSimpleCraftingReward());
+						
+						handleInventory(event, action, future, false);
+						
 					} else if (debugger != null) {
 						debugger.printDebug(this, "No config found for %s with crafting %s.", player.getName(), toCraft);
 					}
@@ -171,12 +205,15 @@ public class ExperienceItemListener implements Listener {
 				break;
 				
 			case FURNACE:
-				if (player.hasPermission(permissionRewardSmelting)) {
+				if (isCraftResult && player.hasPermission(permissionRewardSmelting)) {
 					config = getConfiguration(player);
 					
 					if (config != null) {
-						handleInventory(event, config.getRewardProvider(), config.getChannelProvider(),
-										config.getSimpleSmeltingReward(), true);
+						RewardableAction future = genericItemReward(config);
+						Action action = getAction(toCraft, config.getSimpleSmeltingReward());
+						
+						handleInventory(event, action, future, true);
+						
 					} else if (debugger != null) {
 						debugger.printDebug(this, "No config found for %s with smelting %s.", player.getName(), toCraft);
 					}
@@ -186,26 +223,40 @@ public class ExperienceItemListener implements Listener {
 		}
 	}
 	
-	private void handleInventory(InventoryClickEvent event, RewardProvider rewardsProvider, 
-								 ChannelProvider channelsProvider, ItemTree rewards, boolean partialResults) {
+	/**
+	 * Retrieves the most relevant action, or NULL if no action can be found.
+	 * @param toCraft Item to query after.
+	 * @param rewards Tree of rewards and actions.
+	 * @return The most relevant action, or NULL.
+	 */
+	private Action getAction(ItemStack toCraft, ItemTree rewards) {
+		
+		ItemQuery retrieveKey = ItemQuery.fromExact(toCraft);
+		
+		if (hasExperienceReward(rewards, retrieveKey)) {
+			return rewards.get(retrieveKey);
+		} else {
+			return null;
+		}
+	}
+	
+	private void handleInventory(InventoryClickEvent event, Action action, 
+								 RewardableAction rewardAction, boolean partialResults) {
 		
 		Player player = (Player) event.getWhoClicked();
 		ItemStack toStore = event.getCursor();
 		ItemStack toCraft = event.getCurrentItem();
 		
-		ItemQuery retrieveKey = ItemQuery.fromExact(toCraft);
-		Action action = rewards.get(retrieveKey);
-		
-		// Make sure there is an experience reward
-		if (!hasExperienceReward(rewards, retrieveKey))
+		// Nothing do do
+		if (action == null)
 			return;
-
+		
 		// Set debugger
 		action.setDebugger(debugger);
 		
 		if (event.isShiftClick()) {
 			// Hack ahoy
-			schedulePostCraftingReward(player, rewardsProvider, channelsProvider, action, toCraft);
+			schedulePostCraftingReward(player, action, rewardAction, toCraft);
 		} else {
 			
 			// The items are stored in the cursor. Make sure there's enough space.
@@ -218,6 +269,44 @@ public class ExperienceItemListener implements Listener {
 					count = Math.max(count / 2, 1);
 				}
 				
+				rewardAction.performAction(player, toCraft, action, count);
+			}
+		}
+	}
+	
+	private RewardableAction potionItemReward(Configuration config) {
+		
+		final RewardableAction fundamental = genericItemReward(config);
+		
+		// Next, mark all potions as "consumed" or "rewarded"
+		return new RewardableAction() {
+			
+			@Override
+			public void performAction(Player player, ItemStack stack, Action action, int count) {
+				
+				PotionMarker marker = new PotionMarker(stack.getDurability());
+				
+				// Only reward potions once
+				if (!marker.hasBeenRewarded()) {
+					fundamental.performAction(player, stack, action, count);
+				
+					marker.setBeenRewarded(true);
+					stack.setDurability(marker.toDurability());
+				}
+			}
+		};	
+	}
+	
+	private RewardableAction genericItemReward(Configuration config) {
+		
+		final RewardProvider rewardsProvider = config.getRewardProvider();
+		final ChannelProvider channelsProvider = config.getChannelProvider();
+		
+		// Create a rewardable future action handler
+		return new RewardableAction() {
+			@Override
+			public void performAction(Player player, ItemStack stack, Action action, int count) {
+
 				// Give the experience straight to the user
 				Integer exp = action.rewardPlayer(rewardsProvider, random, player, count);
 				action.emoteMessages(channelsProvider, channelsProvider.getFormatter(player, exp), player);
@@ -225,16 +314,16 @@ public class ExperienceItemListener implements Listener {
 				// Like above
 				if (debugger != null)
 					debugger.printDebug(this, "User %s - spawned %d xp for item %s.", 
-						player.getName(), exp, toCraft.getType());
+						player.getName(), exp, stack.getType());
 			}
-		}
+		};
 	}
 	
 	// HACK! The API doesn't allow us to easily determine the resulting number of
 	// crafted items, so we're forced to compare the inventory before and after.
-	private void schedulePostCraftingReward(final Player player, final RewardProvider provider, 
-											final ChannelProvider channelsProvider,
-											final Action action, final ItemStack compareItem) {
+	private void schedulePostCraftingReward(final Player player, final Action action,
+											final RewardableAction rewardAction, 
+											final ItemStack compareItem) {
 		
 		final ItemStack[] preInv = player.getInventory().getContents();
 		final int ticks = 1; // May need adjusting
@@ -250,6 +339,9 @@ public class ExperienceItemListener implements Listener {
 				final ItemStack[] postInv = player.getInventory().getContents();
 				int newItemsCount = 0;
 				
+				// The most relevant item stack to return
+				ItemStack last = compareItem;
+				
 				for (int i = 0; i < preInv.length; i++) {
 					ItemStack pre = preInv[i];
 					ItemStack post = postInv[i];
@@ -257,20 +349,14 @@ public class ExperienceItemListener implements Listener {
 					// We're only interested in filled slots that are different
 					if (hasSameItem(compareItem, post) && (hasSameItem(compareItem, pre) || pre == null)) {
 						newItemsCount += post.getAmount() - (pre != null ? pre.getAmount() : 0);
+						
+						if (post.getAmount() > 0)
+							last = post;
 					}
 				}
 				
 				if (newItemsCount > 0) {
-					int exp = action.rewardPlayer(provider, 
-							random, player, newItemsCount);
-					
-					// Display messages
-					action.emoteMessages(channelsProvider, channelsProvider.getFormatter(player, exp), player);
-
-					// We know this is from crafting
-					if (debugger != null)
-						debugger.printDebug(this, "User %s - spawned %d xp for %d items of %s.", 
-							player.getName(), exp, newItemsCount, compareItem.getType());
+					rewardAction.performAction(player, last, action, newItemsCount);
 				}
 			}
 		}, ticks);
