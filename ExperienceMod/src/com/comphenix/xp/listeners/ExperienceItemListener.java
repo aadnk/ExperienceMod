@@ -4,6 +4,7 @@ import java.util.Random;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -139,8 +140,13 @@ public class ExperienceItemListener implements Listener {
 			}
 			
 			if (debugger != null)
-				debugger.printDebug(this, "Reset potion markers in brewing stand %s", event.getBlock().getLocation());
+				debugger.printDebug(this, "Reset potion markers in brewing stand %s", getLocationString(event.getBlock()) );
 		}
+	}
+	
+	// Convert a block to a more readable format
+	private String getLocationString(Block block) {
+		return String.format("x=%d, y=%d, z=%d", block.getX(), block.getY(), block.getZ());
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
