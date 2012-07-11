@@ -12,11 +12,13 @@ import com.comphenix.xp.rewards.RewardProvider;
 
 public class ActionParser extends ConfigurationParser<Action> {
 
+	// The current global action ID
+	private static int currentID;
+	
 	private static final String messageTextSetting = "message";
 	private static final String messageChannelSetting = "channels";
 
 	private RewardProvider provider;
-	private int currentID;
 
 	public ActionParser(RewardProvider provider) {
 		this.provider = provider;
@@ -121,12 +123,7 @@ public class ActionParser extends ConfigurationParser<Action> {
 		}
 	}
 	
-	
 	public int getCurrentID() {
 		return currentID;
-	}
-
-	public void setCurrentID(int currentID) {
-		this.currentID = currentID;
 	}
 }

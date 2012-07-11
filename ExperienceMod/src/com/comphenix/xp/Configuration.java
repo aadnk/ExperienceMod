@@ -28,6 +28,7 @@ import org.bukkit.inventory.ItemStack;
 import com.comphenix.xp.lookup.*;
 import com.comphenix.xp.lookup.Query.Types;
 import com.comphenix.xp.messages.ChannelProvider;
+import com.comphenix.xp.messages.MessagePlayerQueue;
 import com.comphenix.xp.parser.ActionParser;
 import com.comphenix.xp.parser.Utility;
 import com.comphenix.xp.parser.ParsingException;
@@ -72,9 +73,12 @@ public class Configuration implements Multipliable<Configuration> {
 	private static final String economyDropsSetting = "economy drop";
 	private static final String economyWorthSetting = "economy drop worth";
 	private static final String virtualScanRadiusSetting = "virtual scan radius";
+	
 	private static final String defaultChannelsSetting = "default channels";
+	private static final String messageMaxRateSetting = "message max rate";
 	
 	private static final double defaultScanRadius = 20;
+	private static final int defaultMessageMaxRate = 5;
 	
 	private Debugger logger;
 	
@@ -88,6 +92,7 @@ public class Configuration implements Multipliable<Configuration> {
 	
 	private RewardProvider rewardProvider;
 	private ChannelProvider channelProvider;
+	private MessagePlayerQueue messageQueue;
 
 	private MobTree experienceDrop;
 	private ItemTree simpleBlockReward;
@@ -128,6 +133,9 @@ public class Configuration implements Multipliable<Configuration> {
 		}
 		if (other.channelProvider != null) {
 			this.channelProvider = other.channelProvider.createView();
+		}
+		if (other.messageQueue != null) {
+			this.messageQueue = other.messageQueue.createView();
 		}
 		
 		// Copy (shallow) trees
@@ -183,7 +191,9 @@ public class Configuration implements Multipliable<Configuration> {
 			
 			// This will be the last set value
 			copy.defaultRewardsDisabled = config.defaultRewardsDisabled;
+			copy.messageQueue = config.messageQueue;
 			copy.rewardProvider = config.rewardProvider;
+			copy.channelProvider = config.channelProvider;
 			copy.economyItemWorth = config.economyItemWorth;
 			copy.economyDropItem = config.economyDropItem;
 			copy.scanRadiusSetting = config.scanRadiusSetting;
@@ -234,7 +244,8 @@ public class Configuration implements Multipliable<Configuration> {
 		// Use default type if nothing has been set
 		if (defaultReward != null)
 			setDefaultRewardName(defaultReward);
-		
+	
+		loadRate(config);
 		initialize(multiplier);
 
 		// Load mob experience
@@ -242,6 +253,20 @@ public class Configuration implements Multipliable<Configuration> {
 		loadItemActions(config.getConfigurationSection("items"));
 		loadGenericRewards(config.getConfigurationSection("player"));
 		checkRewards();
+	}
+	
+	private void loadRate(ConfigurationSection config) {
+		
+		// Load the message queue
+		double rate = readDouble(config, messageMaxRateSetting, defaultMessageMaxRate);
+		
+		// Make sure the rate is valid
+		if (rate > Long.MAX_VALUE)
+			logger.printWarning(this, "Message rate cannot be bigger than %d", Long.MAX_VALUE);
+		else if (rate < 0)
+			logger.printWarning(this, "Message rate cannot be negative.");
+		else
+			messageQueue = new MessagePlayerQueue((long) (rate * 1000), channelProvider);
 	}
 	
 	private void initialize(double multiplier) {
@@ -545,6 +570,10 @@ public class Configuration implements Multipliable<Configuration> {
 	
 	public void setRewardManager(RewardProvider rewardProvider) {
 		this.rewardProvider = rewardProvider;
+	}
+	
+	public MessagePlayerQueue getMessageQueue() {
+		return messageQueue;
 	}
 	
 	public ItemStack getEconomyDropItem() {
