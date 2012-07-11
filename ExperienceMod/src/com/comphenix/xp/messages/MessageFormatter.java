@@ -7,7 +7,8 @@ public class MessageFormatter {
 
 	private Player source;
 	private Integer experience;
-
+	private Integer count;
+	
 	// Default
 	public MessageFormatter() {
 	}
@@ -32,7 +33,16 @@ public class MessageFormatter {
 		return message.
 				replace("{player}", source != null ? source.getDisplayName() : "Unknown").
 				replace("{experience}", experience != null ? experience.toString() : "N/A").
+				replace("{count}", count != null ? count.toString() : "N/A").
 				replaceAll("&(?=[0-9a-fxA-FX])", Character.toString(ChatColor.COLOR_CHAR));
+	}
+
+	public Integer getCount() {
+		return count;
+	}
+
+	public void setCount(Integer count) {
+		this.count = count;
 	}
 
 	public Player getSource() {

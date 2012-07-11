@@ -16,7 +16,8 @@ public class ActionParser extends ConfigurationParser<Action> {
 	private static final String messageChannelSetting = "channels";
 
 	private RewardProvider provider;
-	
+	private int currentID;
+
 	public ActionParser(RewardProvider provider) {
 		this.provider = provider;
 	}
@@ -35,6 +36,7 @@ public class ActionParser extends ConfigurationParser<Action> {
 		// This is a default range value
 		if (topLevel != null) {
 			result.addReward(provider.getDefaultName(), topLevel);
+			result.setId(currentID++);
 			return result;
 		}
 		
@@ -69,6 +71,7 @@ public class ActionParser extends ConfigurationParser<Action> {
 			result.setMessage(message);
 		}
 		
+		result.setId(currentID++);
 		return result;
 	}
 	
@@ -116,5 +119,14 @@ public class ActionParser extends ConfigurationParser<Action> {
 			// Default value
 			return defaultValue;
 		}
+	}
+	
+	
+	public int getCurrentID() {
+		return currentID;
+	}
+
+	public void setCurrentID(int currentID) {
+		this.currentID = currentID;
 	}
 }

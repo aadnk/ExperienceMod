@@ -8,7 +8,6 @@ import java.util.Random;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -25,7 +24,8 @@ import com.comphenix.xp.rewards.RewardService;
 public class Action {
 
 	public static final Action Default = new Action();
-	
+
+	private int id;
 	private Message message;
 	private Map<String, Range> rewards;
 
@@ -41,10 +41,11 @@ public class Action {
 		addReward(rewardType, reward);
 	}
 	
-	private Action(Message message, Map<String, Range> rewards, Debugger debugger) {
+	private Action(Message message, Map<String, Range> rewards, Debugger debugger, int id) {
 		this.message = message;
 		this.rewards = rewards;
 		this.debugger = debugger;
+		this.id = id;
 	}
 	
 	public void addReward(String rewardType, Range range) {
@@ -254,6 +255,14 @@ public class Action {
 		this.message = message;
 	}
 
+	public int getId() {
+		return id;
+	}
+	
+	public void setId(int id) {
+		this.id = id;
+	}
+	
 	public Action multiply(double multiply) {
 
 		Map<String, Range> copy = new HashMap<String, Range>();
@@ -262,15 +271,12 @@ public class Action {
 			copy.put(entry.getKey(), entry.getValue().multiply(multiply));
 		}
 		
-		return new Action(message, copy, debugger);
+		return new Action(message, copy, debugger, id);
 	}
 	
 	@Override
 	public int hashCode() {
-		return new HashCodeBuilder(17, 31).
-	            append(message).
-	            append(rewards).
-	            toHashCode();
+		return 17 * id;
 	}
 
 	@Override
@@ -286,6 +292,7 @@ public class Action {
         return new EqualsBuilder().
             append(message, other.message).
             append(rewards, other.rewards).
+            append(id, other.id).
             isEquals();
 	}
 
