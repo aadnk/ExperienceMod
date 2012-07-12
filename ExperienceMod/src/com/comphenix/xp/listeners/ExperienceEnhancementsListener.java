@@ -4,12 +4,13 @@ import org.apache.commons.lang.Validate;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 import org.bukkit.event.enchantment.PrepareItemEnchantEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 
 import com.comphenix.xp.Debugger;
 
-public class ExperienceEnhancementsListener extends AbstractExperienceListener {
+public class ExperienceEnhancementsListener implements Listener {
 	
 	private final String permissionKeepExp = "experiencemod.keepexp";
 	private final String permissionMaxEnchant = "experiencemod.maxenchant";
