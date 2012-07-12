@@ -83,7 +83,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	private Presets presets;
 	
 	// Repeating task
-	private static final int tickDelay = 10; // 50 ms * 10 = 500 ms
+	private static final int tickDelay = 4; // 50 ms * 4 = 200 ms
 	private int serverTickTask;
 	
 	// Commands

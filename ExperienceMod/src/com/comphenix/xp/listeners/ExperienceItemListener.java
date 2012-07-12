@@ -315,7 +315,7 @@ public class ExperienceItemListener implements Listener {
 
 				// Give the experience straight to the user
 				Integer exp = action.rewardPlayer(rewardsProvider, random, player, count);
-				messageQueue.enqueue(player, action, channelsProvider.getFormatter(player, exp));
+				messageQueue.enqueue(player, action, channelsProvider.getFormatter(player, exp, count));
 				
 				// Like above
 				if (debugger != null)

@@ -36,6 +36,10 @@ public class ChannelProvider extends ServiceProvider<ChannelService> {
 		return messageFormatter.createView(player, experience);
 	}
 	
+	public MessageFormatter getFormatter(Player player, Integer experience, Integer count) {
+		return messageFormatter.createView(player, experience, count);
+	}
+	
 	public MessageFormatter getMessageFormatter() {
 		return messageFormatter;
 	}

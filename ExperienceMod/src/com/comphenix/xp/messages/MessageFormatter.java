@@ -102,6 +102,11 @@ public class MessageFormatter {
 	}
 	
 	// Create a copy of the message formatter with the given parameters
+	public MessageFormatter createView(Player player, Integer experience, Integer count) {
+		return new MessageFormatter(player, experience, count);
+	}
+	
+	// Create a copy of the message formatter with the given parameters
 	public MessageFormatter createView(Integer experience) {
 		return createView(null, experience);
 	}
