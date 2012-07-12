@@ -259,6 +259,7 @@ public class Configuration implements Multipliable<Configuration> {
 		
 		// Load the message queue
 		double rate = readDouble(config, messageMaxRateSetting, defaultMessageMaxRate);
+		long converted = 0;
 		
 		// Make sure the rate is valid
 		if (rate > Long.MAX_VALUE)
@@ -266,7 +267,10 @@ public class Configuration implements Multipliable<Configuration> {
 		else if (rate < 0)
 			logger.printWarning(this, "Message rate cannot be negative.");
 		else
-			messageQueue = new MessagePlayerQueue((long) (rate * 1000), channelProvider);
+			converted = (long) (rate * 1000);
+		
+		// Always create a message queue
+		messageQueue = new MessagePlayerQueue(converted, channelProvider, logger);
 	}
 	
 	private void initialize(double multiplier) {
@@ -595,5 +599,11 @@ public class Configuration implements Multipliable<Configuration> {
 		if (rewardProvider != null) {
 			rewardProvider.setDefaultName(rewardName);
 		}
+	}
+	
+	// Let the message queue know
+	public void onTick() {
+		if (messageQueue != null) 
+			messageQueue.onTick();
 	}
 }

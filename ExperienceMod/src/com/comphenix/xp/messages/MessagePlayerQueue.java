@@ -6,17 +6,25 @@ import java.util.Map;
 import org.bukkit.entity.Player;
 
 import com.comphenix.xp.Action;
+import com.comphenix.xp.Debugger;
 
 public class MessagePlayerQueue {
 	
 	private Map<Player, MessageQueue> queues = new HashMap<Player, MessageQueue>();
 	
 	private long messageDelay;
+	
+	private Debugger debugger;
 	private ChannelProvider channelProvider;
 
-	public MessagePlayerQueue(long messageDelay, ChannelProvider channelProvider) {
+	public MessagePlayerQueue(long messageDelay, ChannelProvider channelProvider, Debugger debugger) {
 		this.messageDelay = messageDelay;
 		this.channelProvider = channelProvider;
+		this.debugger = debugger;
+	}
+
+	public Debugger getDebugger() {
+		return debugger;
 	}
 
 	public ChannelProvider getChannelProvider() {
@@ -40,7 +48,7 @@ public class MessagePlayerQueue {
 		
 		// Construct queue if it hasn't been already
 		if (queue == null) {
-			queue = new MessageQueue(messageDelay, player, channelProvider);
+			queue = new MessageQueue(messageDelay, player, channelProvider, debugger);
 			queues.put(player, queue);
 		}
 		
@@ -69,7 +77,7 @@ public class MessagePlayerQueue {
 	 * @return A copy of the current queue.
 	 */
 	public MessagePlayerQueue createView() {
-		return new MessagePlayerQueue(messageDelay, channelProvider);
+		return new MessagePlayerQueue(messageDelay, channelProvider, debugger);
 	}
 	
 	public void onTick() {

@@ -110,8 +110,7 @@ public class ExperienceBlockListener implements Listener {
 					ChannelProvider channels = config.getChannelProvider();
 					
 					Integer exp = action.rewardPlayer(rewards, random, player, block.getLocation());
-					action.setDebugger(debugger);
-					action.emoteMessages(channels, channels.getFormatter(player, exp), player);
+					config.getMessageQueue().enqueue(player, action, channels.getFormatter(player, exp));
 					
 					if (debugger != null)
 						debugger.printDebug(this, "Block mined by %s: Spawned %d xp for item %s.", 
@@ -135,7 +134,7 @@ public class ExperienceBlockListener implements Listener {
 					ChannelProvider channels = config.getChannelProvider();
 					
 					Integer exp = action.rewardPlayer(rewards, random, player, block.getLocation());
-					action.emoteMessages(channels, channels.getFormatter(player, exp), player);
+					config.getMessageQueue().enqueue(player, action, channels.getFormatter(player, exp));
 					
 					if (debugger != null)
 						debugger.printDebug(this, "Block destroyed by %s: Spawned %d xp for item %s.", 
@@ -175,11 +174,9 @@ public class ExperienceBlockListener implements Listener {
 					RewardProvider rewards = config.getRewardProvider();
 					ChannelProvider channels = config.getChannelProvider();
 					
+					// Reward and print messages (possibly in the future)
 					Integer exp = action.rewardPlayer(rewards, random, player);
-					
-					// Print messages
-					action.setDebugger(debugger);
-					action.emoteMessages(channels, channels.getFormatter(player, exp), player);
+					config.getMessageQueue().enqueue(player, action, channels.getFormatter(player, exp));
 					
 					if (debugger != null)
 						debugger.printDebug(this, "Block placed by %s: Spawned %d xp for item %s.", 

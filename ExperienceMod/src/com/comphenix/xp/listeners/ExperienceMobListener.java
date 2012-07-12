@@ -120,10 +120,9 @@ public class ExperienceMobListener implements Listener {
 				event.setDroppedExp(0);
 				RewardProvider rewards = config.getRewardProvider();
 				ChannelProvider channels = config.getChannelProvider();
+
 				Integer xp = action.rewardAnyone(rewards, random, entity.getWorld(), entity.getLocation());
-				
-				action.setDebugger(debugger);
-				action.announceMessages(channels, channels.getFormatter(null, xp));
+				config.getMessageQueue().enqueue(null, action, channels.getFormatter(null, xp));
 				
 				if (debugger != null)
 					debugger.printDebug(this, "Entity %d: Changed experience drop to %d", id, xp);

@@ -24,6 +24,7 @@ import com.comphenix.xp.lookup.ItemQuery;
 import com.comphenix.xp.lookup.ItemTree;
 import com.comphenix.xp.lookup.PlayerRewards;
 import com.comphenix.xp.messages.ChannelProvider;
+import com.comphenix.xp.messages.MessagePlayerQueue;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.rewards.RewardProvider;
 import com.google.common.base.Objects;
@@ -109,9 +110,7 @@ public class ExperienceItemListener implements Listener {
 			// Has an action been set?
 			if (action != null) {
 				int exp = action.rewardPlayer(config.getRewardProvider(), random, player);
-
-				action.setDebugger(debugger);
-				action.emoteMessages(channels, channels.getFormatter(player, exp), player);
+				config.getMessageQueue().enqueue(player, action, channels.getFormatter(player, exp));
 				
 				if (debugger != null)
 					debugger.printDebug(this, message, player.getName(), exp);
@@ -307,6 +306,7 @@ public class ExperienceItemListener implements Listener {
 		
 		final RewardProvider rewardsProvider = config.getRewardProvider();
 		final ChannelProvider channelsProvider = config.getChannelProvider();
+		final MessagePlayerQueue messageQueue = config.getMessageQueue();
 		
 		// Create a rewardable future action handler
 		return new RewardableAction() {
@@ -315,7 +315,7 @@ public class ExperienceItemListener implements Listener {
 
 				// Give the experience straight to the user
 				Integer exp = action.rewardPlayer(rewardsProvider, random, player, count);
-				action.emoteMessages(channelsProvider, channelsProvider.getFormatter(player, exp), player);
+				messageQueue.enqueue(player, action, channelsProvider.getFormatter(player, exp));
 				
 				// Like above
 				if (debugger != null)

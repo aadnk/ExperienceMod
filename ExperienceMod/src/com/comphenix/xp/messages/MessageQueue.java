@@ -8,6 +8,7 @@ import java.util.Queue;
 import org.bukkit.entity.Player;
 
 import com.comphenix.xp.Action;
+import com.comphenix.xp.Debugger;
 
 public class MessageQueue {
 	
@@ -18,12 +19,15 @@ public class MessageQueue {
 	private long messageDelay;
 	private long lastMessageTime;
 	
+	private Debugger debugger;
 	private Player player;
 	private ChannelProvider channelProvider;
 
-	public MessageQueue(long messageDelay, Player player, ChannelProvider channelProvider) {
+	public MessageQueue(long messageDelay, Player player, ChannelProvider channelProvider, Debugger debugger) {
 		this.player = player;
 		this.channelProvider = channelProvider;
+		this.debugger = debugger;
+		
 		this.messageDelay = messageDelay;
 		this.lastMessageTime = 0;
 	}
@@ -58,6 +62,10 @@ public class MessageQueue {
 	}
 	
 	public void transmitt(Action action, MessageFormatter formatter) {
+		
+		// Set debugger
+		action.setDebugger(debugger);
+		
 		// Send as player or as a general message
 		if (hasPlayer())
 			action.emoteMessages(channelProvider, formatter, player);
@@ -97,6 +105,10 @@ public class MessageQueue {
 		this.channelProvider = channelProvider;
 	}
 	
+	public Debugger getDebugger() {
+		return debugger;
+	}
+
 	/**
 	 * Performs message transmissions, if it's ready.
 	 */
