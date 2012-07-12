@@ -262,8 +262,8 @@ public class Configuration implements Multipliable<Configuration> {
 		long converted = 0;
 		
 		// Make sure the rate is valid
-		if (rate > Long.MAX_VALUE)
-			logger.printWarning(this, "Message rate cannot be bigger than %d", Long.MAX_VALUE);
+		if (rate * 1000 > Long.MAX_VALUE)
+			logger.printWarning(this, "Message rate cannot be bigger than %d", Long.MAX_VALUE / 1000);
 		else if (rate < 0)
 			logger.printWarning(this, "Message rate cannot be negative.");
 		else

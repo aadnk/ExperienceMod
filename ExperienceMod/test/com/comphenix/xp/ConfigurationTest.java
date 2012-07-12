@@ -14,6 +14,7 @@ import org.junit.Test;
 import com.comphenix.xp.lookup.MobQuery;
 import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.messages.Message;
+import com.comphenix.xp.parser.ActionParser;
 import com.comphenix.xp.rewards.RewardProvider;
 import com.comphenix.xp.rewards.RewardTypes;
 import com.google.common.collect.Lists;
@@ -31,6 +32,9 @@ public class ConfigurationTest {
 		provider.register(new MockRewardable(RewardTypes.ECONOMY));
 		provider.setDefaultReward(RewardTypes.EXPERIENCE);
 		String def = "EXPERIENCE";
+		
+		// Reset parser
+		ActionParser.setCurrentID(0);
 		
 		Configuration first = createConfig(
 				"multiplier: 1\n" +
@@ -57,6 +61,7 @@ public class ConfigurationTest {
 		blaceAction.setMessage(new Message("hei", "mining", "general"));
 		
 		Action zombieAction = new Action(def, new Range(0));
+		zombieAction.setId(1);
 		
 		assertEquals(blaceAction, result.getExperienceDrop().get(queryBlace));
 		assertEquals(zombieAction, result.getExperienceDrop().get(queryZombie));

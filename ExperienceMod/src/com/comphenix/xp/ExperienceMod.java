@@ -82,6 +82,10 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	
 	private Presets presets;
 	
+	// Repeating task
+	private static final int tickDelay = 10; // 50 ms * 10 = 500 ms
+	private int serverTickTask;
+	
 	// Commands
 	private CommandExperienceMod commandExperienceMod;
 	private CommandSpawnExp commandSpawn;
@@ -166,6 +170,25 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		// Register commands
 		getCommand(commandReload).setExecutor(commandExperienceMod);
 		getCommand(commandSpawnExp).setExecutor(commandSpawn);
+		
+		// Begin server tick
+		serverTickTask = getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
+			public void run() {
+				onServerTick();
+			}
+		}, tickDelay, tickDelay); 
+		
+		// Inform of this problem
+		if (serverTickTask < 0)
+			printWarning(this, "Could not start repeating task for sending messages.");
+	}
+	
+	@Override
+	public void onDisable() {
+
+		// Cancel server tick
+		if (serverTickTask >= 0)
+			getServer().getScheduler().cancelTask(serverTickTask);
 	}
 	
 	public YamlConfiguration loadConfig(String name, String createMessage) throws IOException {
@@ -237,6 +260,16 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			}
 			
 		}
+	}
+	
+	/**
+	 * Invoked every server tick.
+	 */
+	public void onServerTick() {
+	
+		// Send messages
+		if (presets != null)
+			presets.onTick();
 	}
 	
 	// Check for illegal presets

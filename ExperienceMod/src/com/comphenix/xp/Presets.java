@@ -185,4 +185,14 @@ public class Presets {
 	public Collection<Configuration> getConfigurations() {
 		return presets.getValues();
 	}
+	
+	public void onTick() {
+		
+		// Make sure messages are being sent
+		if (presets != null) {
+			for (Configuration config : presets.getValues()) {
+				config.onTick();
+			}		
+		}
+	}
 }

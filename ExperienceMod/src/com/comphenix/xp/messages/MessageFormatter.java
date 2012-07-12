@@ -81,7 +81,7 @@ public class MessageFormatter {
 			throw new NullArgumentException("a");
 		if (b == null)
 			throw new NullArgumentException("b");
-		if (!ObjectUtils.equals(a, b))
+		if (!ObjectUtils.equals(a.getSource(), b.getSource()))
 			throw new IllegalArgumentException("Message formatters for different players cannot be added.");
 		
 		// Add values

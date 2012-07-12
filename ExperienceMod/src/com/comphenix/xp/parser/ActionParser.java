@@ -123,7 +123,11 @@ public class ActionParser extends ConfigurationParser<Action> {
 		}
 	}
 	
-	public int getCurrentID() {
+	public static int getCurrentID() {
 		return currentID;
+	}
+	
+	public static void setCurrentID(int id) {
+		currentID = id;
 	}
 }

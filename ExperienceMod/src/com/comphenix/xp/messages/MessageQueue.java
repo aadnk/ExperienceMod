@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
 
+import org.apache.commons.lang.NullArgumentException;
 import org.bukkit.entity.Player;
 
 import com.comphenix.xp.Action;
@@ -46,6 +47,9 @@ public class MessageQueue {
 	
 	public void enqueue(Action action, MessageFormatter formatter) {
 		
+		if (formatter == null)
+			throw new NullArgumentException("formatter");
+		
 		// Special case
 		if (messageDelay == 0) {
 			transmitt(action, formatter);
@@ -55,9 +59,9 @@ public class MessageQueue {
 		// Enqueue the message
 		if (lookup.containsKey(action)) {
 			lookup.put(action, MessageFormatter.add(lookup.get(action), formatter));
-			ordered.add(action);
 		} else {
 			lookup.put(action, formatter);
+			ordered.add(action);
 		}
 	}
 	
