@@ -11,7 +11,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
-public class ExperienceInformer implements Listener {
+public class ExperienceInformerListener implements Listener {
 
 	// Whether or not to display warning messages
 	private final String permissionInfo = "experiencemod.info";

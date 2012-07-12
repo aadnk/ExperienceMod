@@ -41,7 +41,7 @@ import com.comphenix.xp.commands.CommandSpawnExp;
 import com.comphenix.xp.listeners.ExperienceBlockListener;
 import com.comphenix.xp.listeners.ExperienceCleanupListener;
 import com.comphenix.xp.listeners.ExperienceEnhancementsListener;
-import com.comphenix.xp.listeners.ExperienceInformer;
+import com.comphenix.xp.listeners.ExperienceInformerListener;
 import com.comphenix.xp.listeners.ExperienceItemListener;
 import com.comphenix.xp.listeners.ExperienceMobListener;
 import com.comphenix.xp.messages.ChannelProvider;
@@ -77,7 +77,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	private ExperienceEnhancementsListener xpEnchancer;
 	private ExperienceCleanupListener xpCleanup;
 	
-	private ExperienceInformer informer;
+	private ExperienceInformerListener informer;
 	private ItemRewardListener itemListener;
 	
 	private RewardProvider rewardProvider;
@@ -102,7 +102,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		manager = getServer().getPluginManager();
 		
 		currentLogger = this.getLogger();
-		informer = new ExperienceInformer();
+		informer = new ExperienceInformerListener();
 		
 		commandExperienceMod = new CommandExperienceMod(this);
 		commandSpawn = new CommandSpawnExp(this);
@@ -344,7 +344,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		return economy;
 	}
 	
-	public ExperienceInformer getInformer() {
+	public ExperienceInformerListener getInformer() {
 		return informer;
 	}
 	
