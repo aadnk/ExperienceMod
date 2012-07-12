@@ -39,6 +39,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import com.comphenix.xp.commands.CommandExperienceMod;
 import com.comphenix.xp.commands.CommandSpawnExp;
 import com.comphenix.xp.listeners.ExperienceBlockListener;
+import com.comphenix.xp.listeners.ExperienceCleanupListener;
 import com.comphenix.xp.listeners.ExperienceEnhancements;
 import com.comphenix.xp.listeners.ExperienceItemListener;
 import com.comphenix.xp.listeners.ExperienceMobListener;
@@ -73,6 +74,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	private ExperienceItemListener xpItemListener;
 	private ExperienceMobListener xpMobListener;
 	private ExperienceEnhancements xpEnchancer;
+	private ExperienceCleanupListener xpCleanup;
 	
 	private ExperienceInformer informer;
 	private ItemRewardListener itemListener;
@@ -161,6 +163,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			manager.registerEvents(xpItemListener, this);
 			manager.registerEvents(xpMobListener, this);
 			manager.registerEvents(xpEnchancer, this);
+			manager.registerEvents(xpCleanup, this);
 			manager.registerEvents(informer, this);
 		
 		} catch (IOException e) {
@@ -368,10 +371,12 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			xpBlockListener = new ExperienceBlockListener(this, presets);
 			xpMobListener = new ExperienceMobListener(this, presets);
 			xpEnchancer = new ExperienceEnhancements(this);
+			xpCleanup = new ExperienceCleanupListener(presets);
 		} else {
 			xpItemListener.setPresets(presets);
 			xpBlockListener.setPresets(presets);
 			xpMobListener.setPresets(presets);
+			xpCleanup.setPresets(presets);
 		}
 	}
 	

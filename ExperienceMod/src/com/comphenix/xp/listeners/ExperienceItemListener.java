@@ -8,7 +8,6 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.BrewEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType.SlotType;
@@ -25,11 +24,10 @@ import com.comphenix.xp.lookup.ItemTree;
 import com.comphenix.xp.lookup.PlayerRewards;
 import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.messages.MessagePlayerQueue;
-import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.rewards.RewardProvider;
 import com.google.common.base.Objects;
 
-public class ExperienceItemListener implements Listener {
+public class ExperienceItemListener extends AbstractExperienceListener {
 
 	private final String permissionRewardSmelting = "experiencemod.rewards.smelting";
 	private final String permissionRewardBrewing = "experiencemod.rewards.brewing";
@@ -38,7 +36,6 @@ public class ExperienceItemListener implements Listener {
 
 	private JavaPlugin parentPlugin;
 	private Debugger debugger;
-	private Presets presets;
 	
 	// Random source
 	private Random random = new Random();
@@ -48,30 +45,7 @@ public class ExperienceItemListener implements Listener {
 		this.debugger = debugger;
 		setPresets(presets);
 	}
-	
-	public Presets getPresets() {
-		return presets;
-	}
 
-	public void setPresets(Presets presets) {
-		this.presets = presets;
-	}
-
-	/**
-	 * Load the correct configuration for a given player.
-	 * @param world - the given player.
-	 * @return The most relevant configuration, or NULL if none were found.
-	 */
-	public Configuration getConfiguration(Player player) {
-		try {
-			return presets.getConfiguration(player);
-			
-		} catch (ParsingException e) {
-			// We most likely have complained about this already
-			return null;
-		}
-	}
-	
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void onPlayerFishEvent(PlayerFishEvent event) {
 		

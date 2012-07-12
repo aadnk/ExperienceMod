@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import com.comphenix.xp.lookup.*;
@@ -605,5 +606,14 @@ public class Configuration implements Multipliable<Configuration> {
 	public void onTick() {
 		if (messageQueue != null) 
 			messageQueue.onTick();
+	}
+
+	/**
+	 * Removes a given player from any live buffers or caches.
+	 * @param player - player to remove.
+	 */
+	public void removePlayer(Player player) {
+		if (messageQueue != null) 
+			messageQueue.removePlayer(player);
 	}
 }

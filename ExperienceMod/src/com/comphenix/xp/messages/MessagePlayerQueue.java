@@ -84,4 +84,12 @@ public class MessagePlayerQueue {
 		for (MessageQueue queue : queues.values()) 
 			queue.onTick();
 	}
+
+	/**
+	 * Removes a player's message queue.
+	 * @param player - the player associated with the message queue to remove.
+	 */
+	public void removePlayer(Player player) {
+		queues.remove(player);
+	}
 }

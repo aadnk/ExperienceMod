@@ -3,13 +3,10 @@ package com.comphenix.xp.listeners;
 import java.util.HashMap;
 import java.util.Random;
 
-import org.bukkit.World;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
@@ -21,13 +18,11 @@ import com.comphenix.xp.Presets;
 import com.comphenix.xp.Range;
 import com.comphenix.xp.lookup.MobQuery;
 import com.comphenix.xp.messages.ChannelProvider;
-import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.rewards.RewardProvider;
 
-public class ExperienceMobListener implements Listener {
+public class ExperienceMobListener extends AbstractExperienceListener {
 
 	private Debugger debugger;
-	private Presets presets;
 	
 	// To determine spawn reason
 	private HashMap<Integer, SpawnReason> spawnReasonLookup = new HashMap<Integer, SpawnReason>();
@@ -38,44 +33,6 @@ public class ExperienceMobListener implements Listener {
 	public ExperienceMobListener(Debugger debugger, Presets presets) {
 		this.debugger = debugger;
 		setPresets(presets);
-	}
-	
-	public Presets getPresets() {
-		return presets;
-	}
-
-	public void setPresets(Presets presets) {
-		this.presets = presets;
-	}
-
-	/**
-	 * Load the correct configuration for a given player.
-	 * @param world - the given player.
-	 * @return The most relevant configuration, or NULL if none were found.
-	 */
-	public Configuration getConfiguration(Player player) {
-		try {
-			return presets.getConfiguration(player);
-			
-		} catch (ParsingException e) {
-			// We most likely have complained about this already
-			return null;
-		}
-	}
-	
-	/**
-	 * Load the correct configuration for general world events not associated with any player.
-	 * @param world - the world to look for.
-	 * @return The most relevant configuration, or NULL if none were found.
-	 */
-	public Configuration getConfiguration(World world) {
-		try {
-			return presets.getConfiguration(null, world.getName());
-			
-		} catch (ParsingException e) {
-			//debugger.printDebug(this, "Preset error: %s", e.getMessage());
-			return null;
-		}
 	}
 	
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true) 

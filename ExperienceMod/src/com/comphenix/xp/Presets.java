@@ -186,6 +186,19 @@ public class Presets {
 		return presets.getValues();
 	}
 	
+	/**
+	 * Removes a given player from being referenced by any preset node. Must be called when a player logs out.
+	 * @param player - player to remove.
+	 */
+	public void removePlayer(Player player) {
+		// Make sure messages are being sent
+		if (presets != null) {
+			for (Configuration config : presets.getValues()) {
+				config.removePlayer(player);
+			}	
+		}
+	}
+	
 	public void onTick() {
 		
 		// Make sure messages are being sent
