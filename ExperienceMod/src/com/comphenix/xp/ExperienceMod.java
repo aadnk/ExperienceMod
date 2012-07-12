@@ -40,7 +40,8 @@ import com.comphenix.xp.commands.CommandExperienceMod;
 import com.comphenix.xp.commands.CommandSpawnExp;
 import com.comphenix.xp.listeners.ExperienceBlockListener;
 import com.comphenix.xp.listeners.ExperienceCleanupListener;
-import com.comphenix.xp.listeners.ExperienceEnhancements;
+import com.comphenix.xp.listeners.ExperienceEnhancementsListener;
+import com.comphenix.xp.listeners.ExperienceInformer;
 import com.comphenix.xp.listeners.ExperienceItemListener;
 import com.comphenix.xp.listeners.ExperienceMobListener;
 import com.comphenix.xp.messages.ChannelProvider;
@@ -73,7 +74,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	private ExperienceBlockListener xpBlockListener;
 	private ExperienceItemListener xpItemListener;
 	private ExperienceMobListener xpMobListener;
-	private ExperienceEnhancements xpEnchancer;
+	private ExperienceEnhancementsListener xpEnchancer;
 	private ExperienceCleanupListener xpCleanup;
 	
 	private ExperienceInformer informer;
@@ -370,7 +371,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			xpItemListener = new ExperienceItemListener(this, this, presets);
 			xpBlockListener = new ExperienceBlockListener(this, presets);
 			xpMobListener = new ExperienceMobListener(this, presets);
-			xpEnchancer = new ExperienceEnhancements(this);
+			xpEnchancer = new ExperienceEnhancementsListener(this);
 			xpCleanup = new ExperienceCleanupListener(presets);
 		} else {
 			xpItemListener.setPresets(presets);

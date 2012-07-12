@@ -9,14 +9,14 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 
 import com.comphenix.xp.Debugger;
 
-public class ExperienceEnhancements extends AbstractExperienceListener {
+public class ExperienceEnhancementsListener extends AbstractExperienceListener {
 	
 	private final String permissionKeepExp = "experiencemod.keepexp";
 	private final String permissionMaxEnchant = "experiencemod.maxenchant";
 	
 	private Debugger debugger;
 	
-	public ExperienceEnhancements(Debugger debugger) {
+	public ExperienceEnhancementsListener(Debugger debugger) {
 		this.debugger = debugger;
 	}
 	

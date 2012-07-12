@@ -1,4 +1,4 @@
-package com.comphenix.xp;
+package com.comphenix.xp.listeners;
 
 import java.util.ArrayList;
 import java.util.List;
