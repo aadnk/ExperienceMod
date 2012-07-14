@@ -119,7 +119,7 @@ public class ItemParser extends TextParser<Query> {
 				throw ex;
 		}
 	}
-	
+
 	private boolean hasNegativeIntegers(List<Integer> values) {
 		
 		// See if any of the values are negative
