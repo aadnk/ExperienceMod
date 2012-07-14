@@ -18,6 +18,7 @@ package com.comphenix.xp.lookup;
  */
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang.NullArgumentException;
@@ -39,15 +40,18 @@ import com.google.common.collect.Lists;
 public class ItemQuery implements Query {
 	
 	private static List<Integer> noNumbers = new ArrayList<Integer>();
+	private static List<ItemQuery> noQueries = new ArrayList<ItemQuery>();
+	private static List<ItemQuery> matchNone = Arrays.asList((ItemQuery) null);
 	
 	private List<Integer> itemID;
 	private List<Integer> durability;
+	private List<ItemQuery> ingredients;
 
 	/**
 	 * Universal query.
 	 */
 	public static ItemQuery fromAny() {
-		return new ItemQuery(noNumbers, noNumbers);
+		return new ItemQuery(noNumbers, noNumbers, noQueries);
 	}	
 	
 	/**
@@ -70,7 +74,16 @@ public class ItemQuery implements Query {
 	public static ItemQuery fromAny(Integer itemID, Integer durability) {
 		return new ItemQuery(
 				Utility.getElementList(itemID), 
-				Utility.getElementList(durability)
+				Utility.getElementList(durability),
+				noQueries
+		);
+	}
+	
+	public static ItemQuery fromAny(Integer itemID, Integer durability, ItemStack[] ingredients) {
+		return new ItemQuery(
+				Utility.getElementList(itemID), 
+				Utility.getElementList(durability),
+				getIngredientList(ingredients)
 		);
 	}
 	
@@ -95,16 +108,67 @@ public class ItemQuery implements Query {
 		return fromExact(stack.getTypeId(), (int) stack.getDurability());
 	}
 	
-	public static ItemQuery fromExact(Integer itemID, Integer durability) {
-		return new ItemQuery(
-				Lists.newArrayList(itemID), 
-				Lists.newArrayList(durability)
+	/**
+	 * Extracts the item type, durability and source ingredients.
+	 * @param stack - item type.
+	 * @throws NullArgumentException if the stack is null.
+	 */
+	public static ItemQuery fromExact(ItemStack stack, ItemStack[] ingredients) {
+		
+		if (stack == null)
+			throw new NullArgumentException("stack");
+		if (ingredients == null)
+			throw new NullArgumentException("ingredients");
+		
+		List<ItemQuery> list = getIngredientList(ingredients);
+		
+		// Convert the array into an ingredient list
+		return fromExact(
+				(int) stack.getTypeId(), 
+				(int) stack.getDurability(),
+				
+				// Make sure we only select queries without ingredient specifier in that case
+				list.isEmpty() ? matchNone : list 
 		);
 	}
 	
+	public static ItemQuery fromExact(Integer itemID, Integer durability) {
+		return fromExact(itemID, durability, matchNone);
+	}
+	
+	public static ItemQuery fromExact(Integer itemID, Integer durability, List<ItemQuery> ingredients) {
+		return new ItemQuery(
+				Lists.newArrayList(itemID), 
+				Lists.newArrayList(durability),
+				ingredients
+		);
+	}
+	
+	/**
+	 * Converts an array of item stacks into a corresponding list of item queries.
+	 * @param ingredients - array of item stacks.
+	 * @return List of item queries constructed form each item stack in the array.
+	 */
+	private static List<ItemQuery> getIngredientList(ItemStack[] ingredients) {
+		
+		List<ItemQuery> listIngredients = new ArrayList<ItemQuery>();
+		
+		// Convert each ingredient into a item query
+		for (ItemStack stack : ingredients) {
+			listIngredients.add(fromExact(stack));
+		}
+		
+		return listIngredients;
+	}
+	
 	public ItemQuery(List<Integer> itemID, List<Integer> durability) {
+		this(itemID, durability, noQueries);
+	}
+	
+	public ItemQuery(List<Integer> itemID, List<Integer> durability, List<ItemQuery> ingredients) {
 		this.itemID = itemID;
 		this.durability = durability;
+		this.ingredients = ingredients;
 	}
 
 	public List<Integer> getItemID() {
@@ -114,6 +178,18 @@ public class ItemQuery implements Query {
 	public List<Integer> getDurability() {
 		return durability;
 	}
+	
+	public List<ItemQuery> getIngredients() {
+		return ingredients;
+	}
+	
+	/**
+	 * This method is only used during the construction of the item query. Sets the list of ingredients to match.
+	 * @param ingredients - list of ingredients to mathc.
+	 */
+	public void setIngredients(List<ItemQuery> ingredients) {
+		this.ingredients = ingredients;
+	}
 
 	public boolean hasItemID() {
 		return itemID != null && !itemID.isEmpty();
@@ -121,6 +197,10 @@ public class ItemQuery implements Query {
 	
 	public boolean hasDurability() {
 		return durability != null && !durability.isEmpty();
+	}
+	
+	public boolean hasIngredients() {
+		return ingredients != null && !ingredients.isEmpty();
 	}
 	
 	public boolean hasSingleItem(Material item) {
@@ -134,6 +214,7 @@ public class ItemQuery implements Query {
 		return new HashCodeBuilder(17, 31).
 	            append(itemID).
 	            append(durability).
+	            append(ingredients).
 	            toHashCode();
 	}
 
@@ -150,6 +231,7 @@ public class ItemQuery implements Query {
         return new EqualsBuilder().
             append(itemID, other.itemID).
             append(durability, other.durability).
+            append(ingredients, other.ingredients).
             isEquals();
 	}
 	

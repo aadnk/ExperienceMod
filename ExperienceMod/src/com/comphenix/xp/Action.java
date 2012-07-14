@@ -338,10 +338,9 @@ public class Action {
 			textRewards.add(String.format("%s: %s", key, value));
 		}
 		
-		return String.format("%s %s (%d)", 
+		return String.format("%s %s", 
 				StringUtils.join(textRewards, ", "),
-				message,
-				id
+				message
 		);
 	}
 	
