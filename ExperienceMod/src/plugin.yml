@@ -29,7 +29,6 @@ permissions:
       experiencemod.info: true
       experiencemod.keepexp: true
       experiencemod.maxenchant: true
-      experiencemod.untouchable: true
       experiencemod.rewards.smelting: true
       experiencemod.rewards.brewing: true
       experiencemod.rewards.crafting: true

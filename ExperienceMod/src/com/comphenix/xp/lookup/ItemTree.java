@@ -25,8 +25,7 @@ import com.comphenix.xp.Action;
 public class ItemTree extends ActionTree<ItemQuery> implements Multipliable<ItemTree> {
 
 	protected Parameter<Integer> itemID;
-	protected Parameter<Integer> durability;
-	protected Parameter<ItemQuery> ingredients;
+	protected Parameter<Integer> durability; 
 
 	// Only used by the hack in PotionTree.
 	ItemTree() {
@@ -42,14 +41,12 @@ public class ItemTree extends ActionTree<ItemQuery> implements Multipliable<Item
 		
 		this.itemID = other.itemID;
 		this.durability = other.durability;
-		this.ingredients = other.ingredients;
 	}
 	
 	public ItemTree(double multiplier) {
 		super(multiplier);
 		this.itemID = new Parameter<Integer>();
 		this.durability = new Parameter<Integer>();
-		this.ingredients = new Parameter<ItemQuery>();
 	}
 
 	@Override
@@ -69,10 +66,6 @@ public class ItemTree extends ActionTree<ItemQuery> implements Multipliable<Item
 		if (source.hasDurability()) {
 			durability.put(source.getDurability(), id); paramCount++;
 		}
-		
-		if (source.hasIngredients()) {
-			ingredients.put(source.getIngredients(), id); paramCount++;
-		}
 
 		return paramCount;
 	}
@@ -90,10 +83,6 @@ public class ItemTree extends ActionTree<ItemQuery> implements Multipliable<Item
 		if (source.hasDurability())
 			durability.retain(candidates, source.getDurability());
 		
-		// Remove items with different ingredients/recipes
-		if (source.hasIngredients())
-			ingredients.retain(candidates, source.getIngredients());
-		
 		// Any remaining items will be sorted by specificity
 		return candidates;
 	}
@@ -105,6 +94,5 @@ public class ItemTree extends ActionTree<ItemQuery> implements Multipliable<Item
 
 		itemID.putAll(tree.itemID, offset);
 		durability.putAll(tree.durability, offset);
-		ingredients.putAll(tree.ingredients, offset);
 	}
 }
