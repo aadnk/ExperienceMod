@@ -69,7 +69,36 @@ public class Action {
 	}
 
 	/**
-	 * Rewards a player with the given amount of resources.
+	 * Determines whether or not a player can be rewarded (or penalized) the given number of times.
+	 * @param provider - reward provider.
+	 * @param player - the player to test.
+	 * @param count - number of times to reward this action.
+	 * @return TRUE if the action can be rewarded that number of times, FALSE otherwise.
+	 */
+	public boolean canRewardPlayer(RewardProvider provider, Player player, int count) {
+		
+		// Give every reward
+		for (Map.Entry<String, Range> entry : rewards.entrySet()) {
+			
+			String key = Utility.getEnumName(entry.getKey());
+			RewardService manager = provider.getByName(key);
+			
+			// That is, the highest penalty we can give
+			int minimum = entry.getValue().getMinimum() * count;
+			
+			// See if the manager allows this extreme
+			if (manager != null) {
+				if (!manager.canReward(player, minimum))
+					return false;
+			}
+		}
+		
+		// Yes, we can
+		return true;
+	}
+	
+	/**
+	 * Rewards or penalizes a player with the given amount of resources.
 	 * @param provider - reward provider that determines specifically how to reward players.
 	 * @param rnd - random number generator.
 	 * @param player - the player to reward.
@@ -82,7 +111,7 @@ public class Action {
 	}
 	
 	/**
-	 * Rewards a player with the given amount of resources.
+	 * Rewards or penalizes a player with the given amount of resources.
 	 * @param provider - reward provider that determines specifically how to reward players.
 	 * @param rnd - random number generator.
 	 * @param player - the player to reward.
@@ -115,7 +144,7 @@ public class Action {
 	}
 	
 	/**
-	 * Rewards a given player with resources at a given location.
+	 * Rewards or penalizes a given player with resources at a given location.
 	 * @param provider - reward provider that determines specifically how to reward players.
 	 * @param rnd - random number generator.
 	 * @param player - the player to reward.

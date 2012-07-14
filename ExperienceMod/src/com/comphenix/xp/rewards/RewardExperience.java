@@ -16,6 +16,12 @@ import com.comphenix.xp.Server;
 public class RewardExperience implements RewardService {
 
 	@Override
+	public boolean canReward(Player player, int amount) {
+		// Accept anything. We've already warned about negative amounts.
+		return true;
+	}
+	
+	@Override
 	public void reward(Player player, int amount) {
 		if (player == null)
 			throw new NullArgumentException("player");

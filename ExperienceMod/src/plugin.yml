@@ -58,6 +58,9 @@ permissions:
   experiencemod.info:
     description: Allows access to warning and debug messages.
     default: op
+  experiencemod.untouchable:
+    description: Prevents events from ever being cancelled due to lack of currency or resources.
+    default: op
   experiencemod.rewards.smelting:
     description: Rewards smelting of ores with experience.
     default: false

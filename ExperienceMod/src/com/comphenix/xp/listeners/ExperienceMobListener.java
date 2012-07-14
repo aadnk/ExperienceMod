@@ -5,6 +5,7 @@ import java.util.Random;
 
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.CreatureSpawnEvent;
@@ -22,6 +23,8 @@ import com.comphenix.xp.rewards.RewardProvider;
 
 public class ExperienceMobListener extends AbstractExperienceListener {
 
+	private final String permissionUntouchable = "experiencemod.untouchable";
+	
 	private Debugger debugger;
 	
 	// To determine spawn reason
@@ -48,7 +51,9 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 		
 		Configuration config;
 		LivingEntity entity = event.getEntity();
-		boolean hasKiller = entity.getKiller() != null;
+		
+		Player killer = entity.getKiller();
+		boolean hasKiller = (killer != null);
 		
 		// Only drop experience from mobs
 		if (entity != null && isMob(entity)) {
@@ -57,7 +62,7 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 			MobQuery query = MobQuery.fromExact(entity, spawnReasonLookup.get(id), hasKiller);
 
 			if (hasKiller)
-				config = getConfiguration(entity.getKiller());
+				config = getConfiguration(killer);
 			else
 				config = getConfiguration(entity.getWorld());
 			
@@ -73,11 +78,30 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 			// Make sure the reward has been changed
 			if (action != null) {
 				
-				// Spawn the experience ourself
-				event.setDroppedExp(0);
 				RewardProvider rewards = config.getRewardProvider();
 				ChannelProvider channels = config.getChannelProvider();
-
+				
+				// Spawn the experience ourself
+				event.setDroppedExp(0);
+				
+				// Make sure the action is legal
+				if (hasKiller && !action.canRewardPlayer(rewards, killer, 1)) {
+					if (debugger != null)
+						debugger.printDebug(this, "Entity %d kill cancelled: Player %s hasn't got enough resources.",
+								id, killer.getName());
+					
+					// Events will not be directly cancelled for untouchables
+					if (!killer.hasPermission(permissionUntouchable)) {
+						// To cancel this event, spawn a new mob at the exact same location.
+						LivingEntity spawned = entity.getWorld().spawnCreature(entity.getLocation(), entity.getType());
+						spawned.addPotionEffects(entity.getActivePotionEffects());
+						
+						// Prevent drops
+						event.getDrops().clear();
+					}
+					return;
+				}
+				
 				Integer xp = action.rewardAnyone(rewards, random, entity.getWorld(), entity.getLocation());
 				config.getMessageQueue().enqueue(null, action, channels.getFormatter(null, xp));
 				

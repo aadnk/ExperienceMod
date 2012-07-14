@@ -27,6 +27,22 @@ public class RewardVirtual implements RewardService {
 		reward(player, null, amount);
 	}
 
+	@Override
+	public boolean canReward(Player player, int amount) {
+
+		if (player == null)
+			throw new NullArgumentException("player");
+
+		ExperienceManager manager = new ExperienceManager(player);
+		
+		// See if we'd end up with negative experience
+		if (amount < 0) {
+			return manager.hasExp(-amount);
+		} else {
+			return true;
+		}
+	}
+	
 	// Note: We ignore the location.
 	@Override
 	public void reward(Player player, Location point, int amount) {

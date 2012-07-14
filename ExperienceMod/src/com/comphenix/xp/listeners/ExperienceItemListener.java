@@ -12,6 +12,7 @@ import org.bukkit.event.inventory.BrewEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType.SlotType;
 import org.bukkit.event.player.PlayerFishEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -33,6 +34,7 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 	private final String permissionRewardBrewing = "experiencemod.rewards.brewing";
 	private final String permissionRewardCrafting = "experiencemod.rewards.crafting";
 	private final String permissionRewardFishing = "experiencemod.rewards.fishing";
+	private final String permissionUntouchable = "experiencemod.untouchable";
 
 	private JavaPlugin parentPlugin;
 	private Debugger debugger;
@@ -46,7 +48,7 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 		setPresets(presets);
 	}
 
-	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onPlayerFishEvent(PlayerFishEvent event) {
 		
 		Player player = event.getPlayer();
@@ -83,6 +85,18 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 			
 			// Has an action been set?
 			if (action != null) {
+				
+				// Check and see if the player is broke
+				if (!action.canRewardPlayer(config.getRewardProvider(), player, 1)) {
+					if (debugger != null)
+						debugger.printDebug(this, "Unable to penalize fishing for %s. Not enough funds.", player.getName());
+					
+					// Don't catch the fish
+					if (!player.hasPermission(permissionUntouchable))
+						event.setCancelled(true);
+					return;
+				}
+				
 				int exp = action.rewardPlayer(config.getRewardProvider(), random, player);
 				config.getMessageQueue().enqueue(player, action, channels.getFormatter(player, exp));
 				
@@ -222,9 +236,9 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 	private void handleInventory(InventoryClickEvent event, Action action, 
 								 RewardableAction rewardAction, boolean partialResults) {
 		
-		Player player = (Player) event.getWhoClicked();
-		ItemStack toStore = event.getCursor();
-		ItemStack toCraft = event.getCurrentItem();
+		final Player player = (Player) event.getWhoClicked();
+		final ItemStack toStore = event.getCursor().clone();
+		final ItemStack toCraft = event.getCurrentItem().clone();
 		
 		// Nothing do do
 		if (action == null)
@@ -234,8 +248,29 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 		action.setDebugger(debugger);
 		
 		if (event.isShiftClick()) {
-			// Hack ahoy
-			schedulePostCraftingReward(player, action, rewardAction, toCraft);
+			
+			// Store this in case we have to cancel the event manually
+			final Inventory blockInventory = event.getInventory();
+			final Inventory playerInventory = player.getInventory();
+			final ItemStack[] originalPlayerInventory = getInventoryCopy(playerInventory);
+			final ItemStack[] originalBlockInventory = getInventoryCopy(blockInventory);
+			
+			// Hack ahoy. So ugly!
+			schedulePostCraftingReward(player, action, rewardAction, toCraft, 
+					new Runnable() {
+						
+						// Revert crafting. Attempt to, at least.
+						public void run() {
+							
+							// Don't touch the inventory of the untouchables
+							if (!player.hasPermission(permissionUntouchable)) {
+								playerInventory.setContents(originalPlayerInventory);
+								blockInventory.setContents(originalBlockInventory);
+								player.setItemOnCursor(toStore);
+							}
+						}
+					});
+			
 		} else {
 			
 			// The items are stored in the cursor. Make sure there's enough space.
@@ -248,7 +283,15 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 					count = Math.max(count / 2, 1);
 				}
 				
-				rewardAction.performAction(player, toCraft, action, count);
+				// Simple enough
+				if (rewardAction.canPerform(player, action, count)) {
+					rewardAction.performAction(player, toCraft, action, count);
+					
+				} else {
+					// Events will not be cancelled for untouchables
+					if (!player.hasPermission(permissionUntouchable))
+						event.setCancelled(true);
+				}
 			}
 		}
 	}
@@ -273,6 +316,11 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 					stack.setDurability(marker.toDurability());
 				}
 			}
+
+			@Override
+			public boolean canPerform(Player player, Action action, int count) {
+				return fundamental.canPerform(player, action, count);
+			}
 		};	
 	}
 	
@@ -296,22 +344,40 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 					debugger.printDebug(this, "User %s - spawned %d xp for item %s.", 
 						player.getName(), exp, stack.getType());
 			}
+
+			@Override
+			public boolean canPerform(Player player, Action action, int count) {
+				return action.canRewardPlayer(rewardsProvider, player, count);
+			}
 		};
+	}
+	
+	/**
+	 * Retrieves a copy of the content of a given inventory.
+	 * @param inventory - inventory to copy.
+	 * @return A copy of the content.
+	 */
+	private ItemStack[] getInventoryCopy(Inventory inventory) {
+		
+		final ItemStack[] copy = inventory.getContents();
+		
+		// Clone the array. The content may (was for me) mutable.
+		for (int i = 0; i < copy.length; i++) {
+			copy[i] = copy[i] != null ? copy[i].clone() : null;
+		}
+		
+		return copy;
 	}
 	
 	// HACK! The API doesn't allow us to easily determine the resulting number of
 	// crafted items, so we're forced to compare the inventory before and after.
 	private void schedulePostCraftingReward(final Player player, final Action action,
 											final RewardableAction rewardAction, 
-											final ItemStack compareItem) {
-		
-		final ItemStack[] preInv = player.getInventory().getContents();
+											final ItemStack compareItem,
+											final Runnable cancel) {
+											
+		final ItemStack[] preInv = getInventoryCopy(player.getInventory());
 		final int ticks = 1; // May need adjusting
-		
-		// Clone the array. The content may (was for me) mutable.
-		for (int i = 0; i < preInv.length; i++) {
-			preInv[i] = preInv[i] != null ? preInv[i].clone() : null;
-		}
 		
 		Bukkit.getScheduler().scheduleSyncDelayedTask(parentPlugin, new Runnable() {
 			@Override
@@ -335,8 +401,16 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 					}
 				}
 				
+				// See if we actually got anything
 				if (newItemsCount > 0) {
-					rewardAction.performAction(player, last, action, newItemsCount);
+					
+					// See if the event must be cancelled
+					if (!rewardAction.canPerform(player, action, newItemsCount)) {
+						// A big stinky hack in a hack
+						cancel.run();
+					} else {
+						rewardAction.performAction(player, last, action, newItemsCount);
+					}
 				}
 			}
 		}, ticks);

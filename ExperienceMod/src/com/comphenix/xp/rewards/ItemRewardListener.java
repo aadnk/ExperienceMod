@@ -38,19 +38,24 @@ public class ItemRewardListener implements Listener {
 			Integer amount = queue.get(id);
 			
 			if (amount != null) {
+				
 				event.setCancelled(true);
 				reward.reward(player, amount);
 				
 				queue.remove(id);
 				item.remove();
 				
+				if (logger != null) {
+					// See if we in fact rewarded the player
+					if (reward.canReward(player, amount)) {
+						// Replaced content
+						logger.printDebug(this, "Gave player %s currency instead of item %s (%s).", 
+								player.getName(), item.getItemStack(), id);
+					}
+				}
+				
 				// Just play a sound
 				player.getWorld().playEffect(item.getLocation(), Effect.CLICK1, soundRadius);
-				
-				// Replaced content
-				if (logger != null)
-					logger.printDebug(this, "Gave player %s currency instead of item %s (%s).", 
-						player.getName(), item.getItemStack(), id);
 			}
 		}
 	}

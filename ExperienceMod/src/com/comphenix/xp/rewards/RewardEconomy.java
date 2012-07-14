@@ -44,41 +44,88 @@ public class RewardEconomy implements RewardService {
 		this.listener = listener;
 		this.economy = economy;
 	}
+
+	// Yes, this is a bit of a hack. But it's only a constant overhead.
+	@Override
+	public boolean canReward(Player player, int amount) {
+		if (player == null)
+			throw new NullArgumentException("player");
+		
+		// Dry run
+		if (!economyReward(player, amount, null)) {
+			// Oh, no. It didn't work. 
+			return false;
+		}
+		
+		// We'll revert the changes
+		if (!economyReward(player, -amount, null)) {
+			if (debugger != null)
+				debugger.printDebug(this, "Unable to revert economy reward/penalty.");
+			
+			// PANIC
+			return false;
+		}
+		
+		// Yes, rewarding the player worked.
+		return true;
+	}
 	
 	@Override
 	public void reward(Player player, int amount) {
+		economyReward(player, amount, debugger);
+	}
+	
+	// Internal method
+	private boolean economyReward(Player player, int amount, Debugger debugger) {
 		if (player == null)
 			throw new NullArgumentException("player");
 		
 		String name = player.getName();
-		EconomyResponse response = null;
-		
+
 		if (amount < 0) {
 			
-			// See how much we can withdraw
-			int removeable = (int) Math.min(economy.getBalance(name), amount);
+			// Make sure amount is positive
+			amount = Math.abs(amount);
 			
-			if (removeable > 0)
-				response = economy.withdrawPlayer(name, removeable);
-			else if (debugger != null)
-				debugger.printDebug(this, "Could not withdraw %d: Player %s is broke", amount, name);
+			// Just attempt to withdraw
+			EconomyResponse response = economy.withdrawPlayer(name, amount);
 			
-			// Other error
-			if (response != null && !response.transactionSuccess() && debugger != null)
-				debugger.printDebug(this, "Coult not withdraw %d from player %s: %s", 
-								    amount, name, response.errorMessage);
-
+			// Error?
+			if (response != null && !response.transactionSuccess()) {
+				
+				// Could this be because the player is broke?
+				if (isLoan(name, amount)) {
+					if (debugger != null)
+						debugger.printDebug(this, "Could not withdraw %d: Player %s is broke", 
+								amount, name);
+				} else {
+					// General error
+					if (debugger != null)
+						debugger.printDebug(this, "Coult not withdraw %d from player %s: %s", 
+							    amount, name, response.errorMessage);
+				}
+				
+				// Failure
+				return false;
+			}
+			
 		} else {
 			
 			// Deposit money (shouldn't really fail)
-			response = economy.depositPlayer(name, amount);
+			EconomyResponse response = economy.depositPlayer(name, amount);
 			
-			if (response != null && !response.transactionSuccess() && debugger != null)
+			// But we'll do this just in case
+			if (response != null && !response.transactionSuccess() && debugger != null) {
 				debugger.printDebug(this, "Could not deposit %d to player %s: %s", 
 									amount, name, response.errorMessage);
+				return false;
+			}
 		}
+		
+		// Everything went well
+		return true;
 	}
-
+	
 	// Location is ignored.
 	@Override
 	public void reward(Player player, Location point, int amount) {
@@ -113,6 +160,16 @@ public class RewardEconomy implements RewardService {
 			Item spawned = world.dropItemNaturally(point, stack);
 			listener.pinReward(spawned, Math.min(amount, worth));
 		}
+	}
+	
+	/**
+	 * Determines whether or not withdrawing given amount requires a loan.
+	 * @param name - name of the player to withdraw from.
+	 * @param withdraw - the amount of currency to withdraw.
+	 * @return TRUE if this requires a loan (negative bank balance), FALSE otherwise.
+	 */
+	private boolean isLoan(String name, int withdraw) {
+		return economy.getBalance(name) < withdraw;
 	}
 
 	@Override

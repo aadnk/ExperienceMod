@@ -26,7 +26,8 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 	private final String permissionRewardBonus = "experiencemod.rewards.bonus";
 	private final String permissionRewardBlock = "experiencemod.rewards.block";
 	private final String permissionRewardPlacing = "experiencemod.rewards.placing";
-
+	private final String permissionUntouchable = "experiencemod.untouchable";
+	
 	private Debugger debugger;
 
 	// Random source
@@ -132,6 +133,18 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 					Action action = placeReward.get(retrieveKey);
 					RewardProvider rewards = config.getRewardProvider();
 					ChannelProvider channels = config.getChannelProvider();
+					
+					// Make sure the action is legal
+					if (!action.canRewardPlayer(rewards, player, 1)) {
+						if (debugger != null)
+							debugger.printDebug(this, "Block place by %s cancelled: Not enough resources for item %s",
+								player.getName(), block.getType());
+						
+						// Events will not be cancelled for untouchables
+						if (!player.hasPermission(permissionUntouchable))
+							event.setCancelled(true);
+						return;
+					}
 					
 					// Reward and print messages (possibly in the future)
 					Integer exp = action.rewardPlayer(rewards, random, player);

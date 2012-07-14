@@ -14,6 +14,11 @@ public class MockRewardable implements RewardService {
 	public MockRewardable(RewardTypes type) {
 		this.type = type;
 	}
+
+	@Override
+	public boolean canReward(Player player, int amount) {
+		return true;
+	}
 	
 	@Override
 	public void reward(Player player, int amount) {
@@ -21,7 +26,6 @@ public class MockRewardable implements RewardService {
 
 	@Override
 	public void reward(Player player, Location point, int amount) {
-
 	}
 
 	@Override
