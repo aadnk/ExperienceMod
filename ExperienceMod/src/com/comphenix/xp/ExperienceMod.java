@@ -399,7 +399,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	 * Also note that this list contains every possible reward that matches the given parameters. In reality, only the 
 	 * first item will be awarded.
 	 * 
-	 * @param player - player performs the given action, or NULL if the default configuration file should be used.
+	 * @param player - player performing the given action, or NULL if the default configuration file should be used.
 	 * @param trigger - action the player performs.
 	 * @param query - query representing the item or block that was the target of the action.
 	 * @return A list of possible rewards. Only the first item will be chosen when rewards are actually awarded.
