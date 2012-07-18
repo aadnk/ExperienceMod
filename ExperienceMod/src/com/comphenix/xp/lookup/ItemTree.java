@@ -1,6 +1,4 @@
-package com.comphenix.xp.lookup;
-
-/**
+/*
  *  ExperienceMod - Bukkit server plugin for modifying the experience system in Minecraft.
  *  Copyright (C) 2012 Kristian S. Stangeland
  *
@@ -16,6 +14,8 @@ package com.comphenix.xp.lookup;
  *  if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 
  *  02111-1307 USA
  */
+
+package com.comphenix.xp.lookup;
 
 import java.util.HashSet;
 import java.util.Set;

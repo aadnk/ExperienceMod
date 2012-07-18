@@ -1,9 +1,4 @@
-package com.comphenix.xp.parser;
-
-import java.util.ArrayList;
-import java.util.List;
-
-/**
+/*
  *  ExperienceMod - Bukkit server plugin for modifying the experience system in Minecraft.
  *  Copyright (C) 2012 Kristian S. Stangeland
  *
@@ -20,6 +15,16 @@ import java.util.List;
  *  02111-1307 USA
  */
 
+package com.comphenix.xp.parser;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Parsing utility functions.
+ * 
+ * @author Kristian
+ */
 public class Utility {
 	
 	@SuppressWarnings("rawtypes")
