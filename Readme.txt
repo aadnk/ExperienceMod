@@ -17,6 +17,7 @@ FEATURES
     * Drop experience when players are manipulating items or blocks:
      * By the name and durability
      * By potion effect, level, extended duration, and more.
+    * Guarantee getting the highest enchant level on the enchantment table. 
     * Broadcast a message to the server or a specific channel (HeroChat only) 
       when experience is being awarded.
     * Use a different configuration for every world, or even particular players or groups.
@@ -33,6 +34,10 @@ TO INSTALL
 
     Optionally, if you need to reward people with currency, install Vault. 
     Install HeroChat if you wish to send messages on channels.
+
+JAVADOC
+
+    http://aadnk.github.com/ExperienceMod/Javadoc/
     
 HOW TO COMPILE
 
