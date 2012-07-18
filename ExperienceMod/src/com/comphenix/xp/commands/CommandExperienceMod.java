@@ -25,13 +25,12 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 import com.comphenix.xp.Action;
 import com.comphenix.xp.Configuration;
 import com.comphenix.xp.ExperienceMod;
-import com.comphenix.xp.lookup.ItemQuery;
 import com.comphenix.xp.lookup.MobQuery;
-import com.comphenix.xp.lookup.PotionQuery;
 import com.comphenix.xp.lookup.Query;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.parser.text.ItemParser;
@@ -126,11 +125,10 @@ public class CommandExperienceMod implements CommandExecutor {
 	private void handleQueryMob(CommandSender sender, String[] args, int offset) {
 
 		try {
-			Configuration config = plugin.getPresets().getConfiguration(sender);
 			String text = StringUtils.join(args, " ", offset, args.length);
-			
 			MobQuery query = mobParser.parse(text);
-			List<Action> results = config.getExperienceDrop().getAllRanked(query);
+			
+			List<Action> results = plugin.getMobReward((Player) sender, query);
 			
 			// Query result
 			displayActions(sender, results);
@@ -153,36 +151,11 @@ public class CommandExperienceMod implements CommandExecutor {
 		}
 
 		try {
-			Configuration config = plugin.getPresets().getConfiguration(sender);
 			String text = StringUtils.join(args, " ", offset + 1, args.length);
-			
 			Query query = itemParser.parse(text);
-			List<Action> results = null;
 			
-			switch (type) {
-			case BLOCK:
-				results = config.getSimpleBlockReward().getAllRanked((ItemQuery) query); 
-				break;
-			case BONUS:
-				results = config.getSimpleBonusReward().getAllRanked((ItemQuery) query); 
-				break;
-			case CRAFTING:
-				results = config.getSimpleCraftingReward().getAllRanked((ItemQuery) query); 
-				break;
-			case SMELTING:
-				results = config.getSimpleSmeltingReward().getAllRanked((ItemQuery) query); 
-				break;
-			case PLACE:
-				results = config.getSimplePlacingReward().getAllRanked((ItemQuery) query); 
-				break;
-			case BREWING:
-				// Handle both possibilities
-				if (query instanceof ItemQuery)
-					results = config.getSimpleBrewingReward().getAllRanked((ItemQuery) query);
-				else
-					results = config.getComplexBrewingReward().getAllRanked((PotionQuery) query);
-				break;
-			}
+			// Determine player rewards
+			List<Action> results = plugin.getPlayerReward((Player) sender, type, query);
 			
 			// Finally, display query result
 			displayActions(sender, results);

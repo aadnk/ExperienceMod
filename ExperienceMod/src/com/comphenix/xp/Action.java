@@ -18,6 +18,7 @@
 package com.comphenix.xp;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -79,6 +80,14 @@ public class Action {
 	
 	public Range getReward(RewardTypes type) {
 		return rewards.get(type.name());
+	}
+	
+	/**
+	 * Retrieves a list of the name of every reward.
+	 * @return Names of every reward.
+	 */
+	public Collection<String> getRewardNames() {
+		return rewards.keySet();
 	}
 	
 	public void removeAll() {

@@ -22,6 +22,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 import java.util.MissingResourceException;
 import java.util.logging.Logger;
 
@@ -32,6 +33,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -44,6 +46,10 @@ import com.comphenix.xp.listeners.ExperienceEnhancementsListener;
 import com.comphenix.xp.listeners.ExperienceInformerListener;
 import com.comphenix.xp.listeners.ExperienceItemListener;
 import com.comphenix.xp.listeners.ExperienceMobListener;
+import com.comphenix.xp.lookup.ItemQuery;
+import com.comphenix.xp.lookup.MobQuery;
+import com.comphenix.xp.lookup.PotionQuery;
+import com.comphenix.xp.lookup.Query;
 import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.messages.HeroService;
 import com.comphenix.xp.messages.MessageFormatter;
@@ -362,6 +368,69 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 
 	public Presets getPresets() {
 		return presets;
+	}
+	
+	/**
+	 * Retrieves a list of action rewards that applies when a mob is killed, either by the environment (when KILLER is NULL), 
+	 * or by a player. 
+	 * <p>
+	 * Note that the returned list contains every possible reward that matches the given mob. In reality, only the 
+	 * first item will be awarded.
+	 * 
+	 * @param killer - the player that killed this mob, or NULL if the mob died naturally.
+	 * @param query - query representing the mob that was killed.
+	 * @return A list of possible rewards. Only the first item will be chosen when rewards are actually awarded.
+	 * @throws ParsingException If the stored preset option associated with the killer is malformed.
+	 */
+	public List<Action> getMobReward(Player killer, MobQuery query) throws ParsingException {
+		
+		Configuration config = getPresets().getConfiguration(killer);
+		
+		// Mirror the function below
+		return config.getExperienceDrop().getAllRanked(query);
+	}
+	
+	/**
+	 * Retrieves a list of action rewards that applies when a player performs a given action to the item or block
+	 * specified by the query.
+	 * <p>
+	 * The query must be a ItemQuery for every trigger except brewing, where it also can be a PotionQuery.
+	 * <p>
+	 * Also note that this list contains every possible reward that matches the given parameters. In reality, only the 
+	 * first item will be awarded.
+	 * 
+	 * @param player - player performs the given action, or NULL if the default configuration file should be used.
+	 * @param trigger - action the player performs.
+	 * @param query - query representing the item or block that was the target of the action.
+	 * @return A list of possible rewards. Only the first item will be chosen when rewards are actually awarded.
+	 * @throws ParsingException If the stored preset option associated with this player is malformed.
+	 */
+	public List<Action> getPlayerReward(Player player, Configuration.ActionTypes trigger, Query query) throws ParsingException {
+		
+		Configuration config = getPresets().getConfiguration(player);
+		
+		switch (trigger) {
+		case BLOCK:
+			return config.getSimpleBlockReward().getAllRanked((ItemQuery) query); 
+		case BONUS:
+			return config.getSimpleBonusReward().getAllRanked((ItemQuery) query); 
+		case CRAFTING:
+			return config.getSimpleCraftingReward().getAllRanked((ItemQuery) query); 
+		case SMELTING:
+			return config.getSimpleSmeltingReward().getAllRanked((ItemQuery) query); 
+		case PLACE:
+			return config.getSimplePlacingReward().getAllRanked((ItemQuery) query); 
+		case BREWING:
+			// Handle both possibilities
+			if (query instanceof ItemQuery)
+				return config.getSimpleBrewingReward().getAllRanked((ItemQuery) query);
+			else
+				return config.getComplexBrewingReward().getAllRanked((PotionQuery) query);
+			
+		// Handles unknown
+		default:
+			throw new IllegalArgumentException("Trigger cannot be unknown.");
+		}
 	}
 	
 	private void setPresets(Presets presets) {
