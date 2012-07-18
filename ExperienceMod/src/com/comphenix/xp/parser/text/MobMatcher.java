@@ -116,7 +116,6 @@ public class MobMatcher {
 
 	/**
 	 * Retrieves the specific or single entity type of this matcher.
-	 * @return
 	 */
 	public EntityType getSpecific() {
 		return specific;

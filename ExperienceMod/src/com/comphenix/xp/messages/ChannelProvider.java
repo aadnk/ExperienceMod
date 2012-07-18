@@ -59,7 +59,6 @@ public class ChannelProvider extends ServiceProvider<ChannelService> {
 	/**
 	 * Creates a copy of this channel provider with shallow references to the same list of channel services, except with a different
 	 * internal default reward type. 
-	 * @param config Configuration settings for the different services.
 	 * @return A shallow copy of this reward service provider.
 	 */
 	public ChannelProvider createView() {

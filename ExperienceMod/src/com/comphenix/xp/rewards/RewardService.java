@@ -19,7 +19,6 @@ public interface RewardService extends Service {
 	 * with the given amount of resources.
 	 * @param player - player to test.
 	 * @param amount - amount of resources to given or take away.
-	 * @return
 	 */
 	public boolean canReward(Player player, int amount);
 	

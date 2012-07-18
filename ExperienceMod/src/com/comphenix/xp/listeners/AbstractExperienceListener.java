@@ -34,7 +34,7 @@ public abstract class AbstractExperienceListener implements Listener {
 	
 	/**
 	 * Load the correct configuration for a given player.
-	 * @param world - the given player.
+	 * @param player - the given player.
 	 * @return The most relevant configuration, or NULL if none were found.
 	 */
 	public Configuration getConfiguration(Player player) {

@@ -55,7 +55,7 @@ public class Presets {
 	 * any query, a query with null will NOT match any rule. In that case, it will only match rules with
 	 * null in the corresponding parameters.
 	 * 
-	 * @param keyName - key value(s) of the configuration to retrieve.
+	 * @param presetNames - key value(s) of the configuration to retrieve.
 	 * @param worldName - name of the world the preset is associated with. 
 	 * @return The stored configuration, or NULL if no configuration exists.
 	 * @throws ParsingException If the given list of keys is malformed.
