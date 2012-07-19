@@ -26,6 +26,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import com.comphenix.xp.listeners.PlayerCleanupListener;
 import com.comphenix.xp.lookup.*;
 import com.comphenix.xp.lookup.Query.Types;
 import com.comphenix.xp.messages.ChannelProvider;
@@ -38,7 +39,7 @@ import com.comphenix.xp.parser.text.MobParser;
 import com.comphenix.xp.rewards.RewardProvider;
 import com.comphenix.xp.rewards.RewardTypes;
 
-public class Configuration implements Multipliable<Configuration> {
+public class Configuration implements PlayerCleanupListener, Multipliable<Configuration> {
 	
 	// Quick lookup of action types
 	private static HashMap<String, ActionTypes> lookup = 
@@ -608,12 +609,10 @@ public class Configuration implements Multipliable<Configuration> {
 			messageQueue.onTick();
 	}
 
-	/**
-	 * Removes a given player from any live buffers or caches.
-	 * @param player - player to remove.
-	 */
-	public void removePlayer(Player player) {
-		if (messageQueue != null) 
-			messageQueue.removePlayer(player);
+	@Override
+	public void removePlayerCache(Player player) {
+		// Removes a given player from any live buffers or caches.
+		if (messageQueue != null)
+			messageQueue.removePlayerCache(player);
 	}
 }

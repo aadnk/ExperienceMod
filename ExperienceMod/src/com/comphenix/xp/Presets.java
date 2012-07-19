@@ -27,6 +27,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
+import com.comphenix.xp.listeners.PlayerCleanupListener;
 import com.comphenix.xp.lookup.PresetQuery;
 import com.comphenix.xp.lookup.PresetTree;
 import com.comphenix.xp.parser.ParsingException;
@@ -38,7 +39,7 @@ import com.google.common.collect.Lists;
 /**
  * Contains every loaded configuration preset.
  */
-public class Presets {
+public class Presets implements PlayerCleanupListener {
 
 	public static final String optionPreset = "experiencePreset";
 	
@@ -202,20 +203,7 @@ public class Presets {
 	public Collection<Configuration> getConfigurations() {
 		return presets.getValues();
 	}
-	
-	/**
-	 * Removes a given player from being referenced by any preset node. Must be called when a player logs out.
-	 * @param player - player to remove.
-	 */
-	public void removePlayer(Player player) {
-		// Make sure messages are being sent
-		if (presets != null) {
-			for (Configuration config : presets.getValues()) {
-				config.removePlayer(player);
-			}	
-		}
-	}
-	
+		
 	public void onTick() {
 		
 		// Make sure messages are being sent
@@ -223,6 +211,17 @@ public class Presets {
 			for (Configuration config : presets.getValues()) {
 				config.onTick();
 			}		
+		}
+	}
+
+	@Override
+	public void removePlayerCache(Player player) {
+
+		// Make sure messages are being sent
+		if (presets != null) {
+			for (Configuration config : presets.getValues()) {
+				config.removePlayerCache(player);
+			}	
 		}
 	}
 }
