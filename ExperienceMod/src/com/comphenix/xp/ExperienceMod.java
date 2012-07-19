@@ -46,6 +46,7 @@ import com.comphenix.xp.listeners.ExperienceEnhancementsListener;
 import com.comphenix.xp.listeners.ExperienceInformerListener;
 import com.comphenix.xp.listeners.ExperienceItemListener;
 import com.comphenix.xp.listeners.ExperienceMobListener;
+import com.comphenix.xp.listeners.PlayerInteractionListener;
 import com.comphenix.xp.lookup.ItemQuery;
 import com.comphenix.xp.lookup.MobQuery;
 import com.comphenix.xp.lookup.PotionQuery;
@@ -85,6 +86,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	
 	private ExperienceInformerListener informer;
 	private ItemRewardListener itemListener;
+	private PlayerInteractionListener interactionListener;
 	
 	private RewardProvider rewardProvider;
 	private ChannelProvider channelProvider;
@@ -109,6 +111,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		
 		currentLogger = this.getLogger();
 		informer = new ExperienceInformerListener();
+		interactionListener = new PlayerInteractionListener();
 		
 		commandExperienceMod = new CommandExperienceMod(this);
 		commandSpawn = new CommandSpawnExp(this);
@@ -166,6 +169,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			loadDefaults(false);
 			
 			// Register listeners
+			manager.registerEvents(interactionListener, this);
 			manager.registerEvents(xpBlockListener, this);
 			manager.registerEvents(xpItemListener, this);
 			manager.registerEvents(xpMobListener, this);
@@ -437,16 +441,16 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		
 		// Create a new listener if necessary
 		if (xpBlockListener == null || xpItemListener == null || xpMobListener == null) {
-			xpItemListener = new ExperienceItemListener(this, this, presets);
+			xpItemListener = new ExperienceItemListener(this, this, interactionListener, presets);
 			xpBlockListener = new ExperienceBlockListener(this, presets);
 			xpMobListener = new ExperienceMobListener(this, presets);
 			xpEnchancer = new ExperienceEnhancementsListener(this);
-			xpCleanup = new ExperienceCleanupListener(presets, xpItemListener);
+			xpCleanup = new ExperienceCleanupListener(presets, interactionListener);
 		} else {
 			xpItemListener.setPresets(presets);
 			xpBlockListener.setPresets(presets);
 			xpMobListener.setPresets(presets);
-			xpCleanup.setPlayerCleanupListeners(presets, xpItemListener);
+			xpCleanup.setPlayerCleanupListeners(presets, interactionListener);
 		}
 	}
 	

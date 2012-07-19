@@ -13,7 +13,7 @@ public class ExperienceListenerTest {
 	@Test
 	public void testCraftingCount() {
 	
-		ExperienceItemListener listener = new ExperienceItemListener(null, new MockDebugger(), null);
+		ExperienceItemListener listener = new ExperienceItemListener(null, new MockDebugger(), null, null);
 		
 		ItemStack store = null;
 		ItemStack crafted = new ItemStack(Material.IRON_INGOT, 2);

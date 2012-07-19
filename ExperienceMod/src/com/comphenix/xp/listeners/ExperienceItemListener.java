@@ -17,8 +17,6 @@
 
 package com.comphenix.xp.listeners;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Random;
 
 import org.bukkit.Bukkit;
@@ -31,7 +29,6 @@ import org.bukkit.event.inventory.BrewEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType.SlotType;
 import org.bukkit.event.player.PlayerFishEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -48,7 +45,7 @@ import com.comphenix.xp.messages.MessagePlayerQueue;
 import com.comphenix.xp.rewards.RewardProvider;
 import com.google.common.base.Objects;
 
-public class ExperienceItemListener extends AbstractExperienceListener implements PlayerCleanupListener {
+public class ExperienceItemListener extends AbstractExperienceListener {
 
 	private final String permissionRewardSmelting = "experiencemod.rewards.smelting";
 	private final String permissionRewardBrewing = "experiencemod.rewards.brewing";
@@ -58,16 +55,17 @@ public class ExperienceItemListener extends AbstractExperienceListener implement
 
 	private JavaPlugin parentPlugin;
 	private Debugger debugger;
-	
-	// Last clicked block
-	private Map<String, ItemQuery> lastRightClicked = new HashMap<String, ItemQuery>();
+	private PlayerInteractionListener lastInteraction;
 	
 	// Random source
 	private Random random = new Random();
 	
-	public ExperienceItemListener(JavaPlugin parentPlugin, Debugger debugger, Presets presets) {
+	public ExperienceItemListener(JavaPlugin parentPlugin, Debugger debugger, 
+			 					  PlayerInteractionListener lastInteraction, Presets presets) {
+		
 		this.parentPlugin = parentPlugin;
 		this.debugger = debugger;
+		this.lastInteraction = lastInteraction;
 		setPresets(presets);
 	}
 
@@ -130,22 +128,6 @@ public class ExperienceItemListener extends AbstractExperienceListener implement
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-	public void onPlayerInteractEvent(PlayerInteractEvent event) {
-		
-		Player player = event.getPlayer();
-		
-		// Make sure this is a valid block right-click event
-		if (player != null && event.hasBlock() && 
-				event.getAction() == org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK) {
-		
-			ItemQuery block = ItemQuery.fromExact(event.getClickedBlock());
-			
-			// Store this block (by copy, so we don't keep chunks in memory)
-			lastRightClicked.put(player.getName(), block);
-		}
-	}
-	
-	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBrewEvent(BrewEvent event) {
 		
 		// Reset the potion markers
@@ -192,7 +174,7 @@ public class ExperienceItemListener extends AbstractExperienceListener implement
 
 			// TODO: Remove this
 			debugger.printDebug(this, "Last clicked block: %s", 
-					lastRightClicked.get(player.getName()));
+					lastInteraction.getLastRightClick(player, 500));
 			
 			// Handle different types
 			switch (event.getInventory().getType()) {
@@ -501,11 +483,5 @@ public class ExperienceItemListener extends AbstractExperienceListener implement
 		
 	private boolean hasItems(ItemStack stack) {
 		return stack != null && stack.getAmount() > 0;
-	}
-
-	@Override
-	public void removePlayerCache(Player player) {
-		// Cleanup player cache
-		lastRightClicked.remove(player.getName());
 	}
 }
