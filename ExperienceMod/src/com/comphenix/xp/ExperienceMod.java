@@ -95,32 +95,11 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	
 	@Override
 	public void onLoad() {
-		// TODO Auto-generated method stub
-		super.onLoad();
-	}
-	
-	@Override
-	public void onEnable() {
+
 		RewardEconomy rewardEconomy;
 		
-		manager = getServer().getPluginManager();
-		
-		currentLogger = this.getLogger();
-		informer = new ExperienceInformerListener();
-		interactionListener = new PlayerInteractionListener();
-		
-		// Commands
-		commandExperienceMod = new CommandExperienceMod(this);
-		commandSpawn = new CommandSpawnExp(this);
-		
+		// Initialize rewards
 		rewardProvider = new RewardProvider();
-		channelProvider = new ChannelProvider();
-		channelProvider.setMessageFormatter(new MessageFormatter());
-		
-		// Block provider
-		customProvider = new CustomBlockProviders();
-		customProvider.register(new StandardBlockService());
-		customProvider.setLastInteraction(interactionListener);
 		
 		// Load economy, if it exists
 		try {
@@ -138,6 +117,10 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		rewardProvider.register(new RewardExperience());
 		rewardProvider.register(new RewardVirtual());
 		rewardProvider.setDefaultReward(RewardTypes.EXPERIENCE);
+		
+		// Initialize channel providers
+		channelProvider = new ChannelProvider();
+		channelProvider.setMessageFormatter(new MessageFormatter());
 		
 		// Load channel providers if we can
 		if (HeroService.exists()) {
@@ -160,11 +143,34 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			rewardProvider.register(rewardEconomy);
 			itemListener.setReward(rewardEconomy);
 			
-			// Register listener
-			manager.registerEvents(itemListener, this);
-			
 			// Inform the player
 			currentLogger.info("Economy enabled.");
+		}
+		
+		// Initialize block providers
+		customProvider = new CustomBlockProviders();
+		customProvider.register(new StandardBlockService());
+	}
+	
+	@Override
+	public void onEnable() {
+		
+		manager = getServer().getPluginManager();
+		
+		currentLogger = this.getLogger();
+		informer = new ExperienceInformerListener();
+		interactionListener = new PlayerInteractionListener();
+		
+		// Commands
+		commandExperienceMod = new CommandExperienceMod(this);
+		commandSpawn = new CommandSpawnExp(this);
+		
+		// Block provider
+		customProvider.setLastInteraction(interactionListener);
+		
+		if (hasEconomy()) {
+			// Register listener
+			manager.registerEvents(itemListener, this);
 		}
 		
 		try {
