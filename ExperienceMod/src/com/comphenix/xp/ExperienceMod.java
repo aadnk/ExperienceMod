@@ -40,29 +40,17 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.comphenix.xp.commands.CommandExperienceMod;
 import com.comphenix.xp.commands.CommandSpawnExp;
-import com.comphenix.xp.listeners.ExperienceBlockListener;
-import com.comphenix.xp.listeners.ExperienceCleanupListener;
-import com.comphenix.xp.listeners.ExperienceEnhancementsListener;
-import com.comphenix.xp.listeners.ExperienceInformerListener;
-import com.comphenix.xp.listeners.ExperienceItemListener;
-import com.comphenix.xp.listeners.ExperienceMobListener;
-import com.comphenix.xp.listeners.PlayerInteractionListener;
-import com.comphenix.xp.lookup.ItemQuery;
-import com.comphenix.xp.lookup.MobQuery;
-import com.comphenix.xp.lookup.PotionQuery;
-import com.comphenix.xp.lookup.Query;
+import com.comphenix.xp.listeners.*;
+import com.comphenix.xp.lookup.*;
 import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.messages.HeroService;
 import com.comphenix.xp.messages.MessageFormatter;
 import com.comphenix.xp.messages.StandardService;
+import com.comphenix.xp.mods.CustomBlockProviders;
+import com.comphenix.xp.mods.StandardBlockService;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.parser.Utility;
-import com.comphenix.xp.rewards.ItemRewardListener;
-import com.comphenix.xp.rewards.RewardEconomy;
-import com.comphenix.xp.rewards.RewardExperience;
-import com.comphenix.xp.rewards.RewardProvider;
-import com.comphenix.xp.rewards.RewardVirtual;
-import com.comphenix.xp.rewards.RewardTypes;
+import com.comphenix.xp.rewards.*;
 
 public class ExperienceMod extends JavaPlugin implements Debugger {
 	
@@ -87,9 +75,11 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	private ExperienceInformerListener informer;
 	private ItemRewardListener itemListener;
 	private PlayerInteractionListener interactionListener;
-	
+
+	// Allows for plugin injection
 	private RewardProvider rewardProvider;
 	private ChannelProvider channelProvider;
+	private CustomBlockProviders customProvider;
 	
 	private Presets presets;
 	
@@ -104,6 +94,12 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	private boolean debugEnabled;
 	
 	@Override
+	public void onLoad() {
+		// TODO Auto-generated method stub
+		super.onLoad();
+	}
+	
+	@Override
 	public void onEnable() {
 		RewardEconomy rewardEconomy;
 		
@@ -113,11 +109,18 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		informer = new ExperienceInformerListener();
 		interactionListener = new PlayerInteractionListener();
 		
+		// Commands
 		commandExperienceMod = new CommandExperienceMod(this);
 		commandSpawn = new CommandSpawnExp(this);
+		
 		rewardProvider = new RewardProvider();
 		channelProvider = new ChannelProvider();
 		channelProvider.setMessageFormatter(new MessageFormatter());
+		
+		// Block provider
+		customProvider = new CustomBlockProviders();
+		customProvider.register(new StandardBlockService());
+		customProvider.setLastInteraction(interactionListener);
 		
 		// Load economy, if it exists
 		try {
@@ -366,6 +369,10 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		return channelProvider;
 	}
 	
+	public CustomBlockProviders getCustomBlockProvider() {
+		return customProvider;
+	}
+	
 	public ItemRewardListener getItemListener() {
 		return itemListener;
 	}
@@ -441,11 +448,12 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		
 		// Create a new listener if necessary
 		if (xpBlockListener == null || xpItemListener == null || xpMobListener == null) {
-			xpItemListener = new ExperienceItemListener(this, this, interactionListener, presets);
+			xpItemListener = new ExperienceItemListener(this, this, customProvider, presets);
 			xpBlockListener = new ExperienceBlockListener(this, presets);
 			xpMobListener = new ExperienceMobListener(this, presets);
 			xpEnchancer = new ExperienceEnhancementsListener(this);
 			xpCleanup = new ExperienceCleanupListener(presets, interactionListener);
+			
 		} else {
 			xpItemListener.setPresets(presets);
 			xpBlockListener.setPresets(presets);

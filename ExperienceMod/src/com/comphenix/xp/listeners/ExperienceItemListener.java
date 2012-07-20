@@ -27,7 +27,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.inventory.BrewEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryType.SlotType;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -42,6 +42,8 @@ import com.comphenix.xp.lookup.ItemTree;
 import com.comphenix.xp.lookup.PlayerRewards;
 import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.messages.MessagePlayerQueue;
+import com.comphenix.xp.mods.BlockResponse;
+import com.comphenix.xp.mods.CustomBlockProviders;
 import com.comphenix.xp.rewards.RewardProvider;
 import com.google.common.base.Objects;
 
@@ -55,17 +57,17 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 
 	private JavaPlugin parentPlugin;
 	private Debugger debugger;
-	private PlayerInteractionListener lastInteraction;
+	private CustomBlockProviders blockProvider;
 	
 	// Random source
 	private Random random = new Random();
 	
 	public ExperienceItemListener(JavaPlugin parentPlugin, Debugger debugger, 
-			 					  PlayerInteractionListener lastInteraction, Presets presets) {
+							      CustomBlockProviders blockProvider, Presets presets) {
 		
 		this.parentPlugin = parentPlugin;
 		this.debugger = debugger;
-		this.lastInteraction = lastInteraction;
+		this.blockProvider = blockProvider;
 		setPresets(presets);
 	}
 
@@ -160,84 +162,97 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onInventoryClickEvent(InventoryClickEvent event) {
 
+		// Clicked item and player
 		Player player = (Player) event.getWhoClicked();
 		ItemStack toCraft = event.getCurrentItem();
-		
-		Configuration config = null;
-
-		// Crafting, smelting and potion check
-		boolean isCraftResult = event.getSlotType() == SlotType.RESULT;
-		boolean isPotionResult = event.getSlot() < 3;
 
 		// Make sure we have a player, inventory and item
 		if (player != null && event.getInventory() != null && hasItems(toCraft)) {
 
-			// TODO: Remove this
-			debugger.printDebug(this, "Last clicked block: %s", 
-					lastInteraction.getLastRightClick(player, 500));
+			ItemQuery lastBlock = blockProvider.getLastInteraction().getLastRightClick(player, null);
+			BlockResponse response = blockProvider.processInventoryClick(event, lastBlock);
 			
-			// Handle different types
-			switch (event.getInventory().getType()) {
-			case BREWING:
-				// Do not proceed if the user isn't permitted
-				if (isPotionResult && player.hasPermission(permissionRewardBrewing)) {
-					config = getConfiguration(player);
-					
-					// Guard again
-					if (config == null) {
-						if (debugger != null)
-							debugger.printDebug(this, "No config found for %s with brewing %s.", player.getName(), toCraft);
-						return;
-					}
-					
-					// Prepare rewards and actions
-					RewardableAction future = potionItemReward(config);
-					Action simpleAction = getAction(toCraft, config.getSimpleBrewingReward());
-					
-					// Yes, this feels a bit like a hack to me too. Blame faulty design. Anyways, the point
-					// is that we get to check more complex potion matching rules, like "match all splash potions"
-					// or "match all level 2 regen potions (splash or not)".
-					Action complexAction = getAction(toCraft, config.getComplexBrewingReward().getItemQueryAdaptor());
-					
-					handleInventory(event, simpleAction, future, true);
-					handleInventory(event, complexAction, future, true);
-				}
-				
-				break;
-			case CRAFTING:
-			case WORKBENCH:
-				if (isCraftResult && player.hasPermission(permissionRewardCrafting)) {
-					
-					config = getConfiguration(player);
-
-					if (config != null) {
-						RewardableAction future = genericItemReward(config);
-						Action action = getAction(toCraft, config.getSimpleCraftingReward());
-						
-						handleInventory(event, action, future, false);
-						
-					} else if (debugger != null) {
-						debugger.printDebug(this, "No config found for %s with crafting %s.", player.getName(), toCraft);
-					}
-				}
-				break;
-				
-			case FURNACE:
-				if (isCraftResult && player.hasPermission(permissionRewardSmelting)) {
-					config = getConfiguration(player);
-					
-					if (config != null) {
-						RewardableAction future = genericItemReward(config);
-						Action action = getAction(toCraft, config.getSimpleSmeltingReward());
-						
-						handleInventory(event, action, future, true);
-						
-					} else if (debugger != null) {
-						debugger.printDebug(this, "No config found for %s with smelting %s.", player.getName(), toCraft);
-					}
-				}
-				break;
+			// See if we should handle the inventory click ourself
+			if (BlockResponse.isSuccessful(response) && response.hasDefaultBehavior()) {
+				processInventory(event, response.getDefaultBehavior());
 			}
+		}
+	}
+	
+	/**
+	 * Handles the given inventory event using the default behavior for the given inventory type.
+	 * @param event - inventory click event.
+	 * @param type - inventory type.
+	 */
+	public void processInventory(InventoryClickEvent event, InventoryType type) {
+		
+		// Clicked item and player
+		Player player = (Player) event.getWhoClicked();
+		ItemStack toCraft = event.getCurrentItem();
+		
+		Configuration config = null;
+		
+		// Handle different types
+		switch (type) {
+		case BREWING:
+			// Do not proceed if the user isn't permitted
+			if (player.hasPermission(permissionRewardBrewing)) {
+				config = getConfiguration(player);
+				
+				// Guard again
+				if (config == null) {
+					if (debugger != null)
+						debugger.printDebug(this, "No config found for %s with brewing %s.", player.getName(), toCraft);
+					return;
+				}
+				
+				// Prepare rewards and actions
+				RewardableAction future = potionItemReward(config);
+				Action simpleAction = getAction(toCraft, config.getSimpleBrewingReward());
+				
+				// Yes, this feels a bit like a hack to me too. Blame faulty design. Anyways, the point
+				// is that we get to check more complex potion matching rules, like "match all splash potions"
+				// or "match all level 2 regen potions (splash or not)".
+				Action complexAction = getAction(toCraft, config.getComplexBrewingReward().getItemQueryAdaptor());
+				
+				handleInventory(event, simpleAction, future, true);
+				handleInventory(event, complexAction, future, true);
+			}
+			
+			break;
+		case CRAFTING:
+		case WORKBENCH:
+			if (player.hasPermission(permissionRewardCrafting)) {
+				
+				config = getConfiguration(player);
+
+				if (config != null) {
+					RewardableAction future = genericItemReward(config);
+					Action action = getAction(toCraft, config.getSimpleCraftingReward());
+					
+					handleInventory(event, action, future, false);
+					
+				} else if (debugger != null) {
+					debugger.printDebug(this, "No config found for %s with crafting %s.", player.getName(), toCraft);
+				}
+			}
+			break;
+			
+		case FURNACE:
+			if (player.hasPermission(permissionRewardSmelting)) {
+				config = getConfiguration(player);
+				
+				if (config != null) {
+					RewardableAction future = genericItemReward(config);
+					Action action = getAction(toCraft, config.getSimpleSmeltingReward());
+					
+					handleInventory(event, action, future, true);
+					
+				} else if (debugger != null) {
+					debugger.printDebug(this, "No config found for %s with smelting %s.", player.getName(), toCraft);
+				}
+			}
+			break;
 		}
 	}
 	
