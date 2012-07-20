@@ -80,6 +80,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	private RewardProvider rewardProvider;
 	private ChannelProvider channelProvider;
 	private CustomBlockProviders customProvider;
+	private ConfigurationLoader configLoader;
 	
 	private Presets presets;
 	
@@ -151,8 +152,11 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		// Initialize block providers
 		customProvider = new CustomBlockProviders();
 		customProvider.register(new StandardBlockService());
+		
+		// Initialize configuration loader
+		configLoader = new ConfigurationLoader(getDataFolder(), this, rewardProvider, channelProvider);
 	}
-	
+
 	@Override
 	public void onEnable() {
 		
@@ -254,9 +258,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	 * @throws IOException An I/O error occurred.
 	 */
 	public void loadDefaults(boolean reload) throws IOException {
-		
-		ConfigurationLoader loader;
-		
+
 		// Read from disk again
 		if (reload || presets == null) {
 			
@@ -268,8 +270,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			loadConfig("config.yml", "Creating default configuration.");
 			
 			// Load it
-			loader = new ConfigurationLoader(getDataFolder(), this, rewardProvider, channelProvider);
-			presets = new Presets(presetList, this, chat, loader);
+			presets = new Presets(presetList, this, chat, configLoader);
 			setPresets(presets);
 			
 			// Vault is required here
@@ -377,6 +378,22 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	
 	public CustomBlockProviders getCustomBlockProvider() {
 		return customProvider;
+	}
+	
+	/**
+	 * Retrieves the object responsible for parsing and loading configuration files.
+	 * @return The current configuration loader.
+	 */
+	public ConfigurationLoader getConfigLoader() {
+		return configLoader;
+	}
+
+	/**
+	 * Sets the object responsible for parsing and loading configuration files.
+	 * @param configLoader - the new configuration loader.
+	 */
+	public void setConfigLoader(ConfigurationLoader configLoader) {
+		this.configLoader = configLoader;
 	}
 	
 	public ItemRewardListener getItemListener() {

@@ -606,6 +606,30 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		}
 	}
 	
+	public ItemParser getItemParser() {
+		return itemParser;
+	}
+
+	public void setItemParser(ItemParser itemParser) {
+		this.itemParser = itemParser;
+	}
+
+	public MobParser getMobParser() {
+		return mobParser;
+	}
+
+	public void setMobParser(MobParser mobParser) {
+		this.mobParser = mobParser;
+	}
+
+	public ActionParser getActionParser() {
+		return actionParser;
+	}
+
+	public void setActionParser(ActionParser actionParser) {
+		this.actionParser = actionParser;
+	}
+
 	// Let the message queue know
 	public void onTick() {
 		if (messageQueue != null) 

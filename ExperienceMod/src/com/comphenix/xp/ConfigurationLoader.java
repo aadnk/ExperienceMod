@@ -25,6 +25,8 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import com.comphenix.xp.messages.ChannelProvider;
+import com.comphenix.xp.parser.text.ItemParser;
+import com.comphenix.xp.parser.text.MobParser;
 import com.comphenix.xp.rewards.RewardProvider;
 
 public class ConfigurationLoader {
@@ -36,6 +38,9 @@ public class ConfigurationLoader {
 	private Debugger logger;
 	private RewardProvider rewardProvider;
 	private ChannelProvider channelProvider;
+	
+	private ItemParser itemParser = new ItemParser();
+	private MobParser mobParser = new MobParser();
 	
 	public ConfigurationLoader(File rootPath, Debugger logger, RewardProvider rewardProvider, ChannelProvider channelProvider) {
 		this.rootPath = rootPath;
@@ -50,6 +55,38 @@ public class ConfigurationLoader {
 		configurationFiles.clear();
 	}
 	
+	/**
+	 * Retrieves the parser responsible for parsing item queries.
+	 * @return The current item query parser.
+	 */
+	public ItemParser getItemParser() {
+		return itemParser;
+	}
+
+	/**
+	 * Sets the parser responsible for parsing item queries.
+	 * @param itemParser - the new item query parser.
+	 */
+	public void setItemParser(ItemParser itemParser) {
+		this.itemParser = itemParser;
+	}
+
+	/**
+	 * Retrieves the parser responsible for parsing mob queries.
+	 * @return The current mob query parser.
+	 */
+	public MobParser getMobParser() {
+		return mobParser;
+	}
+
+	/**
+	 * Sets the parser responsible for parsing mob queries.
+	 * @param itemParser - the new mob query parser.
+	 */
+	public void setMobParser(MobParser mobParser) {
+		this.mobParser = mobParser;
+	}
+
 	public Configuration getFromPath(String path) {
 		
 		File absolutePath = new File(rootPath, path);
@@ -64,6 +101,8 @@ public class ConfigurationLoader {
 
 		Configuration config = new Configuration(logger, rewardProvider, channelProvider);
 		
+		config.setItemParser(itemParser);
+		config.setMobParser(mobParser);
 		config.loadFromConfig(data);
 		return config;
 	}
@@ -76,6 +115,8 @@ public class ConfigurationLoader {
 			Configuration config = new Configuration(logger, rewardProvider, channelProvider);
 			
 			// Load from YAML
+			config.setItemParser(itemParser);
+			config.setMobParser(mobParser);
 			config.loadFromConfig(yaml);
 			
 			// Cache 
