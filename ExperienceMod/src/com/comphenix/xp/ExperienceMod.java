@@ -29,11 +29,14 @@ import java.util.logging.Logger;
 import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.economy.Economy;
 
+import org.apache.commons.lang.NullArgumentException;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -465,6 +468,22 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		default:
 			throw new IllegalArgumentException("Trigger cannot be unknown.");
 		}
+	}
+	
+	/**
+	 * Handles the given inventory event using the default behavior for the given inventory type.
+	 * @param event - inventory click event.
+	 * @param type - inventory type.
+	 */
+	public void processInventoryClick(InventoryClickEvent event, InventoryType defaultBehavior) {
+		if (xpItemListener == null)
+			throw new RuntimeException("ExperienceMod isn't loaded yet.");
+		if (event == null)
+			throw new NullArgumentException("click");
+		if (defaultBehavior == null)
+			throw new NullArgumentException("defaultBehavior");
+		
+		xpItemListener.processInventory(event, defaultBehavior);
 	}
 	
 	private void setPresets(Presets presets) {

@@ -124,9 +124,21 @@ public class ItemQuery implements Query {
 	}
 	
 	public boolean hasSingleItem(Material item) {
-		
+		return hasSingleItem(item.getId(), null);
+	}
+	
+	/**
+	 * Determine if this query only contains the given item.
+	 * @param id - id of the item.
+	 * @param durability - durability of the item, or NULL to match all.
+	 * @return TRUE if it does contain the given item, FALSE otherwise.
+	 */
+	public boolean hasSingleItem(Integer id, Integer durability) {
 		// See if the item list contains this item only
-		return hasItemID() && itemID.size() == 1 && itemID.contains(item.getId());
+		return hasItemID() && 
+				this.itemID.size() == 1 && this.itemID.contains(id) && 
+				(durability == null ||
+				this.durability.size() == 1 && this.durability.contains(durability));
 	}
 	
 	@Override
@@ -222,5 +234,14 @@ public class ItemQuery implements Query {
 	@Override
 	public Types getQueryType() {
 		return Types.Items;
+	}
+	
+	/**
+	 * Determines if the given item stack is non-empty.
+	 * @param stack - item stack to test.
+	 * @return TRUE if it is non-null and non-empty, FALSE otherwise.
+	 */
+	public static boolean hasItems(ItemStack stack) {
+		return stack != null && stack.getAmount() > 0;
 	}
 }

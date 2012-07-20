@@ -4,6 +4,7 @@ import org.bukkit.Material;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.inventory.InventoryType.SlotType;
+import org.bukkit.inventory.ItemStack;
 
 import com.comphenix.xp.lookup.ItemQuery;
 
@@ -21,6 +22,11 @@ public class StandardBlockService implements BlockService {
 		boolean isPotionResult = event.getSlot() < 3;
 
 		InventoryType type = event.getInventory().getType();
+		ItemStack toCraft = event.getCurrentItem();
+		
+		// Empty slots are invalid
+		if (!ItemQuery.hasItems(toCraft))
+			return BlockResponse.FAILURE;
 		
 		// Handle different types
 		switch (type) {
@@ -50,7 +56,7 @@ public class StandardBlockService implements BlockService {
 		}
 		
 		// Unable to process block
-		return new BlockResponse(false);
+		return BlockResponse.FAILURE;
 	}
 	
 	@Override

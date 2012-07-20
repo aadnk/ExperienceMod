@@ -139,7 +139,7 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 			for (ItemStack stack : event.getContents().getContents()) {
 			
 				// Find all potions in the brewing stand
-				if (hasItems(stack) && stack.getType() == Material.POTION) {
+				if (ItemQuery.hasItems(stack) && stack.getType() == Material.POTION) {
 					
 					PotionMarker marker = new PotionMarker(stack.getDurability());
 					
@@ -164,10 +164,9 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 
 		// Clicked item and player
 		Player player = (Player) event.getWhoClicked();
-		ItemStack toCraft = event.getCurrentItem();
-
+		
 		// Make sure we have a player, inventory and item
-		if (player != null && event.getInventory() != null && hasItems(toCraft)) {
+		if (player != null && event.getInventory() != null) {
 
 			ItemQuery lastBlock = blockProvider.getLastInteraction().getLastRightClick(player, null);
 			BlockResponse response = blockProvider.processInventoryClick(event, lastBlock);
@@ -319,7 +318,7 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 			if (count > 0) {
 				
 				// Some cruft here - the stack is only divided when the user has no cursor items
-				if (partialResults && event.isRightClick() && !hasItems(toStore)) {
+				if (partialResults && event.isRightClick() && !ItemQuery.hasItems(toStore)) {
 					count = Math.max(count / 2, 1);
 				}
 				
@@ -494,9 +493,5 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 		} else {
 			return addition.getAmount();
 		}
-	}
-		
-	private boolean hasItems(ItemStack stack) {
-		return stack != null && stack.getAmount() > 0;
 	}
 }
