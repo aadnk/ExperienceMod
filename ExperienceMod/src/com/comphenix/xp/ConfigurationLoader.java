@@ -62,7 +62,10 @@ public class ConfigurationLoader {
 	
 	public Configuration getFromSection(ConfigurationSection data) {
 
-		return new Configuration(data, logger, rewardProvider, channelProvider);
+		Configuration config = new Configuration(logger, rewardProvider, channelProvider);
+		
+		config.loadFromConfig(data);
+		return config;
 	}
 	
 	private Configuration loadFromFile(File path) {
@@ -70,7 +73,10 @@ public class ConfigurationLoader {
 		if (!configurationFiles.containsKey(path)) {
 			
 			YamlConfiguration yaml = YamlConfiguration.loadConfiguration(path);
-			Configuration config = new Configuration(yaml, logger, rewardProvider, channelProvider);
+			Configuration config = new Configuration(logger, rewardProvider, channelProvider);
+			
+			// Load from YAML
+			config.loadFromConfig(yaml);
 			
 			// Cache 
 			configurationFiles.put(path, config);

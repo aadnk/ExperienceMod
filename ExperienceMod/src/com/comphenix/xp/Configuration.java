@@ -153,12 +153,11 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		this.checkRewards();
 	}
 	
-	public Configuration(ConfigurationSection config, Debugger debugger, RewardProvider provider, ChannelProvider channels) {
+	public Configuration(Debugger debugger, RewardProvider provider, ChannelProvider channels) {
 		this.logger = debugger;
 		this.rewardProvider = provider;
 		this.channelProvider = channels;
 		this.actionParser = new ActionParser(provider);
-		loadFromConfig(config);
 	}
 	
 	/**
@@ -208,7 +207,11 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		return new Configuration(copy, copy.multiplier);
 	}
 
-	private void loadFromConfig(ConfigurationSection config) {
+	/**
+	 * Initialize configuration from a configuration section.
+	 * @param config - configuration section to load from.
+	 */
+	public void loadFromConfig(ConfigurationSection config) {
 		
 		// Load scalar values
 		if (config.isDouble(multiplierSetting))

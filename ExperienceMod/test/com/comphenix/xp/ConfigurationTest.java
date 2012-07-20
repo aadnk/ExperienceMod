@@ -69,7 +69,10 @@ public class ConfigurationTest {
 	
 	// Load configuration from text
 	private Configuration createConfig(String text, Debugger debugger, RewardProvider provider) {
-		return new Configuration(fromText(text), debugger, provider, new ChannelProvider());
+		Configuration config = new Configuration(debugger, provider, new ChannelProvider());
+		
+		config.loadFromConfig(fromText(text));
+		return config;
 	}
 	
 	private YamlConfiguration fromText(String text) {

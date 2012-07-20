@@ -47,7 +47,8 @@ public class ItemTreeTest {
 		};
 		
 		// Load the default configuration
-		configuration = new Configuration(defaultFile, injected, rewards, channels);
+		configuration = new Configuration(injected, rewards, channels);
+		configuration.loadFromConfig(defaultFile);
     }
 	
 	@Test
