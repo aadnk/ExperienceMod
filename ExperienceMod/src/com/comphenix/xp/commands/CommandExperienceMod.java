@@ -132,7 +132,7 @@ public class CommandExperienceMod implements CommandExecutor {
 			String text = StringUtils.join(args, " ", offset, args.length);
 			MobQuery query = mobParser.parse(text);
 			
-			List<Action> results = plugin.getMobReward((Player) sender, query);
+			List<Action> results = plugin.getMobReward(getPlayer(sender), query);
 			
 			// Query result
 			displayActions(sender, results);
@@ -159,7 +159,7 @@ public class CommandExperienceMod implements CommandExecutor {
 			Query query = itemParser.parse(text);
 			
 			// Determine player rewards
-			List<Action> results = plugin.getPlayerReward((Player) sender, type, query);
+			List<Action> results = plugin.getPlayerReward(getPlayer(sender), type, query);
 			
 			// Finally, display query result
 			displayActions(sender, results);
@@ -172,6 +172,14 @@ public class CommandExperienceMod implements CommandExecutor {
 			plugin.respond(sender,
 					ChatColor.RED + "Query parsing error: " + e.getMessage());
 		}
+	}
+	
+	// Gets the player, or NULL
+	private Player getPlayer(CommandSender sender) {
+		if (sender instanceof Player)
+			return (Player) sender;
+		else
+			return null;
 	}
 	
 	private void displayActions(CommandSender sender, List<Action> actions) {
