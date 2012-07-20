@@ -89,7 +89,7 @@ public class ItemNameParser extends TextParser<Integer> {
 		String filtered = Utility.getEnumName(text).replace("_", "");
 
 		// Use the lookup table
-		if (lookupMaterial.containsKey(filtered))
+		if (filtered.length() > 0 && lookupMaterial.containsKey(filtered))
 			return lookupMaterial.get(filtered);
 		else if (itemID == null)
 			throw ParsingException.fromFormat("Unable to find item %s.", text);
