@@ -99,6 +99,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		RewardEconomy rewardEconomy;
 		
 		// Initialize rewards
+		currentLogger = this.getLogger();
 		rewardProvider = new RewardProvider();
 		
 		// Load economy, if it exists
@@ -157,7 +158,6 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		
 		manager = getServer().getPluginManager();
 		
-		currentLogger = this.getLogger();
 		informer = new ExperienceInformerListener();
 		interactionListener = new PlayerInteractionListener();
 		
