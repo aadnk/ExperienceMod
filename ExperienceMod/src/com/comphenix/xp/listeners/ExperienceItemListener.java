@@ -173,7 +173,7 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 			
 			// See if we should handle the inventory click ourself
 			if (BlockResponse.isSuccessful(response) && response.hasDefaultBehavior()) {
-				processInventory(event, response.getDefaultBehavior());
+				processInventory(event, response.getOverrideCurrentItem(), response.getDefaultBehavior());
 			}
 		}
 	}
@@ -183,11 +183,16 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 	 * @param event - inventory click event.
 	 * @param type - inventory type.
 	 */
-	public void processInventory(InventoryClickEvent event, InventoryType type) {
+	public void processInventory(InventoryClickEvent event, ItemStack override, InventoryType type) {
 		
 		// Clicked item and player
 		Player player = (Player) event.getWhoClicked();
 		ItemStack toCraft = event.getCurrentItem();
+		
+		// Implement the override
+		if (override != null) {
+			toCraft = override;
+		}
 		
 		Configuration config = null;
 		

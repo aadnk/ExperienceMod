@@ -3,6 +3,7 @@ package com.comphenix.xp.mods;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.inventory.ItemStack;
 
 /**
  * Represents a immutable block service response. 
@@ -18,6 +19,7 @@ public class BlockResponse {
 	
 	private boolean success;
 	private InventoryType defaultBehavior;
+	private ItemStack overrideCurrentItem;
 	
 	public BlockResponse(InventoryType defaultBehavior) {
 		this(true, defaultBehavior);
@@ -63,6 +65,30 @@ public class BlockResponse {
 	 */
 	public static boolean isSuccessful(BlockResponse response) {
 		return response != null && response.isSuccess();
+	}
+
+	/**
+	 * Contains the item that will override the current item in InventoryClickEvent.
+	 * @return The item to override InventoryClickEvent, or NULL if override should take place.
+	 */
+	public ItemStack getOverrideCurrentItem() {
+		return overrideCurrentItem;
+	}
+
+	/**
+	 * If non-null, overrides the current item in InventoryClickEvent.
+	 * @param overrideCurrentItem - item to override InventoryClickEvent.
+	 */
+	public void setOverrideCurrentItem(ItemStack overrideCurrentItem) {
+		this.overrideCurrentItem = overrideCurrentItem;
+	}
+	
+	/**
+	 * Determines if the current item in InventoryClickEvent has been overriden.
+	 * @return TRUE if it has been overriden, FALSE otherwise.
+	 */
+	public boolean hasOverridenCurrentItem() {
+		return overrideCurrentItem != null;
 	}
 	
 	@Override

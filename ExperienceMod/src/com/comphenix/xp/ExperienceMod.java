@@ -37,6 +37,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -473,9 +474,10 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	/**
 	 * Handles the given inventory event using the default behavior for the given inventory type.
 	 * @param event - inventory click event.
+	 * @param override - the item, if set, to override the current item in event.
 	 * @param type - inventory type.
 	 */
-	public void processInventoryClick(InventoryClickEvent event, InventoryType defaultBehavior) {
+	public void processInventoryClick(InventoryClickEvent event, ItemStack override, InventoryType defaultBehavior) {
 		if (xpItemListener == null)
 			throw new RuntimeException("ExperienceMod isn't loaded yet.");
 		if (event == null)
@@ -483,7 +485,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		if (defaultBehavior == null)
 			throw new NullArgumentException("defaultBehavior");
 		
-		xpItemListener.processInventory(event, defaultBehavior);
+		xpItemListener.processInventory(event, override, defaultBehavior);
 	}
 	
 	private void setPresets(Presets presets) {
