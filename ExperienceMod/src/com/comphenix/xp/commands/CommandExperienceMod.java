@@ -50,11 +50,15 @@ public class CommandExperienceMod implements CommandExecutor {
 	
 	private ExperienceMod plugin;
 
-	private ItemParser itemParser = new ItemParser();
-	private MobParser mobParser = new MobParser();
+	private ItemParser itemParser;
+	private MobParser mobParser;
 	
 	public CommandExperienceMod(ExperienceMod plugin) {
 		this.plugin = plugin;
+		
+		// Load item and mob parsers
+		itemParser = plugin.getConfigLoader().getItemParser();
+		mobParser = plugin.getConfigLoader().getMobParser();
 	}
 	
 	@Override

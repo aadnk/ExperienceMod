@@ -10,6 +10,7 @@ import org.bukkit.potion.PotionType;
 import org.junit.Test;
 
 import com.comphenix.xp.parser.ParsingException;
+import com.comphenix.xp.parser.text.ItemNameParser;
 import com.comphenix.xp.parser.text.ItemParser;
 
 
@@ -32,7 +33,7 @@ public class ItemParserTest {
 		PotionQuery levelTwoPotion = PotionQuery.fromAny(null, 2);
 		PotionQuery specificPotion = PotionQuery.fromAny(PotionType.FIRE_RESISTANCE, 1, true, true);
 		
-		ItemParser parser = new ItemParser();
+		ItemParser parser = new ItemParser(new ItemNameParser());
 		
 		assertEquals(universal, parser.parse("?"));
 		assertEquals(stoneQuery, parser.parse("stone"));

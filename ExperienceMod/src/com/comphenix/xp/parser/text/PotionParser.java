@@ -32,13 +32,18 @@ import com.comphenix.xp.parser.primitives.IntegerParser;
 
 public class PotionParser extends TextParser<PotionQuery> {
 
-	private ParameterParser<Integer> itemNameParser = new ParameterParser<Integer>(new ItemNameParser());
-	private ParameterParser<PotionType> potionTypeParser = new ParameterParser<PotionType>(new PotionTypeParser());
 	private ParameterParser<Integer> tierParser = new ParameterParser<Integer>(new IntegerParser());
+	private ParameterParser<Integer> itemNameParser;
+	private ParameterParser<PotionType> potionTypeParser;
 	
 	private BooleanParser extendedParser = new BooleanParser("extended");
 	private BooleanParser splashParser = new BooleanParser("splash");
 
+	public PotionParser(ItemNameParser nameParser, PotionTypeParser potionType) {
+		itemNameParser = new ParameterParser<Integer>(nameParser);
+		potionTypeParser = new ParameterParser<PotionType>(potionType);
+	}
+	
 	// Special potion parser
 	@Override
 	public PotionQuery parse(String text) throws ParsingException {
@@ -110,5 +115,45 @@ public class PotionParser extends TextParser<PotionQuery> {
 		}
 		
 		return best;
+	}
+
+	public ParameterParser<Integer> getItemNameParser() {
+		return itemNameParser;
+	}
+
+	public void setItemNameParser(ParameterParser<Integer> itemNameParser) {
+		this.itemNameParser = itemNameParser;
+	}
+
+	public ParameterParser<PotionType> getPotionTypeParser() {
+		return potionTypeParser;
+	}
+
+	public void setPotionTypeParser(ParameterParser<PotionType> potionTypeParser) {
+		this.potionTypeParser = potionTypeParser;
+	}
+
+	public ParameterParser<Integer> getTierParser() {
+		return tierParser;
+	}
+
+	public void setTierParser(ParameterParser<Integer> tierParser) {
+		this.tierParser = tierParser;
+	}
+
+	public BooleanParser getExtendedParser() {
+		return extendedParser;
+	}
+
+	public void setExtendedParser(BooleanParser extendedParser) {
+		this.extendedParser = extendedParser;
+	}
+
+	public BooleanParser getSplashParser() {
+		return splashParser;
+	}
+
+	public void setSplashParser(BooleanParser splashParser) {
+		this.splashParser = splashParser;
 	}
 }

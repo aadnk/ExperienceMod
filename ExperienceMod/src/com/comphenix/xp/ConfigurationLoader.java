@@ -25,6 +25,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import com.comphenix.xp.messages.ChannelProvider;
+import com.comphenix.xp.parser.text.ItemNameParser;
 import com.comphenix.xp.parser.text.ItemParser;
 import com.comphenix.xp.parser.text.MobParser;
 import com.comphenix.xp.rewards.RewardProvider;
@@ -39,7 +40,8 @@ public class ConfigurationLoader {
 	private RewardProvider rewardProvider;
 	private ChannelProvider channelProvider;
 	
-	private ItemParser itemParser = new ItemParser();
+	private ItemNameParser nameParser = new ItemNameParser();
+	private ItemParser itemParser = new ItemParser(nameParser);
 	private MobParser mobParser = new MobParser();
 	
 	public ConfigurationLoader(File rootPath, Debugger logger, RewardProvider rewardProvider, ChannelProvider channelProvider) {
@@ -85,6 +87,23 @@ public class ConfigurationLoader {
 	 */
 	public void setMobParser(MobParser mobParser) {
 		this.mobParser = mobParser;
+	}
+
+	/**
+	 * Retrieves the current name parser.
+	 * @return Current name parser.
+	 */
+	public ItemNameParser getNameParser() {
+		return nameParser;
+	}
+
+	/**
+	 * Sets the current name parser. Updates the item parser as well.
+	 * @param nameParser - new name parser.
+	 */
+	public void setNameParser(ItemNameParser nameParser) {
+		this.nameParser = nameParser;
+		this.itemParser = new ItemParser(nameParser);
 	}
 
 	public Configuration getFromPath(String path) {

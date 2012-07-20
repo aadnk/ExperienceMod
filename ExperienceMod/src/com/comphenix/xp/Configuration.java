@@ -106,8 +106,8 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 	private PotionTree complexBrewingReward;
 	private PlayerRewards playerRewards;
 	
-	private ItemParser itemParser = new ItemParser();
-	private MobParser mobParser = new MobParser();
+	private ItemParser itemParser;
+	private MobParser mobParser;
 	private ActionParser actionParser;
 	
 	public Configuration(Debugger debugger) {

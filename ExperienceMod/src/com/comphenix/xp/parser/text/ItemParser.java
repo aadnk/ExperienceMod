@@ -30,13 +30,18 @@ import com.comphenix.xp.parser.ParsingException;
 
 public class ItemParser extends TextParser<Query> {
 	
-	private ParameterParser<Integer> itemNameParser = new ParameterParser<Integer>(new ItemNameParser());
+	private ParameterParser<Integer> itemNameParser;
 	
 	private ItemDurabilityParser elementDurability = new ItemDurabilityParser();
 	private ParameterParser<Integer> durabilityParser = new ParameterParser<Integer>(elementDurability);
 	
 	// Our potion parser
-	private PotionParser potionParser = new PotionParser();
+	private PotionParser potionParser;
+	
+	public ItemParser(ItemNameParser nameParser) {
+		potionParser = new PotionParser(nameParser, new PotionTypeParser());
+		itemNameParser = new ParameterParser<Integer>(nameParser);
+	}
 	
 	@Override
 	public Query parse(String text) throws ParsingException {
@@ -118,6 +123,38 @@ public class ItemParser extends TextParser<Query> {
 			else
 				throw ex;
 		}
+	}
+	
+	public ParameterParser<Integer> getItemNameParser() {
+		return itemNameParser;
+	}
+
+	public void setItemNameParser(ParameterParser<Integer> itemNameParser) {
+		this.itemNameParser = itemNameParser;
+	}
+
+	public ItemDurabilityParser getElementDurability() {
+		return elementDurability;
+	}
+
+	public void setElementDurability(ItemDurabilityParser elementDurability) {
+		this.elementDurability = elementDurability;
+	}
+
+	public ParameterParser<Integer> getDurabilityParser() {
+		return durabilityParser;
+	}
+
+	public void setDurabilityParser(ParameterParser<Integer> durabilityParser) {
+		this.durabilityParser = durabilityParser;
+	}
+
+	public PotionParser getPotionParser() {
+		return potionParser;
+	}
+
+	public void setPotionParser(PotionParser potionParser) {
+		this.potionParser = potionParser;
 	}
 
 	private boolean hasNegativeIntegers(List<Integer> values) {

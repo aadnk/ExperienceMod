@@ -27,9 +27,14 @@ import com.comphenix.xp.parser.Utility;
 
 public class ItemNameParser extends TextParser<Integer> {
 
-	private static HashMap<String, Material> lookupMaterial = new HashMap<String, Material>();
+	protected HashMap<String, Material> lookupMaterial = new HashMap<String, Material>();
+
+	public ItemNameParser() {
+		loadDefaultList();
+	}
 	
-	static {
+	protected void loadDefaultList() {
+		// Default list of extra materials
 		lookupMaterial.put("WOOLDYE", Material.INK_SACK);
 		lookupMaterial.put("WOOLDYES", Material.INK_SACK);
 		lookupMaterial.put("SLAB", Material.STEP);
@@ -47,6 +52,15 @@ public class ItemNameParser extends TextParser<Integer> {
 		for (Material material : Material.values()) {
 			lookupMaterial.put(material.name().replace("_", ""), material);
 		}
+	}
+	
+	/**
+	 * Registers a new material for the item parser. 
+	 * @param name - name of the material. Only capital letters and no underscores/spaces.
+	 * @param material - the associated material.
+	 */
+	public void register(String name, Material material) {
+		lookupMaterial.put(name, material);
 	}
 	
 	/**
