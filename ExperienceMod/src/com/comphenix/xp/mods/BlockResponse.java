@@ -3,7 +3,6 @@ package com.comphenix.xp.mods;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.inventory.ItemStack;
 
 /**
  * Represents a immutable block service response. 
@@ -16,10 +15,10 @@ public class BlockResponse {
 	 * A response indicating failure.
 	 */
 	public static BlockResponse FAILURE = new BlockResponse(false);
-	
+
 	private boolean success;
+	private boolean forceHack;
 	private InventoryType defaultBehavior;
-	private ItemStack overrideCurrentItem;
 	
 	public BlockResponse(InventoryType defaultBehavior) {
 		this(true, defaultBehavior);
@@ -68,27 +67,19 @@ public class BlockResponse {
 	}
 
 	/**
-	 * Contains the item that will override the current item in InventoryClickEvent.
-	 * @return The item to override InventoryClickEvent, or NULL if override should take place.
+	 * Whether or not to always derive the crafted items from how the player inventory changed.
+	 * @return TRUE to use the hack, FALSE otherwise.
 	 */
-	public ItemStack getOverrideCurrentItem() {
-		return overrideCurrentItem;
+	public boolean isForceHack() {
+		return forceHack;
 	}
 
 	/**
-	 * If non-null, overrides the current item in InventoryClickEvent.
-	 * @param overrideCurrentItem - item to override InventoryClickEvent.
+	 * Sets whether or not to always derive the crafted items from how the player inventory changed.
+	 * @param forceHack - TRUE to force the hack method, FALSE otherwise.
 	 */
-	public void setOverrideCurrentItem(ItemStack overrideCurrentItem) {
-		this.overrideCurrentItem = overrideCurrentItem;
-	}
-	
-	/**
-	 * Determines if the current item in InventoryClickEvent has been overriden.
-	 * @return TRUE if it has been overriden, FALSE otherwise.
-	 */
-	public boolean hasOverridenCurrentItem() {
-		return overrideCurrentItem != null;
+	public void setForceHack(boolean forceHack) {
+		this.forceHack = forceHack;
 	}
 	
 	@Override
