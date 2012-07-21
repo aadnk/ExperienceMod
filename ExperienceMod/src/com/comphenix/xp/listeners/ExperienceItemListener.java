@@ -173,7 +173,7 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 			
 			// See if we should handle the inventory click ourself
 			if (BlockResponse.isSuccessful(response) && response.hasDefaultBehavior()) {
-				processInventory(event, response.isForceHack(), response.getDefaultBehavior());
+				processInventory(event, response);
 			}
 		}
 	}
@@ -181,15 +181,20 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 	/**
 	 * Handles the given inventory event using the default behavior for the given inventory type.
 	 * @param event - inventory click event.
-	 * @param forceHack - whether or not to always detect the crafted items from the player's inventory changes.
-	 * @param type - inventory type.
+	 * @param response - block response detailing how to process the inventory.
 	 */
-	public void processInventory(InventoryClickEvent event, boolean forceHack, InventoryType type) {
+	public void processInventory(InventoryClickEvent event, BlockResponse response) {
+		
+		if (!BlockResponse.isSuccessful(response))
+			throw new IllegalArgumentException("Block response must be successful.");
+		if (!response.hasDefaultBehavior())
+			throw new IllegalArgumentException("Block response must have a default behavior.");
 		
 		// Clicked item and player
 		Player player = (Player) event.getWhoClicked();
-		ItemStack toCraft = event.getCurrentItem();
-		
+		ItemStack toCraft = response.getOverridableCurrentItem(event);
+		InventoryType type = response.getDefaultBehavior();
+
 		Configuration config = null;
 		
 		// Handle different types
@@ -208,8 +213,6 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 				
 				// Prepare rewards and actions
 				RewardableAction future = potionItemReward(config);
-				Action simpleAction = getAction(toCraft, config.getSimpleBrewingReward());
-				
 				ItemTree simpleTree = config.getSimpleBrewingReward();
 				
 				// Yes, this feels a bit like a hack to me too. Blame faulty design. Anyways, the point
@@ -217,8 +220,8 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 				// or "match all level 2 regen potions (splash or not)".
 				ItemTree complexTree = config.getComplexBrewingReward().getItemQueryAdaptor();
 				
-				handleInventory(event, forceHack, simpleTree, future, true);
-				handleInventory(event, forceHack, complexTree, future, true);
+				handleInventory(event, response, simpleTree, future, true);
+				handleInventory(event, response, complexTree, future, true);
 			}
 			
 			break;
@@ -232,7 +235,7 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 					RewardableAction future = genericItemReward(config);
 					ItemTree craftingTree = config.getSimpleCraftingReward();
 					
-					handleInventory(event, forceHack, craftingTree, future, false);
+					handleInventory(event, response, craftingTree, future, false);
 					
 				} else if (debugger != null) {
 					debugger.printDebug(this, "No config found for %s with crafting %s.", player.getName(), toCraft);
@@ -248,7 +251,7 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 					RewardableAction future = genericItemReward(config);
 					ItemTree smeltingTree = config.getSimpleSmeltingReward();
 					
-					handleInventory(event, forceHack, smeltingTree, future, true);
+					handleInventory(event, response, smeltingTree, future, true);
 					
 				} else if (debugger != null) {
 					debugger.printDebug(this, "No config found for %s with smelting %s.", player.getName(), toCraft);
@@ -275,15 +278,15 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 		}
 	}
 	
-	private void handleInventory(InventoryClickEvent event, boolean forceHack, 
+	private void handleInventory(InventoryClickEvent event, BlockResponse response, 
 								 ItemTree tree, RewardableAction rewardAction, 
 								 boolean partialResults) {
 		
 		final Player player = (Player) event.getWhoClicked();
 		final ItemStack toStore = getStackCopy(event.getCursor());
-		final ItemStack toCraft = getStackCopy(event.getCurrentItem());
+		final ItemStack toCraft = getStackCopy(response.getOverridableCurrentItem(event));
 				
-		if (event.isShiftClick() || forceHack) {
+		if (event.isShiftClick() || response.isForceHack()) {
 			
 			// Store this in case we have to cancel the event manually
 			final Inventory blockInventory = event.getInventory();
@@ -310,7 +313,7 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 		} else {
 			
 			// Use the force Luke!
-			if (ItemQuery.hasItems(toCraft)) {
+			if (!ItemQuery.hasItems(toCraft)) {
 				throw new IllegalArgumentException("Must specify current item unless using force hack.");
 			}
 			
@@ -435,14 +438,14 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 						pre = preInv[i];
 						post = postInv[i];
 					}
-
+					
 					// Increase of item count
 					int delta = (post != null ? post.getAmount() : 0) - 
 							    (pre != null ? pre.getAmount() : 0);
 					
 					// We're only interested in filled slots that are different
-					if (last == null || (
-							hasSameItem(last, post) && (hasSameItem(last, pre) || pre == null))) {
+					if ((hasSameItem(post, pre) || !ItemQuery.hasItems(pre)) &&
+					    (hasSameItem(last, post) || !ItemQuery.hasItems(last))) {
 						
 						if (delta > 0) {
 							newItemsCount += delta;
@@ -451,10 +454,19 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 					}
 				}
 				
+				debugger.printDebug(this, "Compare: %s", compareItem);
+				debugger.printDebug(this, "Last: %s", last);
+				
 				// See if we actually got anything
 				if (newItemsCount > 0) {
 					
 					Action action = getAction(last, tree);
+					
+					// Make sure we got a action
+					if (action == null)
+						return;
+					else
+						action.setDebugger(debugger);
 					
 					// See if the event must be cancelled
 					if (!rewardAction.canPerform(player, action, newItemsCount)) {

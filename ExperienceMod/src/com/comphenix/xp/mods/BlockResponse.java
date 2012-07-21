@@ -2,7 +2,9 @@ package com.comphenix.xp.mods;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.inventory.ItemStack;
 
 /**
  * Represents a immutable block service response. 
@@ -18,6 +20,9 @@ public class BlockResponse {
 
 	private boolean success;
 	private boolean forceHack;
+	
+	private boolean overrideCurrent;
+	private ItemStack currentItem;
 	private InventoryType defaultBehavior;
 	
 	public BlockResponse(InventoryType defaultBehavior) {
@@ -80,6 +85,51 @@ public class BlockResponse {
 	 */
 	public void setForceHack(boolean forceHack) {
 		this.forceHack = forceHack;
+	}
+	
+	/**
+	 * Whether or not to override the default current item in InventoryClickEvent.
+	 * @return TRUE if it has been overriden, FALSE otherwise.
+	 */
+	public boolean isOverrideCurrent() {
+		return overrideCurrent;
+	}
+
+	/**
+	 * Sets whether or not to override the default current item in InventoryClickEvent.
+	 * @param overrideCurrent - TRUE to override it, FALSE otherwise.
+	 */
+	public void setOverrideCurrent(boolean overrideCurrent) {
+		this.overrideCurrent = overrideCurrent;
+	}
+
+	/**
+	 * The current item to override with InventoryClickEvent.
+	 * @return Current overriden item.
+	 */
+	public ItemStack getCurrentItem() {
+		return currentItem;
+	}
+
+	/**
+	 * Sets the current overriden item (if isOverrideCurrent is TRUE). 
+	 * @param currentItem - the new overriden item.
+	 */
+	public void setCurrentItem(ItemStack currentItem) {
+		this.currentItem = currentItem;
+	}
+	
+	/**
+	 * If override current is FALSE, return the current item in the given event. If override
+	 * current is TRUE, return the current item in the block response.
+	 * @param event - event to draw from.
+	 * @return The current event, when taking into account overriden items.
+	 */
+	public ItemStack getOverridableCurrentItem(InventoryClickEvent event) {
+		if (isOverrideCurrent())
+			return getCurrentItem();
+		else
+			return event.getCurrentItem();
 	}
 	
 	@Override

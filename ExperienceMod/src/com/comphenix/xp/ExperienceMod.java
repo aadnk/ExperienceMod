@@ -29,14 +29,12 @@ import java.util.logging.Logger;
 import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.economy.Economy;
 
-import org.apache.commons.lang.NullArgumentException;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -49,6 +47,7 @@ import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.messages.HeroService;
 import com.comphenix.xp.messages.MessageFormatter;
 import com.comphenix.xp.messages.StandardService;
+import com.comphenix.xp.mods.BlockResponse;
 import com.comphenix.xp.mods.CustomBlockProviders;
 import com.comphenix.xp.mods.StandardBlockService;
 import com.comphenix.xp.parser.ParsingException;
@@ -473,18 +472,13 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	/**
 	 * Handles the given inventory event using the default behavior for the given inventory type.
 	 * @param event - inventory click event.
-	 * @param forceHack - whether or not to always detect the crafted items from the player's inventory changes.
-	 * @param type - inventory type.
+	 * @param response - block response detailing how to process the inventory.
 	 */
-	public void processInventoryClick(InventoryClickEvent event, boolean forceHack, InventoryType defaultBehavior) {
+	public void processInventoryClick(InventoryClickEvent event, BlockResponse response) {
 		if (xpItemListener == null)
 			throw new RuntimeException("ExperienceMod isn't loaded yet.");
-		if (event == null)
-			throw new NullArgumentException("click");
-		if (defaultBehavior == null)
-			throw new NullArgumentException("defaultBehavior");
-		
-		xpItemListener.processInventory(event, forceHack, defaultBehavior);
+
+		xpItemListener.processInventory(event, response);
 	}
 	
 	private void setPresets(Presets presets) {
