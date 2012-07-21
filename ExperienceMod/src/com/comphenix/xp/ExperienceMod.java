@@ -29,6 +29,7 @@ import java.util.logging.Logger;
 import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.economy.Economy;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
@@ -65,6 +66,9 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	private Logger currentLogger;
 	private PluginManager manager;
 	
+	// Scheduling
+	private PlayerScheduler playerScheduler;
+
 	private Economy economy;
 	private Chat chat;
 	
@@ -100,6 +104,9 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	public void onLoad() {
 
 		RewardEconomy rewardEconomy;
+		
+		// Initialize scheduler
+		playerScheduler = new PlayerScheduler(Bukkit.getScheduler(), this);
 		
 		// Initialize rewards
 		currentLogger = this.getLogger();
@@ -405,6 +412,10 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	public Presets getPresets() {
 		return presets;
 	}
+		
+	public PlayerScheduler getPlayerScheduler() {
+		return playerScheduler;
+	}
 	
 	/**
 	 * Retrieves a list of action rewards that applies when a mob is killed, either by the environment (when KILLER is NULL), 
@@ -485,17 +496,17 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		
 		// Create a new listener if necessary
 		if (xpBlockListener == null || xpItemListener == null || xpMobListener == null) {
-			xpItemListener = new ExperienceItemListener(this, this, customProvider, presets);
+			xpItemListener = new ExperienceItemListener(this, playerScheduler, customProvider, presets);
 			xpBlockListener = new ExperienceBlockListener(this, presets);
 			xpMobListener = new ExperienceMobListener(this, presets);
 			xpEnchancer = new ExperienceEnhancementsListener(this);
-			xpCleanup = new ExperienceCleanupListener(presets, interactionListener);
+			xpCleanup = new ExperienceCleanupListener(presets, interactionListener, playerScheduler);
 			
 		} else {
 			xpItemListener.setPresets(presets);
 			xpBlockListener.setPresets(presets);
 			xpMobListener.setPresets(presets);
-			xpCleanup.setPlayerCleanupListeners(presets, interactionListener);
+			xpCleanup.setPlayerCleanupListeners(presets, interactionListener, playerScheduler);
 		}
 	}
 	

@@ -36,6 +36,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import com.comphenix.xp.Action;
 import com.comphenix.xp.Configuration;
 import com.comphenix.xp.Debugger;
+import com.comphenix.xp.PlayerScheduler;
 import com.comphenix.xp.Presets;
 import com.comphenix.xp.lookup.ItemQuery;
 import com.comphenix.xp.lookup.ItemTree;
@@ -55,17 +56,17 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 	private final String permissionRewardFishing = "experiencemod.rewards.fishing";
 	private final String permissionUntouchable = "experiencemod.untouchable";
 
-	private JavaPlugin parentPlugin;
 	private Debugger debugger;
+	private PlayerScheduler scheduler;
 	private CustomBlockProviders blockProvider;
 	
 	// Random source
 	private Random random = new Random();
 	
-	public ExperienceItemListener(JavaPlugin parentPlugin, Debugger debugger, 
+	public ExperienceItemListener(Debugger debugger, PlayerScheduler scheduler,
 							      CustomBlockProviders blockProvider, Presets presets) {
 		
-		this.parentPlugin = parentPlugin;
+		this.scheduler = scheduler;
 		this.debugger = debugger;
 		this.blockProvider = blockProvider;
 		setPresets(presets);
@@ -288,6 +289,12 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 				
 		if (event.isShiftClick() || response.isForceHack()) {
 			
+			// Don't waste resources if we're already waiting
+			if (scheduler.getTasks(player).size() > 0) {
+				debugger.printDebug(this, "Duplicated scheduled task aborted.");
+				return;
+			}
+			
 			// Store this in case we have to cancel the event manually
 			final Inventory blockInventory = event.getInventory();
 			final Inventory playerInventory = player.getInventory();
@@ -413,9 +420,9 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 											
 		final ItemStack[] preInv = getInventoryCopy(player.getInventory());
 		final ItemStack preCursor = getStackCopy(player.getItemOnCursor());
-		final int ticks = 1; // May need adjusting
-		
-		Bukkit.getScheduler().scheduleSyncDelayedTask(parentPlugin, new Runnable() {
+
+		// Await future data
+		scheduler.schedule(player, new Runnable() {
 			@Override
 			public void run() {
 				final ItemStack[] postInv = player.getInventory().getContents();
@@ -454,9 +461,6 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 					}
 				}
 				
-				debugger.printDebug(this, "Compare: %s", compareItem);
-				debugger.printDebug(this, "Last: %s", last);
-				
 				// See if we actually got anything
 				if (newItemsCount > 0) {
 					
@@ -477,7 +481,7 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 					}
 				}
 			}
-		}, ticks);
+		});
 	}
 	
 	/**
