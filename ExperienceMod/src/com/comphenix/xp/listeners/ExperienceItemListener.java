@@ -19,7 +19,6 @@ package com.comphenix.xp.listeners;
 
 import java.util.Random;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -31,7 +30,6 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import com.comphenix.xp.Action;
 import com.comphenix.xp.Configuration;
@@ -293,6 +291,9 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 			if (scheduler.getTasks(player).size() > 0) {
 				debugger.printDebug(this, "Duplicated scheduled task aborted.");
 				return;
+				
+			} else {
+				debugger.printDebug(this, "Spawned scheduled task for %s.", player);
 			}
 			
 			// Store this in case we have to cancel the event manually

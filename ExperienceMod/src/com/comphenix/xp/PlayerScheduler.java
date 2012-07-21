@@ -45,6 +45,7 @@ public class PlayerScheduler implements PlayerCleanupListener {
 		
 		// Now, update the task ID
 		playerTask.setTaskID(taskID);
+		tasks.put(player.getName(), taskID);
 	}
 	
 	public Set<Integer> getTasks(Player player) {
