@@ -274,10 +274,13 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			// Reset warnings
 			informer.clearMessages();
 			
+			// Remove previously loaded files
+			configLoader.clearCache();
+			
 			// Load parts of the configuration
 			YamlConfiguration presetList = loadConfig("presets.yml", "Creating default preset list.");
 			loadConfig("config.yml", "Creating default configuration.");
-			
+
 			// Load it
 			presets = new Presets(presetList, this, chat, configLoader);
 			setPresets(presets);
