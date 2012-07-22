@@ -35,25 +35,25 @@ public class StandardBlockService implements BlockService {
 			case BREWING:
 				// Make sure this is a potion result slot
 				if (isPotionResult && block.match(Material.BREWING_STAND)) {
-					return new BlockResponse(type, ActionTypes.BREWING, Permissions.permissionRewardBrewing);
+					return new BlockResponse(type, ActionTypes.BREWING, Permissions.REWARDS_BREWING);
 				}
 				
 			case CRAFTING:		
 				// Player crafting - meaning that the block query is irrelevant
 				if (isCraftResult) {
-					return new BlockResponse(type, ActionTypes.CRAFTING, Permissions.permissionRewardCrafting);
+					return new BlockResponse(type, ActionTypes.CRAFTING, Permissions.REWARDS_CRAFTING);
 				}
 				
 			case WORKBENCH:
 				if (isCraftResult && block.match(Material.WORKBENCH)) {
-					return new BlockResponse(type, ActionTypes.CRAFTING, Permissions.permissionRewardCrafting);
+					return new BlockResponse(type, ActionTypes.CRAFTING, Permissions.REWARDS_CRAFTING);
 				}
 				
 			case FURNACE:
 				if (isCraftResult && 
 						(block.match(Material.FURNACE) ||
 						 block.match(Material.BURNING_FURNACE))) {
-					return new BlockResponse(type, ActionTypes.SMELTING, Permissions.permissionRewardSmelting);
+					return new BlockResponse(type, ActionTypes.SMELTING, Permissions.REWARDS_SMELTING);
 				}
 		}
 		

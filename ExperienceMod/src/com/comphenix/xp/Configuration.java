@@ -441,8 +441,11 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 					switch (queryType) {
 					case Items:
 						loadActionOnItem(itemSection, action, item, getActionReward(type), queryType);
+						break;
+						
 					case Potions:
 						loadActionOnItem(itemSection, action, item, getComplexReward(type), queryType);
+						break;
 					}
 					
 				}
