@@ -13,6 +13,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.comphenix.xp.Action;
+import com.comphenix.xp.ActionTypes;
 import com.comphenix.xp.Configuration;
 import com.comphenix.xp.Debugger;
 import com.comphenix.xp.Range;
@@ -53,6 +54,7 @@ public class ItemTreeTest {
 		configuration = new Configuration(injected, rewards, channels);
 		configuration.setItemParser(new ItemParser(new ItemNameParser()));
 		configuration.setMobParser(new MobParser());
+		configuration.setActionTypes(ActionTypes.Default());
 		configuration.loadFromConfig(defaultFile);
     }
 	

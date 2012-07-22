@@ -33,18 +33,14 @@ import com.comphenix.xp.Action;
 import com.comphenix.xp.Configuration;
 import com.comphenix.xp.Debugger;
 import com.comphenix.xp.Presets;
+import com.comphenix.xp.extra.Permissions;
 import com.comphenix.xp.lookup.ItemQuery;
 import com.comphenix.xp.lookup.ItemTree;
 import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.rewards.RewardProvider;
 
 public class ExperienceBlockListener extends AbstractExperienceListener {
-	
-	private final String permissionRewardBonus = "experiencemod.rewards.bonus";
-	private final String permissionRewardBlock = "experiencemod.rewards.block";
-	private final String permissionRewardPlacing = "experiencemod.rewards.placing";
-	private final String permissionUntouchable = "experiencemod.untouchable";
-	
+		
 	private Debugger debugger;
 
 	// Random source
@@ -67,8 +63,8 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 			ItemStack toolItem = player.getItemInHand();
 			ItemQuery retrieveKey = ItemQuery.fromExact(block);
 			
-			boolean allowBlockReward = player.hasPermission(permissionRewardBlock) && !hasSilkTouch(toolItem);
-			boolean allowBonusReward = player.hasPermission(permissionRewardBonus);
+			boolean allowBlockReward = Permissions.hasRewardBlock(player) && !hasSilkTouch(toolItem);
+			boolean allowBonusReward = Permissions.hasRewardBonus(player);
 
 			// Only without silk touch
 			if (allowBlockReward) {
@@ -132,7 +128,7 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 		// See if this deserves experience
 		if (block != null && player != null) { 
 			
-			boolean allowPlacingReward = player.hasPermission(permissionRewardPlacing);
+			boolean allowPlacingReward = Permissions.hasRewardPlacing(player);
 			
 			if (allowPlacingReward) {
 				Configuration config = getConfiguration(player);
@@ -158,7 +154,7 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 								player.getName(), block.getType());
 						
 						// Events will not be cancelled for untouchables
-						if (!player.hasPermission(permissionUntouchable))
+						if (!Permissions.hasUntouchable(player))
 							event.setCancelled(true);
 						return;
 					}

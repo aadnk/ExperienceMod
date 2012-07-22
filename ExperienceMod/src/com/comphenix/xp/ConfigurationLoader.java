@@ -40,6 +40,9 @@ public class ConfigurationLoader {
 	private RewardProvider rewardProvider;
 	private ChannelProvider channelProvider;
 	
+	// Registry of action types
+	private ActionTypes actionTypes = ActionTypes.Default();
+	
 	private ItemNameParser nameParser = new ItemNameParser();
 	private ItemParser itemParser = new ItemParser(nameParser);
 	private MobParser mobParser = new MobParser();
@@ -49,7 +52,6 @@ public class ConfigurationLoader {
 		this.logger = logger;
 		this.rewardProvider = rewardProvider;
 		this.channelProvider = channelProvider;
-		
 		this.configurationFiles = new HashMap<File, Configuration>();
 	}
 	
@@ -105,6 +107,22 @@ public class ConfigurationLoader {
 		this.nameParser = nameParser;
 		this.itemParser = new ItemParser(nameParser);
 	}
+	
+	/**
+	 * Retrieves the current registered action types.
+	 * @return Registry of action types.
+	 */
+	public ActionTypes getActionTypes() {
+		return actionTypes;
+	}
+
+	/**
+	 * Sets the current registry of action types. This must be changed before configurations are loaded.
+	 * @param actionTypes - new action type registry.
+	 */
+	public void setActionTypes(ActionTypes actionTypes) {
+		this.actionTypes = actionTypes;
+	}
 
 	public Configuration getFromPath(String path) {
 		
@@ -122,6 +140,7 @@ public class ConfigurationLoader {
 		
 		config.setItemParser(itemParser);
 		config.setMobParser(mobParser);
+		config.setActionTypes(actionTypes);
 		config.loadFromConfig(data);
 		return config;
 	}
@@ -136,6 +155,7 @@ public class ConfigurationLoader {
 			// Load from YAML
 			config.setItemParser(itemParser);
 			config.setMobParser(mobParser);
+			config.setActionTypes(actionTypes);
 			config.loadFromConfig(yaml);
 			
 			// Cache 

@@ -28,7 +28,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import com.comphenix.xp.Action;
-import com.comphenix.xp.Configuration;
 import com.comphenix.xp.ExperienceMod;
 import com.comphenix.xp.lookup.MobQuery;
 import com.comphenix.xp.lookup.Query;
@@ -145,7 +144,7 @@ public class CommandExperienceMod implements CommandExecutor {
 	
 	private void handleQueryItem(CommandSender sender, String[] args, int offset) {
 
-		Configuration.ActionTypes type = Configuration.ActionTypes.matchAction(
+		Integer type = plugin.getActionTypes().getType(
 				CommandUtilities.getSafe(args, offset));
 		
 		// Make sure it's valid

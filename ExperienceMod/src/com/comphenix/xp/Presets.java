@@ -148,7 +148,7 @@ public class Presets implements PlayerCleanupListener {
 		
 		// Make sure there is anything to return
 		if (files.isEmpty())
-			result = new Configuration(logger);
+			result = new Configuration(logger, loader.getActionTypes());
 		else
 			result = Configuration.fromMultiple(files, logger);
 		

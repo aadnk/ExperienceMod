@@ -421,6 +421,14 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	}
 	
 	/**
+	 * Retrieves the current registered action types.
+	 * @return Registry of action types.
+	 */
+	public ActionTypes getActionTypes() {
+		return configLoader.getActionTypes();
+	}
+
+	/**
 	 * Retrieves a list of action rewards that applies when a mob is killed, either by the environment (when KILLER is NULL), 
 	 * or by a player. 
 	 * <p>
@@ -450,36 +458,32 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	 * first item will be awarded.
 	 * 
 	 * @param player - player performing the given action, or NULL if the default configuration file should be used.
-	 * @param trigger - action the player performs.
+	 * @param trigger - action the player performs. 
 	 * @param query - query representing the item or block that was the target of the action.
 	 * @return A list of possible rewards. Only the first item will be chosen when rewards are actually awarded.
 	 * @throws ParsingException If the stored preset option associated with this player is malformed.
 	 */
-	public List<Action> getPlayerReward(Player player, Configuration.ActionTypes trigger, Query query) throws ParsingException {
+	public List<Action> getPlayerReward(Player player, Integer trigger, Query query) throws ParsingException {
 		
 		Configuration config = getPresets().getConfiguration(player);
 		
-		switch (trigger) {
-		case BLOCK:
-			return config.getSimpleBlockReward().getAllRanked((ItemQuery) query); 
-		case BONUS:
-			return config.getSimpleBonusReward().getAllRanked((ItemQuery) query); 
-		case CRAFTING:
-			return config.getSimpleCraftingReward().getAllRanked((ItemQuery) query); 
-		case SMELTING:
-			return config.getSimpleSmeltingReward().getAllRanked((ItemQuery) query); 
-		case PLACE:
-			return config.getSimplePlacingReward().getAllRanked((ItemQuery) query); 
-		case BREWING:
-			// Handle both possibilities
-			if (query instanceof ItemQuery)
-				return config.getSimpleBrewingReward().getAllRanked((ItemQuery) query);
-			else
-				return config.getComplexBrewingReward().getAllRanked((PotionQuery) query);
+		Integer brewing = getActionTypes().getType(ActionTypes.BREWING);
+		ItemTree current = config.getActionReward(trigger);
+		
+		// Special brewing type
+		if (trigger == brewing && query instanceof PotionQuery) {
 			
-		// Handles unknown
-		default:
-			throw new IllegalArgumentException("Trigger cannot be unknown.");
+			// Use the complex brewing reward rules
+			return config.getComplexBrewingReward().getAllRanked((PotionQuery) query);
+			
+		} else {
+			// Check for incorrect action types/triggers
+			if (current == null) {
+				throw new IllegalArgumentException(String.format("Unknown trigger ID: %s", trigger));
+			}
+			
+			// Standard item reward rules
+			return current.getAllRanked((ItemQuery) query);
 		}
 	}
 	

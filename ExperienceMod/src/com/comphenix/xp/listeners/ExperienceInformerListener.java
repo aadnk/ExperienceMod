@@ -28,10 +28,9 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
-public class ExperienceInformerListener implements Listener {
+import com.comphenix.xp.extra.Permissions;
 
-	// Whether or not to display warning messages
-	private final String permissionInfo = "experiencemod.info";
+public class ExperienceInformerListener implements Listener {
 
 	private List<String> warningMessages = new ArrayList<String>();
 
@@ -49,7 +48,7 @@ public class ExperienceInformerListener implements Listener {
 	public boolean displayWarnings(CommandSender sender, boolean ignorePermission) {
 		
 		// Player or console
-		if (ignorePermission || sender.hasPermission(permissionInfo)) {
+		if (ignorePermission || Permissions.hasInfo(sender)) {
 			// Print warning messages
 			for (String message : warningMessages) {
 				sender.sendMessage(ChatColor.RED + "[ExperienceMod] Warning: " + message);

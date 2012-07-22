@@ -77,6 +77,7 @@ public class ConfigurationTest {
 		
 		config.setItemParser(new ItemParser(nameParser));
 		config.setMobParser(new MobParser());
+		config.setActionTypes(ActionTypes.Default());
 		config.loadFromConfig(fromText(text));
 		return config;
 	}

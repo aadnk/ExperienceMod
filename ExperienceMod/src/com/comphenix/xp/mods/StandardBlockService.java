@@ -6,6 +6,8 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.inventory.InventoryType.SlotType;
 import org.bukkit.inventory.ItemStack;
 
+import com.comphenix.xp.ActionTypes;
+import com.comphenix.xp.extra.Permissions;
 import com.comphenix.xp.lookup.ItemQuery;
 
 public class StandardBlockService implements BlockService {
@@ -33,25 +35,25 @@ public class StandardBlockService implements BlockService {
 			case BREWING:
 				// Make sure this is a potion result slot
 				if (isPotionResult && block.match(Material.BREWING_STAND)) {
-					return new BlockResponse(type);
+					return new BlockResponse(type, ActionTypes.BREWING, Permissions.permissionRewardBrewing);
 				}
 				
 			case CRAFTING:		
 				// Player crafting - meaning that the block query is irrelevant
 				if (isCraftResult) {
-					return new BlockResponse(type);
+					return new BlockResponse(type, ActionTypes.CRAFTING, Permissions.permissionRewardCrafting);
 				}
 				
 			case WORKBENCH:
 				if (isCraftResult && block.match(Material.WORKBENCH)) {
-					return new BlockResponse(type);
+					return new BlockResponse(type, ActionTypes.CRAFTING, Permissions.permissionRewardCrafting);
 				}
 				
 			case FURNACE:
 				if (isCraftResult && 
 						(block.match(Material.FURNACE) ||
 						 block.match(Material.BURNING_FURNACE))) {
-					return new BlockResponse(type);
+					return new BlockResponse(type, ActionTypes.SMELTING, Permissions.permissionRewardSmelting);
 				}
 		}
 		

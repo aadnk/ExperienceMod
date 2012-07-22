@@ -145,6 +145,15 @@ public class ActionParser extends ConfigurationParser<Action> {
 		}
 	}
 	
+	/**
+	 * Creates a shallow copy of this parser with the given reward provider.
+	 * @param provider - new reward provider.
+	 * @return Shallow copy of this parser.
+	 */
+	public ActionParser createView(RewardProvider provider) {
+		return new ActionParser(provider);
+	}
+	
 	public static int getCurrentID() {
 		return currentID;
 	}

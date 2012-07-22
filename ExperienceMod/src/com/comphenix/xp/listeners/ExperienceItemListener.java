@@ -36,9 +36,11 @@ import com.comphenix.xp.Configuration;
 import com.comphenix.xp.Debugger;
 import com.comphenix.xp.PlayerScheduler;
 import com.comphenix.xp.Presets;
+import com.comphenix.xp.extra.Permissions;
 import com.comphenix.xp.lookup.ItemQuery;
 import com.comphenix.xp.lookup.ItemTree;
 import com.comphenix.xp.lookup.PlayerRewards;
+import com.comphenix.xp.lookup.PotionTree;
 import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.messages.MessagePlayerQueue;
 import com.comphenix.xp.mods.BlockResponse;
@@ -47,12 +49,6 @@ import com.comphenix.xp.rewards.RewardProvider;
 import com.google.common.base.Objects;
 
 public class ExperienceItemListener extends AbstractExperienceListener {
-
-	private final String permissionRewardSmelting = "experiencemod.rewards.smelting";
-	private final String permissionRewardBrewing = "experiencemod.rewards.brewing";
-	private final String permissionRewardCrafting = "experiencemod.rewards.crafting";
-	private final String permissionRewardFishing = "experiencemod.rewards.fishing";
-	private final String permissionUntouchable = "experiencemod.untouchable";
 
 	private Debugger debugger;
 	private PlayerScheduler scheduler;
@@ -78,7 +74,7 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 		String message = null;
 		Action action = null;
 
-		if (player != null && player.hasPermission(permissionRewardFishing)) {
+		if (player != null && Permissions.hasRewardFishing(player)) {
 			
 			Configuration config = getConfiguration(player);
 			
@@ -114,7 +110,7 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 						debugger.printDebug(this, "Unable to penalize fishing for %s. Not enough funds.", player.getName());
 					
 					// Don't catch the fish
-					if (!player.hasPermission(permissionUntouchable))
+					if (!Permissions.hasUntouchable(player))
 						event.setCancelled(true);
 					return;
 				}
@@ -193,70 +189,58 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 		Player player = (Player) event.getWhoClicked();
 		ItemStack toCraft = response.getOverridableCurrentItem(event);
 		InventoryType type = response.getDefaultBehavior();
-
-		Configuration config = null;
 		
-		// Handle different types
-		switch (type) {
-		case BREWING:
-			// Do not proceed if the user isn't permitted
-			if (player.hasPermission(permissionRewardBrewing)) {
-				config = getConfiguration(player);
-				
-				// Guard again
-				if (config == null) {
-					if (debugger != null)
-						debugger.printDebug(this, "No config found for %s with brewing %s.", player.getName(), toCraft);
-					return;
-				}
-				
-				// Prepare rewards and actions
-				RewardableAction future = potionItemReward(config);
-				ItemTree simpleTree = config.getSimpleBrewingReward();
-				
-				// Yes, this feels a bit like a hack to me too. Blame faulty design. Anyways, the point
-				// is that we get to check more complex potion matching rules, like "match all splash potions"
-				// or "match all level 2 regen potions (splash or not)".
-				ItemTree complexTree = config.getComplexBrewingReward().getItemQueryAdaptor();
-				
-				handleInventory(event, response, simpleTree, future, true);
-				handleInventory(event, response, complexTree, future, true);
+		// Do not proceed if the user isn't permitted
+		if (player.hasPermission(response.getPermission())) {
+			return;
+		}
+		
+		Configuration config = getConfiguration(player);
+		
+		// Special case for brewing here too
+		if (type == InventoryType.BREWING) {
+			
+			// Guard again
+			if (config == null) {
+				if (debugger != null)
+					debugger.printDebug(this, "No config found for %s with brewing %s.", player.getName(), toCraft);
+				return;
 			}
 			
-			break;
-		case CRAFTING:
-		case WORKBENCH:
-			if (player.hasPermission(permissionRewardCrafting)) {
-				
-				config = getConfiguration(player);
-
-				if (config != null) {
-					RewardableAction future = genericItemReward(config);
-					ItemTree craftingTree = config.getSimpleCraftingReward();
-					
-					handleInventory(event, response, craftingTree, future, false);
-					
-				} else if (debugger != null) {
-					debugger.printDebug(this, "No config found for %s with crafting %s.", player.getName(), toCraft);
-				}
-			}
-			break;
+			// Prepare rewards and actions
+			RewardableAction potionFuture = potionItemReward(config);
+			ItemTree simpleTree = config.getActionReward(response.getActionType());
 			
-		case FURNACE:
-			if (player.hasPermission(permissionRewardSmelting)) {
-				config = getConfiguration(player);
+			// Yes, this feels a bit like a hack to me too. Blame faulty design. Anyways, the point
+			// is that we get to check more complex potion matching rules, like "match all splash potions"
+			// or "match all level 2 regen potions (splash or not)".
+			PotionTree complexTree = config.getComplexReward(response.getActionType());
+			
+			// Rewards for items alone
+			if (simpleTree != null)
+				handleInventory(event, response, simpleTree, potionFuture, true);
+			else
+				debugger.printDebug(this, "Could not find simple reward for action %s.", response.getActionType());
+			
+			// Rewards for special potions
+			if (complexTree != null)
+				handleInventory(event, response, complexTree.getItemQueryAdaptor(), potionFuture, true);
+			else
+				debugger.printDebug(this, "Could not find complex reward for action %s.", response.getActionType());
+		
+			
+		// Handle every other inventory type	
+		} else {
+			
+			if (config != null) {
+				RewardableAction itemFuture = genericItemReward(config);
+				ItemTree craftingTree = config.getActionReward(response.getActionType());
 				
-				if (config != null) {
-					RewardableAction future = genericItemReward(config);
-					ItemTree smeltingTree = config.getSimpleSmeltingReward();
-					
-					handleInventory(event, response, smeltingTree, future, true);
-					
-				} else if (debugger != null) {
-					debugger.printDebug(this, "No config found for %s with smelting %s.", player.getName(), toCraft);
-				}
+				handleInventory(event, response, craftingTree, itemFuture, false);
+				
+			} else if (debugger != null) {
+				debugger.printDebug(this, "No config found for %s with crafting/smelting %s.", player.getName(), toCraft);
 			}
-			break;
 		}
 	}
 	
@@ -310,7 +294,7 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 						public void run() {
 							
 							// Don't touch the inventory of the untouchables
-							if (!player.hasPermission(permissionUntouchable)) {
+							if (!Permissions.hasUntouchable(player)) {
 								playerInventory.setContents(originalPlayerInventory);
 								blockInventory.setContents(originalBlockInventory);
 								player.setItemOnCursor(toStore);
@@ -349,7 +333,7 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 					
 				} else {
 					// Events will not be cancelled for untouchables
-					if (!player.hasPermission(permissionUntouchable))
+					if (!Permissions.hasUntouchable(player))
 						event.setCancelled(true);
 				}
 			}

@@ -2,6 +2,7 @@ package com.comphenix.xp.mods;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang.builder.ToStringBuilder;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
@@ -25,17 +26,26 @@ public class BlockResponse {
 	private ItemStack currentItem;
 	private InventoryType defaultBehavior;
 	
-	public BlockResponse(InventoryType defaultBehavior) {
-		this(true, defaultBehavior);
+	private String actionType;
+	private String permission;
+	
+	public BlockResponse(String actionType, String permission) {
+		this(true, InventoryType.WORKBENCH, actionType, permission);
+	}
+	
+	public BlockResponse(InventoryType defaultBehavior, String actionType, String permission) {
+		this(true, defaultBehavior, actionType, permission);
 	}
 	
 	public BlockResponse(boolean success) {
 		this.success = success;
 	}
 	
-	public BlockResponse(boolean success, InventoryType defaultBehavior) {
+	public BlockResponse(boolean success, InventoryType defaultBehavior, String actionType, String permission) {
 		this.success = success;
 		this.defaultBehavior = defaultBehavior;
+		this.actionType = actionType;
+		this.permission = permission;
 	}
 
 	/**
@@ -88,6 +98,22 @@ public class BlockResponse {
 	}
 	
 	/**
+	 * Retrieves the current action type (or trigger).
+	 * @return Action type.
+	 */
+	public String getActionType() {
+		return actionType;
+	}
+
+	/**
+	 * Sets the current action type.
+	 * @param actionType - new action type.
+	 */
+	public void setActionType(String actionType) {
+		this.actionType = actionType;
+	}
+	
+	/**
 	 * Whether or not to override the default current item in InventoryClickEvent.
 	 * @return TRUE if it has been overriden, FALSE otherwise.
 	 */
@@ -120,6 +146,22 @@ public class BlockResponse {
 	}
 	
 	/**
+	 * Retrieves the permission this player must have in order to be rewarded.
+	 * @return The permission the player must have.
+	 */
+	public String getPermission() {
+		return permission;
+	}
+
+	/**
+	 * Sets the permission the player must have in order to be rewarded.
+	 * @param permission - the new permission the player must have.
+	 */
+	public void setPermission(String permission) {
+		this.permission = permission;
+	}
+
+	/**
 	 * If override current is FALSE, return the current item in the given event. If override
 	 * current is TRUE, return the current item in the block response.
 	 * @param event - event to draw from.
@@ -136,7 +178,12 @@ public class BlockResponse {
 	public int hashCode() {
 		return new HashCodeBuilder(17, 31).
 	            append(success).
+	            append(forceHack).
+	            append(overrideCurrent).
+	            append(currentItem).
 	            append(defaultBehavior).
+	            append(actionType).
+	            append(permission).
 	            toHashCode();
 	}
 
@@ -152,12 +199,17 @@ public class BlockResponse {
         BlockResponse other = (BlockResponse) obj;
         return new EqualsBuilder().
             append(success, other.success).
+            append(forceHack, other.forceHack).
+            append(overrideCurrent, other.overrideCurrent).
+            append(currentItem, other.currentItem).
             append(defaultBehavior, other.defaultBehavior).
+            append(actionType, other.actionType).
+            append(permission, other.permission).
             isEquals();
 	}
 	
 	@Override
 	public String toString() {
-		return String.format("[Success: %s, Behavior: %s]", success, defaultBehavior);
+		return ToStringBuilder.reflectionToString(this);  
 	}
 }
