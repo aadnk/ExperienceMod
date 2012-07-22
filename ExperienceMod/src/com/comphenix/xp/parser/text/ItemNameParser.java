@@ -27,6 +27,7 @@ import com.comphenix.xp.parser.TextParser;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.parser.Utility;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 
 public class ItemNameParser extends TextParser<List<Integer>> {
@@ -83,6 +84,18 @@ public class ItemNameParser extends TextParser<List<Integer>> {
 	 */
 	public Collection<Integer> getRegistered(String name) {
 		return lookupMaterial.get(name);
+	}
+	
+	/**
+	 * Retrieves the first registered item, or NULL if not found.
+	 * @param name - the name of the item to search for.
+	 * @return ID of the first registered item, or NULL if not found.
+	 */
+	public Integer getFirstRegistered(String name) {
+		
+		Collection<Integer> registered = getRegistered(name);
+		
+		return Iterables.getFirst(registered, null);
 	}
 	
 	/**
