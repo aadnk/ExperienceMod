@@ -159,7 +159,7 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 
 		// Clicked item and player
 		Player player = (Player) event.getWhoClicked();
-		
+
 		// Make sure we have a player, inventory and item
 		if (player != null && event.getInventory() != null) {
 
@@ -191,7 +191,9 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 		InventoryType type = response.getDefaultBehavior();
 		
 		// Do not proceed if the user isn't permitted
-		if (player.hasPermission(response.getPermission())) {
+		if (!player.hasPermission(response.getPermission())) {
+			debugger.printDebug(this, "%s doesn't have permission to be awarded for %s.", 
+					response.getPermission(), response.getActionType());
 			return;
 		}
 		
@@ -232,11 +234,14 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 		// Handle every other inventory type	
 		} else {
 			
+			// Furnaces allow partial results
+			boolean partial = (type == InventoryType.FURNACE);
+			
 			if (config != null) {
 				RewardableAction itemFuture = genericItemReward(config);
 				ItemTree craftingTree = config.getActionReward(response.getActionType());
 				
-				handleInventory(event, response, craftingTree, itemFuture, false);
+				handleInventory(event, response, craftingTree, itemFuture, partial);
 				
 			} else if (debugger != null) {
 				debugger.printDebug(this, "No config found for %s with crafting/smelting %s.", player.getName(), toCraft);
@@ -445,7 +450,7 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 						}
 					}
 				}
-				
+
 				// See if we actually got anything
 				if (newItemsCount > 0) {
 					
