@@ -44,7 +44,8 @@ public class ItemQuery implements Query {
 	private List<Integer> durability;
 
 	/**
-	 * Universal query.
+	 * Universal query. Matches everything.
+	 * @return The universal query.
 	 */
 	public static ItemQuery fromAny() {
 		return new ItemQuery(noNumbers, noNumbers);
@@ -53,6 +54,7 @@ public class ItemQuery implements Query {
 	/**
 	 * Creates a query from the given material and data.
 	 * @param material - material to create from.
+	 * @return The created query.
 	 */
 	public static ItemQuery fromAny(Material material) {
 		return fromAny(material != null ? material.getId() : null, null);
@@ -62,11 +64,18 @@ public class ItemQuery implements Query {
 	 * Creates a query from the given material and data.
 	 * @param material - material to create from.
 	 * @param durability - durability to create from.
+	 * @return The created query.
 	 */
 	public static ItemQuery fromAny(Material material, Integer durability) {
 		return fromAny(material != null ? material.getId() : null, durability);
 	}
 	
+	/**
+	 * Creates a query from the given material and data, where NULL represents any value.
+	 * @param itemID - ID to create from, or NULL to indicate every ID.
+	 * @param durability - durability to create from, or NULL to indicate every durability.
+	 * @return The created query.
+	 */
 	public static ItemQuery fromAny(Integer itemID, Integer durability) {
 		return new ItemQuery(
 				Utility.getElementList(itemID), 
@@ -77,6 +86,7 @@ public class ItemQuery implements Query {
 	/**
 	 * Creates a query from a given world block.
 	 * @param block - block to create from.
+	 * @return The created query.
 	 */
 	public static ItemQuery fromExact(Block block) {
 		return fromExact(block.getTypeId(), (int) block.getData());
@@ -85,6 +95,7 @@ public class ItemQuery implements Query {
 	/**
 	 * Extracts the item type and durability. Note that the item count property is ignored.
 	 * @param stack - item type.
+	 * @return The created query.
 	 * @throws NullArgumentException if the stack is null.
 	 */
 	public static ItemQuery fromExact(ItemStack stack) {
@@ -95,6 +106,12 @@ public class ItemQuery implements Query {
 		return fromExact(stack.getTypeId(), (int) stack.getDurability());
 	}
 	
+	/**
+	 * Creates a query from the given ID and durability. NULL is used to ONLY match universal queries.
+	 * @param itemID - ID to match, or NULL to match queries without IDs.
+	 * @param durability - durability to match, or NULL to match queries without durabilities.
+	 * @return The created query.
+	 */
 	public static ItemQuery fromExact(Integer itemID, Integer durability) {
 		return new ItemQuery(
 				Lists.newArrayList(itemID), 
@@ -102,6 +119,11 @@ public class ItemQuery implements Query {
 		);
 	}
 	
+	/**
+	 * Constructs a query with the given IDs and durabilities.
+	 * @param itemID - list of IDs.
+	 * @param durability - list of durabilities.
+	 */
 	public ItemQuery(List<Integer> itemID, List<Integer> durability) {
 		this.itemID = itemID;
 		this.durability = durability;
@@ -123,22 +145,41 @@ public class ItemQuery implements Query {
 		return durability != null && !durability.isEmpty();
 	}
 	
-	public boolean hasSingleItem(Material item) {
-		return hasSingleItem(item.getId(), null);
+	@Override
+	public boolean match(Query other) {
+
+		if (other instanceof ItemQuery) {
+			ItemQuery query = (ItemQuery) other;
+			
+			// Make sure the current query is the superset of the given
+			return QueryMatching.matchParameter(itemID, query.itemID) &&
+				   QueryMatching.matchParameter(durability, query.durability);
+		}
+		
+		// Query must be of the same type
+		return false;
 	}
 	
 	/**
-	 * Determine if this query only contains the given item.
-	 * @param id - id of the item.
-	 * @param durability - durability of the item, or NULL to match all.
-	 * @return TRUE if it does contain the given item, FALSE otherwise.
+	 * Determines if the current query matches the given item. 
+	 * @param id - id of item, or NULL for every ID.
+	 * @param durability - durability of item, or NULL for every durability.
+	 * @return TRUE if the current query matches the given item.
 	 */
-	public boolean hasSingleItem(Integer id, Integer durability) {
-		// See if the item list contains this item only
-		return hasItemID() && 
-				this.itemID.size() == 1 && this.itemID.contains(id) && 
-				(durability == null ||
-				this.durability.size() == 1 && this.durability.contains(durability));
+	public boolean match(Integer id, Integer durability) {
+		return match(ItemQuery.fromAny(id, durability));
+	}
+	
+	/**
+	 * Determines if the current query matches the given item.
+	 * @param item - item to test, or NULL for every possible item.
+	 * @return TRUE if the current query matches the given item.
+	 */
+	public boolean match(Material item) {
+		if (item == null)
+			return true;
+		else
+			return match(ItemQuery.fromAny(item.getId(), null));
 	}
 	
 	@Override

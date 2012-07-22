@@ -93,7 +93,7 @@ public class PotionQuery implements Query {
 	}
 	
 	public PotionQuery(ItemQuery query) {
-		if (!query.hasSingleItem(Material.POTION))
+		if (!query.match(Material.POTION))
 			throw new IllegalArgumentException("Can only create potion queries from potions.");
 		if (!query.hasDurability())
 			throw new IllegalArgumentException("Must contain a durability value.");
@@ -184,6 +184,25 @@ public class PotionQuery implements Query {
             append(extended, other.extended).
             append(splash, other.splash).
             isEquals();
+	}
+	
+	@Override
+	public boolean match(Query other) {
+
+		// Yes, we could construct a MobTree, put the current MobQuery 
+		// into it and query after other, but this is faster. Probably.
+		if (other instanceof PotionQuery) {
+			PotionQuery query = (PotionQuery) other;
+			
+			// Make sure the current query is the superset of other
+			return QueryMatching.matchParameter(type, query.type) &&
+				   QueryMatching.matchParameter(level, query.level) &&
+				   QueryMatching.matchParameter(extended, query.extended) &&
+				   QueryMatching.matchParameter(splash, query.splash);
+		}
+		
+		// Query must be of the same type
+		return false;
 	}
 
 	@Override

@@ -32,7 +32,7 @@ public class StandardBlockService implements BlockService {
 		switch (type) {
 			case BREWING:
 				// Make sure this is a potion result slot
-				if (isPotionResult && block.hasSingleItem(Material.BREWING_STAND)) {
+				if (isPotionResult && block.match(Material.BREWING_STAND)) {
 					return new BlockResponse(type);
 				}
 				
@@ -43,14 +43,14 @@ public class StandardBlockService implements BlockService {
 				}
 				
 			case WORKBENCH:
-				if (isCraftResult && block.hasSingleItem(Material.WORKBENCH)) {
+				if (isCraftResult && block.match(Material.WORKBENCH)) {
 					return new BlockResponse(type);
 				}
 				
 			case FURNACE:
 				if (isCraftResult && 
-						(block.hasSingleItem(Material.FURNACE) ||
-						 block.hasSingleItem(Material.BURNING_FURNACE))) {
+						(block.match(Material.FURNACE) ||
+						 block.match(Material.BURNING_FURNACE))) {
 					return new BlockResponse(type);
 				}
 		}

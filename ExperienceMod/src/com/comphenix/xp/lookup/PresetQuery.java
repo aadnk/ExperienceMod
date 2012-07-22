@@ -104,6 +104,23 @@ public class PresetQuery implements Query {
 	}
 	
 	@Override
+	public boolean match(Query other) {
+
+		// Yes, we could construct a MobTree, put the current MobQuery 
+		// into it and query after other, but this is faster. Probably.
+		if (other instanceof PresetQuery) {
+			PresetQuery query = (PresetQuery) other;
+			
+			// Make sure the current query is the superset of other
+			return QueryMatching.matchParameter(presetNames, query.presetNames) &&
+				   QueryMatching.matchParameter(worlds, query.worlds);
+		}
+		
+		// Query must be of the same type
+		return false;
+	}
+	
+	@Override
 	public String toString() {
 		return ToStringBuilder.reflectionToString(this);  
 	}
