@@ -77,7 +77,7 @@ public class Parameter<TParam> {
 		// Store the direct and reverse lookup
 		if (!list.add(id))
 			throw new IllegalArgumentException(
-					String.format("Duplicate parameter %s at index %i", id, param));
+					String.format("Duplicate parameter %s at index %s", id, param));
 	}
 	
 	public Set<Integer> getCopy(List<TParam> params) {

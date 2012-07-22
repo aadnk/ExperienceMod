@@ -17,22 +17,22 @@
 
 package com.comphenix.xp.parser.text;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
+import java.util.Set;
 
 import org.bukkit.Material;
 
 import com.comphenix.xp.parser.TextParser;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.parser.Utility;
-import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.ListMultimap;
+import com.google.common.collect.SetMultimap;
+import com.google.common.collect.Sets;
 
-public class ItemNameParser extends TextParser<List<Integer>> {
+public class ItemNameParser extends TextParser<Set<Integer>> {
 
-	protected ListMultimap<String, Integer> lookupMaterial = ArrayListMultimap.create();
+	protected SetMultimap<String, Integer> lookupMaterial = HashMultimap.create();
 	
 	public ItemNameParser() {
 		loadDefaultList();
@@ -114,7 +114,7 @@ public class ItemNameParser extends TextParser<List<Integer>> {
 	 * @throws ParsingException Invoked when an unrecognized item name is given.
 	 */
 	@Override
-	public List<Integer> parse(String text) throws ParsingException {
+	public Set<Integer> parse(String text) throws ParsingException {
 
 		if (Utility.isNullOrIgnoreable(text))
 			throw new ParsingException("Text cannot be empty or null.");
@@ -129,6 +129,6 @@ public class ItemNameParser extends TextParser<List<Integer>> {
 		else if (itemID == null)
 			throw ParsingException.fromFormat("Unable to find item %s.", text);
 
-		return Arrays.asList(itemID);
+		return Sets.newHashSet(itemID);
 	}
 }

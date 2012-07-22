@@ -18,6 +18,7 @@
 package com.comphenix.xp.parser.text;
 
 import java.util.List;
+import java.util.Set;
 import java.util.Queue;
 
 import org.apache.commons.lang.StringUtils;
@@ -31,7 +32,7 @@ import com.comphenix.xp.parser.Utility;
 
 public class ItemParser extends TextParser<Query> {
 	
-	private ParameterParser<List<Integer>> itemNameParser;
+	private ParameterParser<Set<Integer>> itemNameParser;
 	
 	private ItemDurabilityParser elementDurability = new ItemDurabilityParser();
 	private ParameterParser<Integer> durabilityParser = new ParameterParser<Integer>(elementDurability);
@@ -41,7 +42,7 @@ public class ItemParser extends TextParser<Query> {
 	
 	public ItemParser(ItemNameParser nameParser) {
 		potionParser = new PotionParser(nameParser, new PotionTypeParser());
-		itemNameParser = new ParameterParser<List<Integer>>(nameParser);
+		itemNameParser = new ParameterParser<Set<Integer>>(nameParser);
 	}
 	
 	@Override
@@ -126,11 +127,11 @@ public class ItemParser extends TextParser<Query> {
 		}
 	}
 	
-	public ParameterParser<List<Integer>> getItemNameParser() {
+	public ParameterParser<Set<Integer>> getItemNameParser() {
 		return itemNameParser;
 	}
 
-	public void setItemNameParser(ParameterParser<List<Integer>> itemNameParser) {
+	public void setItemNameParser(ParameterParser<Set<Integer>> itemNameParser) {
 		this.itemNameParser = itemNameParser;
 	}
 

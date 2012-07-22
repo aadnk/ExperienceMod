@@ -20,6 +20,7 @@ package com.comphenix.xp.parser.text;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.bukkit.DyeColor;
 import org.bukkit.GrassSpecies;
@@ -287,7 +288,7 @@ public class ItemDurabilityParser extends TextParser<Integer> {
 		try {
 		
 			ItemNameParser parser = new ItemNameParser();
-			List<Integer> attempt = parser.parse(text);
+			Set<Integer> attempt = parser.parse(text);
 			
 			// Get the first Bukkit material
 			for (Integer id : attempt) {

@@ -19,6 +19,7 @@ package com.comphenix.xp.parser;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -66,11 +67,11 @@ public class Utility {
 	
 	/**
 	 * Aggregates every element in a list of lists into a single list.
-	 * @param values - list of lists to aggregate.
+	 * @param list - list of lists to aggregate.
 	 * @return List containing the element of each list in the given list.
 	 */
-	public static List<Integer> flatten(List<List<Integer>> values) {
-		return Lists.newArrayList(Iterables.concat(values));
+	public static List<Integer> flatten(List<Set<Integer>> list) {
+		return Lists.newArrayList(Iterables.concat(list));
 	}
 	
 	/**

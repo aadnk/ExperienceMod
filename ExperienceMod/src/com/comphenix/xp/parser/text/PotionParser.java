@@ -19,6 +19,7 @@ package com.comphenix.xp.parser.text;
 
 import java.util.List;
 import java.util.Queue;
+import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Material;
@@ -34,14 +35,14 @@ import com.comphenix.xp.parser.primitives.IntegerParser;
 public class PotionParser extends TextParser<PotionQuery> {
 
 	private ParameterParser<Integer> tierParser = new ParameterParser<Integer>(new IntegerParser());
-	private ParameterParser<List<Integer>> itemNameParser;
+	private ParameterParser<Set<Integer>> itemNameParser;
 	private ParameterParser<PotionType> potionTypeParser;
 	
 	private BooleanParser extendedParser = new BooleanParser("extended");
 	private BooleanParser splashParser = new BooleanParser("splash");
 
 	public PotionParser(ItemNameParser nameParser, PotionTypeParser potionType) {
-		itemNameParser = new ParameterParser<List<Integer>>(nameParser);
+		itemNameParser = new ParameterParser<Set<Integer>>(nameParser);
 		potionTypeParser = new ParameterParser<PotionType>(potionType);
 	}
 	
@@ -118,11 +119,11 @@ public class PotionParser extends TextParser<PotionQuery> {
 		return best;
 	}
 
-	public ParameterParser<List<Integer>> getItemNameParser() {
+	public ParameterParser<Set<Integer>> getItemNameParser() {
 		return itemNameParser;
 	}
 
-	public void setItemNameParser(ParameterParser<List<Integer>> itemNameParser) {
+	public void setItemNameParser(ParameterParser<Set<Integer>> itemNameParser) {
 		this.itemNameParser = itemNameParser;
 	}
 
