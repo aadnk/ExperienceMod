@@ -287,13 +287,18 @@ public class ItemDurabilityParser extends TextParser<Integer> {
 		try {
 		
 			ItemNameParser parser = new ItemNameParser();
-			Integer attempt = parser.parse(text);
+			List<Integer> attempt = parser.parse(text);
 			
-			// See if it succeeded
-			if (attempt != null) 
-				return Material.getMaterial(attempt);
-			else 
-				return null;
+			// Get the first Bukkit material
+			for (Integer id : attempt) {
+				Material mat = Material.getMaterial(id);
+				
+				if (mat != null)
+					return mat;
+			}
+			
+			// Or just NULL
+			return null;
 		
 		} catch (ParsingException e) {
 			return null;

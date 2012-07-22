@@ -17,18 +17,22 @@
 
 package com.comphenix.xp.parser.text;
 
-import java.util.HashMap;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 import org.bukkit.Material;
 
 import com.comphenix.xp.parser.TextParser;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.parser.Utility;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 
-public class ItemNameParser extends TextParser<Integer> {
+public class ItemNameParser extends TextParser<List<Integer>> {
 
-	protected HashMap<String, Integer> lookupMaterial = new HashMap<String, Integer>();
-
+	protected ListMultimap<String, Integer> lookupMaterial = ArrayListMultimap.create();
+	
 	public ItemNameParser() {
 		loadDefaultList();
 	}
@@ -73,13 +77,31 @@ public class ItemNameParser extends TextParser<Integer> {
 	}
 	
 	/**
+	 * Retrieves the set of registered IDs directly.
+	 * @param name - material to find.
+	 * @return Collection of registered IDs by this name.
+	 */
+	public Collection<Integer> getRegistered(String name) {
+		return lookupMaterial.get(name);
+	}
+	
+	/**
+	 * Dissociates the given name by the given ID.
+	 * @param name - name to find.
+	 * @param id - ID to remove.
+	 */
+	public void unregister(String name, Integer id) {
+		lookupMaterial.remove(name, id);
+	}
+	
+	/**
 	 * Determines the item, either by ID or name, of the given string of characters.
 	 * @param text String of characters.
 	 * @return ID of the item parsed.
 	 * @throws ParsingException Invoked when an unrecognized item name is given.
 	 */
 	@Override
-	public Integer parse(String text) throws ParsingException {
+	public List<Integer> parse(String text) throws ParsingException {
 
 		if (Utility.isNullOrIgnoreable(text))
 			throw new ParsingException("Text cannot be empty or null.");
@@ -94,6 +116,6 @@ public class ItemNameParser extends TextParser<Integer> {
 		else if (itemID == null)
 			throw ParsingException.fromFormat("Unable to find item %s.", text);
 
-		return itemID;
+		return Arrays.asList(itemID);
 	}
 }

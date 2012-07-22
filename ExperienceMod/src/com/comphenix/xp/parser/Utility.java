@@ -20,6 +20,9 @@ package com.comphenix.xp.parser;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+
 /**
  * Parsing utility functions.
  * 
@@ -59,6 +62,15 @@ public class Utility {
 			items.add(value);
 			return items;
 		}		
+	}
+	
+	/**
+	 * Aggregates every element in a list of lists into a single list.
+	 * @param values - list of lists to aggregate.
+	 * @return List containing the element of each list in the given list.
+	 */
+	public static List<Integer> flatten(List<List<Integer>> values) {
+		return Lists.newArrayList(Iterables.concat(values));
 	}
 	
 	/**

@@ -27,10 +27,11 @@ import com.comphenix.xp.lookup.PotionQuery;
 import com.comphenix.xp.lookup.Query;
 import com.comphenix.xp.parser.TextParser;
 import com.comphenix.xp.parser.ParsingException;
+import com.comphenix.xp.parser.Utility;
 
 public class ItemParser extends TextParser<Query> {
 	
-	private ParameterParser<Integer> itemNameParser;
+	private ParameterParser<List<Integer>> itemNameParser;
 	
 	private ItemDurabilityParser elementDurability = new ItemDurabilityParser();
 	private ParameterParser<Integer> durabilityParser = new ParameterParser<Integer>(elementDurability);
@@ -40,7 +41,7 @@ public class ItemParser extends TextParser<Query> {
 	
 	public ItemParser(ItemNameParser nameParser) {
 		potionParser = new PotionParser(nameParser, new PotionTypeParser());
-		itemNameParser = new ParameterParser<Integer>(nameParser);
+		itemNameParser = new ParameterParser<List<Integer>>(nameParser);
 	}
 	
 	@Override
@@ -62,7 +63,7 @@ public class ItemParser extends TextParser<Query> {
 		
 		try {
 			// Get item IDs
-			itemIDs = itemNameParser.parse(tokens);
+			itemIDs = Utility.flatten(itemNameParser.parse(tokens));
 			first = null;
 			
 			// Get the first element
@@ -125,11 +126,11 @@ public class ItemParser extends TextParser<Query> {
 		}
 	}
 	
-	public ParameterParser<Integer> getItemNameParser() {
+	public ParameterParser<List<Integer>> getItemNameParser() {
 		return itemNameParser;
 	}
 
-	public void setItemNameParser(ParameterParser<Integer> itemNameParser) {
+	public void setItemNameParser(ParameterParser<List<Integer>> itemNameParser) {
 		this.itemNameParser = itemNameParser;
 	}
 

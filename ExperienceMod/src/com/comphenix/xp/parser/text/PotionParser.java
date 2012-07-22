@@ -27,20 +27,21 @@ import org.bukkit.potion.PotionType;
 import com.comphenix.xp.lookup.PotionQuery;
 import com.comphenix.xp.parser.TextParser;
 import com.comphenix.xp.parser.ParsingException;
+import com.comphenix.xp.parser.Utility;
 import com.comphenix.xp.parser.primitives.BooleanParser;
 import com.comphenix.xp.parser.primitives.IntegerParser;
 
 public class PotionParser extends TextParser<PotionQuery> {
 
 	private ParameterParser<Integer> tierParser = new ParameterParser<Integer>(new IntegerParser());
-	private ParameterParser<Integer> itemNameParser;
+	private ParameterParser<List<Integer>> itemNameParser;
 	private ParameterParser<PotionType> potionTypeParser;
 	
 	private BooleanParser extendedParser = new BooleanParser("extended");
 	private BooleanParser splashParser = new BooleanParser("splash");
 
 	public PotionParser(ItemNameParser nameParser, PotionTypeParser potionType) {
-		itemNameParser = new ParameterParser<Integer>(nameParser);
+		itemNameParser = new ParameterParser<List<Integer>>(nameParser);
 		potionTypeParser = new ParameterParser<PotionType>(potionType);
 	}
 	
@@ -56,7 +57,7 @@ public class PotionParser extends TextParser<PotionQuery> {
 		List<Integer> tiers = null;
 		
 		try {
-			items = itemNameParser.parse(tokens);
+			items = Utility.flatten(itemNameParser.parse(tokens));
 			types = potionTypeParser.parse(tokens);
 			tiers = tierParser.parse(tokens);
 			
@@ -117,11 +118,11 @@ public class PotionParser extends TextParser<PotionQuery> {
 		return best;
 	}
 
-	public ParameterParser<Integer> getItemNameParser() {
+	public ParameterParser<List<Integer>> getItemNameParser() {
 		return itemNameParser;
 	}
 
-	public void setItemNameParser(ParameterParser<Integer> itemNameParser) {
+	public void setItemNameParser(ParameterParser<List<Integer>> itemNameParser) {
 		this.itemNameParser = itemNameParser;
 	}
 
