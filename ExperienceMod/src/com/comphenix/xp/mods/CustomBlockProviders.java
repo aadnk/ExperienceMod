@@ -30,16 +30,18 @@ public class CustomBlockProviders extends ServiceProvider<BlockService> {
 	public BlockResponse processInventoryClick(InventoryClickEvent event, ItemQuery block) {
 		
 		BlockService def = getDefaultService();
-		BlockResponse response;
+		BlockResponse response = null;
 		
 		// Try the default service first
-		response = def.processClickEvent(event, block);
-
+		if (isEnabled(def)) {
+			response = def.processClickEvent(event, block);
+		}
+		
 		if (BlockResponse.isSuccessful(response))
 			return response;
 		
 		// See if any other service can do it
-		for (BlockService service : nameLookup.values()) {
+		for (BlockService service : getEnabledServices()) {
 			if (service != def) {
 
 				response = service.processClickEvent(event, block);
