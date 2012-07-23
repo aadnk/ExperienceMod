@@ -27,46 +27,46 @@ public class Permissions {
 	// Whether or not to display warning messages
 	public final static String INFO = "experiencemod.info";
 	
-	private static GlobalSettings globakSettings;
+	private static GlobalSettings globalSettings;
 	
 	public static boolean hasRewardSmelting(Player player) {
-		return !globakSettings.isUsePermissions() || player.hasPermission(REWARDS_SMELTING);
+		return !globalSettings.isUsePermissions() || player.hasPermission(REWARDS_SMELTING);
 	}
 	
 	public static boolean hasRewardBrewing(Player player) {
-		return !globakSettings.isUsePermissions() || player.hasPermission(REWARDS_BREWING);
+		return !globalSettings.isUsePermissions() || player.hasPermission(REWARDS_BREWING);
 	}
 	
 	public static boolean hasRewardCrafting(Player player) {
-		return !globakSettings.isUsePermissions() || player.hasPermission(REWARDS_CRAFTING);
+		return !globalSettings.isUsePermissions() || player.hasPermission(REWARDS_CRAFTING);
 	}
 	
 	public static boolean hasRewardFishing(Player player) {
-		return !globakSettings.isUsePermissions() || player.hasPermission(REWARDS_FISHING);
+		return !globalSettings.isUsePermissions() || player.hasPermission(REWARDS_FISHING);
 	}
 	
 	public static boolean hasRewardBonus(Player player) {
-		return !globakSettings.isUsePermissions() || player.hasPermission(REWARDS_BONUS);
+		return !globalSettings.isUsePermissions() || player.hasPermission(REWARDS_BONUS);
 	}
 	
 	public static boolean hasRewardBlock(Player player) {
-		return !globakSettings.isUsePermissions() || player.hasPermission(REWARDS_BLOCK);
+		return !globalSettings.isUsePermissions() || player.hasPermission(REWARDS_BLOCK);
 	}
 	
 	public static boolean hasRewardPlacing(Player player) {
-		return !globakSettings.isUsePermissions() || player.hasPermission(REWARDS_PLACING);
+		return !globalSettings.isUsePermissions() || player.hasPermission(REWARDS_PLACING);
 	}
 	
 	public static boolean hasUntouchable(Player player) {
-		return !globakSettings.isUsePermissions() || player.hasPermission(UNOUCHABLE);
+		return !globalSettings.isUsePermissions() || player.hasPermission(UNOUCHABLE);
 	}
 	
 	public static boolean hasKeepExp(Player player) {
-		return !globakSettings.isUsePermissions() || player.hasPermission(KEEP_EXP);
+		return !globalSettings.isUsePermissions() || player.hasPermission(KEEP_EXP);
 	}
 	
 	public static boolean hasMaxEnchant(Player player) {
-		return !globakSettings.isUsePermissions() || player.hasPermission(MAX_ENCHANT);
+		return !globalSettings.isUsePermissions() || player.hasPermission(MAX_ENCHANT);
 	}
 	
 	public static boolean hasAdmin(CommandSender sender) {
@@ -78,11 +78,11 @@ public class Permissions {
 		return sender.hasPermission(INFO);
 	}
 	
-	public static GlobalSettings getGlobakSettings() {
-		return globakSettings;
+	public static GlobalSettings getGlobalSettings() {
+		return globalSettings;
 	}
 
-	public static void setGlobakSettings(GlobalSettings globakSettings) {
-		Permissions.globakSettings = globakSettings;
+	public static void setGlobalSettings(GlobalSettings globakSettings) {
+		Permissions.globalSettings = globakSettings;
 	}
 }

@@ -213,9 +213,6 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			currentLogger.severe("IO error when loading configurations: " + e.getMessage());
 		}
 		
-		// References
-		Permissions.setGlobakSettings(globalSettings);
-		
 		// Create memory history
 		historyProviders.register(new MemoryService(
 				globalSettings.getMaxBlocksInHistory(), 
@@ -333,6 +330,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			// Load globals
 			globalSettings = new GlobalSettings(this);
 			globalSettings.loadFromConfig(loadConfig("global.yml", "Creating default global settings."));
+			Permissions.setGlobalSettings(globalSettings);
 			
 			// Load parts of the configuration
 			YamlConfiguration presetList = loadConfig("presets.yml", "Creating default preset list.");
