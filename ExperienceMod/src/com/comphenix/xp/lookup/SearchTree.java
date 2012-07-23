@@ -26,6 +26,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.base.Function;
+import com.google.common.base.Predicates;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+
 public abstract class SearchTree<TKey, TValue> {
 
 	protected HashMap<Integer, TValue> flatten = new HashMap<Integer, TValue>();
@@ -70,34 +75,40 @@ public abstract class SearchTree<TKey, TValue> {
 	
 	public TValue get(TKey element) {
 		
-		Integer index = getIndex(element);
+		Integer id = getID(element);
 		
-		if (index != null)
-			return flatten.get(index);
+		return get(id);
+	}
+	
+	public TValue get(Integer id) {
+		
+		if (id != null)
+			return flatten.get(id);
 		else
 			return null;
 	}
 	
 	public List<TValue> getAllRanked(TKey element) {
 		
-		Set<Integer> candidates = getFromParameters(element);
-		List<Integer> indexes = new ArrayList<Integer>(candidates);
-		List<TValue> values = new ArrayList<TValue>();
-		
-		// Sort indexes by priority
-		Collections.sort(indexes, comparer);
-		
-		// Get values
-		for (Integer id : indexes) {
-			if (id != null) {
-				values.add(flatten.get(id));
+		// YES! LINQ, only slightly more painful.
+		return Lists.transform(getAllRankedID(element), new Function<Integer, TValue>() {
+			public TValue apply(Integer id) {
+				return flatten.get(id);
 			}
-		}
-		
-		return values;
+		});
 	}
 	
-	private Integer getIndex(TKey element) {
+	public List<Integer> getAllRankedID(TKey element) {
+		
+		Set<Integer> candidates = getFromParameters(element);
+		List<Integer> indexes = new ArrayList<Integer>(candidates);
+
+		// Filter out nulls after sorting
+		Collections.sort(indexes, comparer);
+		return Lists.newArrayList(Iterables.filter(indexes, Predicates.notNull()));
+	}
+	
+	private Integer getID(TKey element) {
 		
 		Set<Integer> candidates = getFromParameters(element);
 
@@ -110,7 +121,7 @@ public abstract class SearchTree<TKey, TValue> {
 	}
 	
 	public boolean containsKey(TKey element) {
-		return getIndex(element) != null;
+		return getID(element) != null;
 	}
 	
 	/**
