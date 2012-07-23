@@ -44,7 +44,7 @@ public class Utility {
     
 	public static String formatBoolean(String booleanName, List<Boolean> value) {
 		// Mirror the query syntax
-		if (value == null || value.isEmpty())
+		if (value == null || value.isEmpty() || value.contains(null))
 			return "";
 		else 
 			return value.get(0) ? booleanName : "!" + booleanName;
