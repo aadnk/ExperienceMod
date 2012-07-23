@@ -37,18 +37,17 @@ import com.google.common.collect.Lists;
  * @author Kristian
  */
 public class ItemQuery implements Query {
-	
-	private static List<Integer> noNumbers = new ArrayList<Integer>();
-	
+
 	private List<Integer> itemID;
 	private List<Integer> durability;
+	private List<Boolean> playerCreated;
 
 	/**
 	 * Universal query. Matches everything.
 	 * @return The universal query.
 	 */
 	public static ItemQuery fromAny() {
-		return new ItemQuery(noNumbers, noNumbers);
+		return fromAny(null, null, null);
 	}	
 	
 	/**
@@ -77,9 +76,21 @@ public class ItemQuery implements Query {
 	 * @return The created query.
 	 */
 	public static ItemQuery fromAny(Integer itemID, Integer durability) {
+		return fromAny(itemID, durability, null);
+	}
+	
+	/**
+	 * Creates a query from the given material and data, where NULL represents any value.
+	 * @param itemID - ID to create from, or NULL to indicate every ID.
+	 * @param durability - durability to create from, or NULL to indicate every durability.
+	 * @param playerCreated - whether or not the block was created/placed by a player.
+	 * @return The created query.
+	 */
+	public static ItemQuery fromAny(Integer itemID, Integer durability, Boolean playerCreated) {
 		return new ItemQuery(
 				Utility.getElementList(itemID), 
-				Utility.getElementList(durability)
+				Utility.getElementList(durability),
+				Utility.getElementList(playerCreated)
 		);
 	}
 	
@@ -113,9 +124,20 @@ public class ItemQuery implements Query {
 	 * @return The created query.
 	 */
 	public static ItemQuery fromExact(Integer itemID, Integer durability) {
+		return fromExact(itemID, durability, null);
+	}
+	
+	/**
+	 * Creates a query from the given ID and durability. NULL is used to ONLY match universal queries.
+	 * @param itemID - ID to match, or NULL to match queries without IDs.
+	 * @param durability - durability to match, or NULL to match queries without durabilities.
+	 * @return The created query.
+	 */
+	public static ItemQuery fromExact(Integer itemID, Integer durability, Boolean playerCreated) {
 		return new ItemQuery(
 				Lists.newArrayList(itemID), 
-				Lists.newArrayList(durability)
+				Lists.newArrayList(durability),
+				Lists.newArrayList(playerCreated)
 		);
 	}
 	
@@ -123,10 +145,23 @@ public class ItemQuery implements Query {
 	 * Constructs a query with the given IDs and durabilities.
 	 * @param itemID - list of IDs.
 	 * @param durability - list of durabilities.
+	 * @param playerCreated - option specifying whether or not the block was placed by a player.
 	 */
 	public ItemQuery(List<Integer> itemID, List<Integer> durability) {
+		this(itemID, durability, Utility.getElementList((Boolean) null));
+	}
+
+	
+	/**
+	 * Constructs a query with the given IDs and durabilities.
+	 * @param itemID - list of IDs.
+	 * @param durability - list of durabilities.
+	 * @param playerCreated - option specifying whether or not the block was placed by a player.
+	 */
+	public ItemQuery(List<Integer> itemID, List<Integer> durability, List<Boolean> playerCreated) {
 		this.itemID = itemID;
 		this.durability = durability;
+		this.playerCreated = playerCreated;
 	}
 
 	public List<Integer> getItemID() {
@@ -135,6 +170,10 @@ public class ItemQuery implements Query {
 
 	public List<Integer> getDurability() {
 		return durability;
+	}
+	
+	public List<Boolean> getPlayerCreated() {
+		return playerCreated;
 	}
 
 	public boolean hasItemID() {
@@ -145,6 +184,10 @@ public class ItemQuery implements Query {
 		return durability != null && !durability.isEmpty();
 	}
 	
+	public boolean hasPlayerCreated() {
+		return playerCreated != null && !playerCreated.isEmpty();
+	}
+	
 	@Override
 	public boolean match(Query other) {
 
@@ -153,11 +196,22 @@ public class ItemQuery implements Query {
 			
 			// Make sure the current query is the superset of the given
 			return QueryMatching.matchParameter(itemID, query.itemID) &&
-				   QueryMatching.matchParameter(durability, query.durability);
+				   QueryMatching.matchParameter(durability, query.durability) &&
+				   QueryMatching.matchParameter(playerCreated, query.playerCreated);
 		}
 		
 		// Query must be of the same type
 		return false;
+	}
+	
+	/**
+	 * Determines if the current query matches the given item. 
+	 * @param id - id of item, or NULL for every ID.
+	 * @param durability - durability of item, or NULL for every durability.
+	 * @return TRUE if the current query matches the given item.
+	 */
+	public boolean match(Integer id, Integer durability, Boolean playerCreated) {
+		return match(ItemQuery.fromAny(id, durability, playerCreated));
 	}
 	
 	/**
@@ -187,6 +241,7 @@ public class ItemQuery implements Query {
 		return new HashCodeBuilder(17, 31).
 	            append(itemID).
 	            append(durability).
+	            append(playerCreated).
 	            toHashCode();
 	}
 
@@ -203,6 +258,7 @@ public class ItemQuery implements Query {
         return new EqualsBuilder().
             append(itemID, other.itemID).
             append(durability, other.durability).
+            append(playerCreated, other.playerCreated).
             isEquals();
 	}
 	
@@ -265,8 +321,11 @@ public class ItemQuery implements Query {
 		
 		String itemsText = StringUtils.join(getMaterials(), ", ");
 		String durabilityText = StringUtils.join(durability, ", ");
-
-		if (hasDurability())
+		String playerText = Utility.formatBoolean("player", playerCreated);
+		
+		if (hasPlayerCreated())
+			return String.format("%s|%s|%s", itemsText, durabilityText, playerText);
+		else if (hasDurability())
 			return String.format("%s|%s", itemsText, durabilityText);
 		else
 			return String.format("%s", itemsText);

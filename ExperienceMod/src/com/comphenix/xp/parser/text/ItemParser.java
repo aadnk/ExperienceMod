@@ -29,6 +29,7 @@ import com.comphenix.xp.lookup.Query;
 import com.comphenix.xp.parser.TextParser;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.parser.Utility;
+import com.comphenix.xp.parser.primitives.BooleanParser;
 
 public class ItemParser extends TextParser<Query> {
 	
@@ -36,6 +37,9 @@ public class ItemParser extends TextParser<Query> {
 	
 	private ItemDurabilityParser elementDurability = new ItemDurabilityParser();
 	private ParameterParser<Integer> durabilityParser = new ParameterParser<Integer>(elementDurability);
+	
+	// Parse options
+	private BooleanParser playerParser = new BooleanParser("player");
 	
 	// Our potion parser
 	private PotionParser potionParser;
@@ -97,6 +101,9 @@ public class ItemParser extends TextParser<Query> {
 			if (hasNegativeIntegers(itemIDs) || hasNegativeIntegers(durabilities)) 
 				throw new ParsingException("Item ID or durability cannot contain negative numbers");
 			
+			// Scan for the "player creation" option
+			List<Boolean> playerCreation = playerParser.parseAny(tokens);
+			
 			// Still more tokens? Something is wrong.
 			if (!tokens.isEmpty()) {
 				if (isPotion) 
@@ -111,7 +118,7 @@ public class ItemParser extends TextParser<Query> {
 			}
 			
 			// At this point we have all we need to know
-			return new ItemQuery(itemIDs, durabilities);
+			return new ItemQuery(itemIDs, durabilities, playerCreation);
 			
 		} catch (ParsingException ex) {
 
