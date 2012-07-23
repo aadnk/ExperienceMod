@@ -61,6 +61,7 @@ public class ItemParser extends TextParser<Query> {
 		List<Integer> itemIDs = null;
 		List<Integer> durabilities = null;
 		
+		ParsingException errorReason = null;
 		Integer first = null;
 		
 		boolean isPotion = false;
@@ -101,25 +102,6 @@ public class ItemParser extends TextParser<Query> {
 			if (hasNegativeIntegers(itemIDs) || hasNegativeIntegers(durabilities)) 
 				throw new ParsingException("Item ID or durability cannot contain negative numbers");
 			
-			// Scan for the "player creation" option
-			List<Boolean> playerCreation = playerParser.parseAny(tokens);
-			
-			// Still more tokens? Something is wrong.
-			if (!tokens.isEmpty()) {
-				if (isPotion) 
-					return parseAsPotion(text);
-				else
-					throw ParsingException.fromFormat("Unknown item tokens: ", StringUtils.join(tokens, ", "));
-			}
-			
-			// Return universal potion query
-			if (isPotion && durabilities.isEmpty()) {
-				return PotionQuery.fromAny();
-			}
-			
-			// At this point we have all we need to know
-			return new ItemQuery(itemIDs, durabilities, playerCreation);
-			
 		} catch (ParsingException ex) {
 
 			// Potion? Try again.
@@ -130,8 +112,30 @@ public class ItemParser extends TextParser<Query> {
 			if (!sameCategory && elementDurability.isUsedName())
 				throw new ParsingException("Named durabilities with different data categories.");
 			else
-				throw ex;
+				// Try more
+				errorReason = ex;
 		}
+			
+		// Scan for the "player creation" option
+		List<Boolean> playerCreation = playerParser.parseAny(tokens);
+		
+		// Still more tokens? Something is wrong.
+		if (!tokens.isEmpty()) {
+			if (isPotion) 
+				return parseAsPotion(text);
+			else if (errorReason == null)
+				throw ParsingException.fromFormat("Unknown item tokens: ", StringUtils.join(tokens, ", "));
+			else
+				throw errorReason;
+		}
+		
+		// Return universal potion query
+		if (isPotion && durabilities.isEmpty()) {
+			return PotionQuery.fromAny();
+		}
+		
+		// At this point we have all we need to know
+		return new ItemQuery(itemIDs, durabilities, playerCreation);
 	}
 	
 	public ParameterParser<Set<Integer>> getItemNameParser() {

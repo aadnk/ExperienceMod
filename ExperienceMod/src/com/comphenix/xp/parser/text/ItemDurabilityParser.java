@@ -118,8 +118,15 @@ public class ItemDurabilityParser extends TextParser<Integer> {
 						"Cannot parse %s - named durabilities only works with known item ids.", text);
 			}
 			
+			ItemCategory category = ItemCategory.matchItem(itemID);
+			
+			// Cannot parse durability
+			if (category == null) {
+				throw ParsingException.fromFormat("Invalid durability value %s.", text);
+			}
+			
 			// Quickly find the correct durability list to use
-			switch (ItemCategory.matchItem(itemID)) {
+			switch (category) {
 			case TREE_BLOCKS:
 				durability = getTreeSpecies(text, filtered);
 				break;
@@ -146,10 +153,6 @@ public class ItemDurabilityParser extends TextParser<Integer> {
 			case COAL_ITEMS:
 				durability = getCoalData(text, filtered);
 				break;
-				
-			default:
-				// Cannot parse durability
-				throw ParsingException.fromFormat("Invalid durability value %s.", text);
 			}
 
 			// We used a name!

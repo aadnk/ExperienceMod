@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
+import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -36,7 +37,6 @@ import com.comphenix.xp.Configuration;
 import com.comphenix.xp.Debugger;
 import com.comphenix.xp.Presets;
 import com.comphenix.xp.extra.Permissions;
-import com.comphenix.xp.history.HistoryException;
 import com.comphenix.xp.history.HistoryProviders;
 import com.comphenix.xp.lookup.ItemQuery;
 import com.comphenix.xp.lookup.ItemTree;
@@ -69,7 +69,7 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 		if (block != null && player != null) { 
 			
 			ItemStack toolItem = player.getItemInHand();
-			ItemQuery retrieveKey = ItemQuery.fromExact(block);
+			ItemQuery retrieveKey = ItemQuery.fromAny(block);
 			
 			boolean allowBlockReward = Permissions.hasRewardBlock(player) && !hasSilkTouch(toolItem);
 			boolean allowBonusReward = Permissions.hasRewardBonus(player);
@@ -151,6 +151,8 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 				ItemQuery copy = new ItemQuery(
 						key.getItemID(), key.getDurability(), Utility.getElementList(placedBefore));
 				
+				debugger.printDebug(this, "New query: %s", copy);
+				
 				// Perform the search again with this additional information
 				return tree.get(copy);
 			}
@@ -170,6 +172,11 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 		if (block != null && player != null) { 
 			
 			boolean allowPlacingReward = Permissions.hasRewardPlacing(player);
+			
+			// Inform other listeners too
+			if (historyProviders != null && historyProviders.getMemoryService() != null) {
+				historyProviders.getMemoryService().onBlockPlaceEvent(event);
+			}
 			
 			if (allowPlacingReward) {
 				Configuration config = getConfiguration(player);
@@ -219,18 +226,19 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 	 */
 	public boolean hasBeenPlacedBefore(Block block) {
 		
-		try {
-			if (historyProviders.getDefaultService() != null) {
-				return historyProviders.getDefaultService().hasPlayerHistory(block);
-			}
-			
-		} catch (HistoryException e) {
-			if (debugger != null)
-				debugger.printWarning(this, "%s: %s", e.getMessage(), e.getCause());
-		}
+		Location loc = block.getLocation();
 		
-		// Assume it hasn't. More likely than not.
-		return false;
+		Boolean before = historyProviders.hasPlayerHistory(loc, true, debugger);
+		
+		if (before != null)
+			return before;
+		else {
+		
+			debugger.printDebug(this, "No block history found.");
+			
+			// Assume it hasn't. More likely than not.
+			return false;
+		}
 	}
 	
 	private boolean hasSilkTouch(ItemStack stack) {

@@ -3,8 +3,6 @@ package com.comphenix.xp.history;
 import java.sql.SQLException;
 
 import org.bukkit.Location;
-import org.bukkit.World;
-import org.bukkit.block.Block;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 
@@ -54,14 +52,8 @@ public class LogBlockService implements HistoryService {
 		return NAME;
 	}
 
-
 	@Override
-	public boolean hasPlayerHistory(Block block) throws HistoryException {
-		return hasPlayerHistory(block.getWorld(), block.getLocation());
-	}
-	
-	@Override
-	public boolean hasPlayerHistory(World world, Location blockLocation) throws HistoryException {
+	public Boolean hasPlayerHistory(Location blockLocation) throws HistoryException {
 
 		QueryParams params = new QueryParams(logBlock);
 		
@@ -70,7 +62,7 @@ public class LogBlockService implements HistoryService {
 		params.bct = BlockChangeType.CREATED;
 		params.limit = 1;
 		params.radius = 0;
-		params.world = world;
+		params.world = blockLocation.getWorld();
 		params.needType = true;
 		params.needPlayer = true;
 		params.order = Order.DESC;
@@ -79,7 +71,7 @@ public class LogBlockService implements HistoryService {
 			// This should be the most recent change
 			for (BlockChange bc : logBlock.getBlockChanges(params)) {
 
-				int current = world.getBlockAt(blockLocation).getTypeId();
+				int current = blockLocation.getBlock().getTypeId();
 				
 				// Make sure the ID corresponds
 				return (current == bc.type);
@@ -91,5 +83,23 @@ public class LogBlockService implements HistoryService {
 		} catch (SQLException e) {
 			throw new HistoryException("Could not load player history.", e);
 		}
+	}
+
+	@Override
+	public LookupSpeed getLookupSpeed() {
+		return LookupSpeed.SLOW;
+	}
+
+	@Override
+	public boolean hasFalsePositives() {
+		return false;
+	}
+
+	@Override
+	public boolean hasFalseNegatives() {
+		// Note that blocks placed by a player before LogBlock is installed will still be considered natural.
+		// It's impossible to correct this, save for someone manually adding these blocks to the database, so 
+		// we won't consider it a false negative.
+		return false;
 	}
 }

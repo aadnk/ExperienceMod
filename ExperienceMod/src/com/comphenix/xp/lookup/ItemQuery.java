@@ -95,6 +95,29 @@ public class ItemQuery implements Query {
 	}
 	
 	/**
+	 * Extracts the item type and durability. Note that the item count property is ignored.
+	 * @param stack - item type.
+	 * @return The created query.
+	 * @throws NullArgumentException if the stack is null.
+	 */
+	public static ItemQuery fromAny(ItemStack stack) {
+		
+		if (stack == null)
+			throw new NullArgumentException("stack");
+		
+		return fromAny(stack.getTypeId(), (int) stack.getDurability(), null);
+	}
+	
+	/**
+	 * Creates a query from a given world block.
+	 * @param block - block to create from.
+	 * @return The created query.
+	 */
+	public static ItemQuery fromAny(Block block) {
+		return fromAny(block.getTypeId(), (int) block.getData(), null);
+	}
+	
+	/**
 	 * Creates a query from a given world block.
 	 * @param block - block to create from.
 	 * @return The created query.

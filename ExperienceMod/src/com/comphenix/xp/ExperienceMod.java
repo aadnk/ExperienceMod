@@ -44,6 +44,7 @@ import com.comphenix.xp.commands.CommandExperienceMod;
 import com.comphenix.xp.commands.CommandSpawnExp;
 import com.comphenix.xp.history.HistoryProviders;
 import com.comphenix.xp.history.LogBlockService;
+import com.comphenix.xp.history.MemoryService;
 import com.comphenix.xp.listeners.*;
 import com.comphenix.xp.lookup.*;
 import com.comphenix.xp.messages.ChannelProvider;
@@ -97,6 +98,9 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	private static final int tickDelay = 4; // 50 ms * 4 = 200 ms
 	private int serverTickTask;
 	
+	// How long until block changes are removed from the cache
+	private static final int MEMORY_TIMEOUT = 600; // 10 minutes
+	
 	// Commands
 	private CommandExperienceMod commandExperienceMod;
 	private CommandSpawnExp commandSpawn;
@@ -130,6 +134,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		
 		// Load history
 		historyProviders = new HistoryProviders();
+		historyProviders.register(new MemoryService(MEMORY_TIMEOUT));
 		
 		// Load reward types
 		rewardProvider.register(new RewardExperience());
