@@ -34,6 +34,8 @@ import com.comphenix.xp.Configuration;
 import com.comphenix.xp.Debugger;
 import com.comphenix.xp.Presets;
 import com.comphenix.xp.extra.Permissions;
+import com.comphenix.xp.history.HistoryException;
+import com.comphenix.xp.history.HistoryProviders;
 import com.comphenix.xp.lookup.ItemQuery;
 import com.comphenix.xp.lookup.ItemTree;
 import com.comphenix.xp.messages.ChannelProvider;
@@ -42,15 +44,18 @@ import com.comphenix.xp.rewards.RewardProvider;
 public class ExperienceBlockListener extends AbstractExperienceListener {
 		
 	private Debugger debugger;
-
+	private HistoryProviders historyProviders;
+	
 	// Random source
 	private Random random = new Random();
 	
-	public ExperienceBlockListener(Debugger debugger, Presets presets) {
+	public ExperienceBlockListener(Debugger debugger, Presets presets, HistoryProviders historyProviders) {
 		this.debugger = debugger;
+		this.historyProviders = historyProviders;
 		setPresets(presets);
 	}
 	
+	// DO NOT CHANGE TO MONITOR, AS IT WILL CONFLICT WITH LOGBLOCK
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockBreakEvent(BlockBreakEvent event) {
 		
@@ -66,6 +71,8 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 			boolean allowBlockReward = Permissions.hasRewardBlock(player) && !hasSilkTouch(toolItem);
 			boolean allowBonusReward = Permissions.hasRewardBonus(player);
 
+			debugger.printDebug(this, "Block placed before: %s", hasBeenPlacedBefore(block));
+			
 			// Only without silk touch
 			if (allowBlockReward) {
 				Configuration config = getConfiguration(player);
@@ -159,7 +166,7 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 						return;
 					}
 					
-					// Reward and print messages (possibly in the future)
+					// Reward and print messages
 					Integer exp = action.rewardPlayer(rewards, random, player);
 					config.getMessageQueue().enqueue(player, action, channels.getFormatter(player, exp));
 					
@@ -169,6 +176,27 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 				}
 			}
 		}
+	}
+	
+	/**
+	 * Determines if a block has been placed before or not.
+	 * @param block - block to test.
+	 * @return TRUE if it has been placed before, FALSE otherwise.
+	 */
+	public boolean hasBeenPlacedBefore(Block block) {
+		
+		try {
+			if (historyProviders.getDefaultService() != null) {
+				return historyProviders.getDefaultService().hasPlayerHistory(block);
+			}
+			
+		} catch (HistoryException e) {
+			if (debugger != null)
+				debugger.printWarning(this, "%s: %s", e.getMessage(), e.getCause());
+		}
+		
+		// Assume it hasn't. More likely than not.
+		return false;
 	}
 	
 	private boolean hasSilkTouch(ItemStack stack) {

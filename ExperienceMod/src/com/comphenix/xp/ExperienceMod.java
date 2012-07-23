@@ -42,6 +42,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.comphenix.xp.commands.CommandExperienceMod;
 import com.comphenix.xp.commands.CommandSpawnExp;
+import com.comphenix.xp.history.HistoryProviders;
+import com.comphenix.xp.history.LogBlockService;
 import com.comphenix.xp.listeners.*;
 import com.comphenix.xp.lookup.*;
 import com.comphenix.xp.messages.ChannelProvider;
@@ -86,8 +88,9 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	private RewardProvider rewardProvider;
 	private ChannelProvider channelProvider;
 	private CustomBlockProviders customProvider;
-	private ConfigurationLoader configLoader;
+	private HistoryProviders historyProviders;
 	
+	private ConfigurationLoader configLoader;
 	private Presets presets;
 	
 	// Repeating task
@@ -107,6 +110,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		
 		// Initialize scheduler
 		playerScheduler = new PlayerScheduler(Bukkit.getScheduler(), this);
+		manager = getServer().getPluginManager();
 		
 		// Initialize rewards
 		currentLogger = this.getLogger();
@@ -123,6 +127,9 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			// No vault
 		} catch (NullPointerException e) {
 		}
+		
+		// Load history
+		historyProviders = new HistoryProviders();
 		
 		// Load reward types
 		rewardProvider.register(new RewardExperience());
@@ -169,8 +176,6 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	@Override
 	public void onEnable() {
 		
-		manager = getServer().getPluginManager();
-		
 		informer = new ExperienceInformerListener();
 		interactionListener = new PlayerInteractionListener();
 		
@@ -180,6 +185,17 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		
 		// Block provider
 		customProvider.setLastInteraction(interactionListener);
+		
+		// Register log block if needed
+		if (LogBlockService.exists(manager)) {
+			if (!historyProviders.containsService(LogBlockService.NAME)) {
+				historyProviders.register(LogBlockService.create(manager));
+			}
+			
+			currentLogger.info("Connected to LogBlock.");
+		} else {
+			currentLogger.info("Cannot connect to LogBlock.");
+		}
 		
 		if (hasEconomy()) {
 			// Register listener
@@ -407,6 +423,22 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	public void setConfigLoader(ConfigurationLoader configLoader) {
 		this.configLoader = configLoader;
 	}
+
+	/**
+	 * Gets the registry of history plugins.
+	 * @return Registry of history plugins.
+	 */
+	public HistoryProviders getHistoryProviders() {
+		return historyProviders;
+	}
+
+	/**
+	 * Sets the registry of history plugins.
+	 * @param historyProviders - new registry of history plugins.
+	 */
+	public void setHistoryProviders(HistoryProviders historyProviders) {
+		this.historyProviders = historyProviders;
+	}
 	
 	public ItemRewardListener getItemListener() {
 		return itemListener;
@@ -504,7 +536,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		// Create a new listener if necessary
 		if (xpBlockListener == null || xpItemListener == null || xpMobListener == null) {
 			xpItemListener = new ExperienceItemListener(this, playerScheduler, customProvider, presets);
-			xpBlockListener = new ExperienceBlockListener(this, presets);
+			xpBlockListener = new ExperienceBlockListener(this, presets, historyProviders);
 			xpMobListener = new ExperienceMobListener(this, presets);
 			xpEnchancer = new ExperienceEnhancementsListener(this);
 			xpCleanup = new ExperienceCleanupListener(presets, interactionListener, playerScheduler);
