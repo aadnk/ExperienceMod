@@ -3,6 +3,8 @@ package com.comphenix.xp.extra;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import com.comphenix.xp.GlobalSettings;
+
 /**
  * Contains every permission and permission test.
  * 
@@ -25,51 +27,62 @@ public class Permissions {
 	// Whether or not to display warning messages
 	public final static String INFO = "experiencemod.info";
 	
+	private static GlobalSettings globakSettings;
+	
 	public static boolean hasRewardSmelting(Player player) {
-		return player.hasPermission(REWARDS_SMELTING);
+		return !globakSettings.isUsePermissions() || player.hasPermission(REWARDS_SMELTING);
 	}
 	
 	public static boolean hasRewardBrewing(Player player) {
-		return player.hasPermission(REWARDS_BREWING);
+		return !globakSettings.isUsePermissions() || player.hasPermission(REWARDS_BREWING);
 	}
 	
 	public static boolean hasRewardCrafting(Player player) {
-		return player.hasPermission(REWARDS_CRAFTING);
+		return !globakSettings.isUsePermissions() || player.hasPermission(REWARDS_CRAFTING);
 	}
 	
 	public static boolean hasRewardFishing(Player player) {
-		return player.hasPermission(REWARDS_FISHING);
+		return !globakSettings.isUsePermissions() || player.hasPermission(REWARDS_FISHING);
 	}
 	
 	public static boolean hasRewardBonus(Player player) {
-		return player.hasPermission(REWARDS_BONUS);
+		return !globakSettings.isUsePermissions() || player.hasPermission(REWARDS_BONUS);
 	}
 	
 	public static boolean hasRewardBlock(Player player) {
-		return player.hasPermission(REWARDS_BLOCK);
+		return !globakSettings.isUsePermissions() || player.hasPermission(REWARDS_BLOCK);
 	}
 	
 	public static boolean hasRewardPlacing(Player player) {
-		return player.hasPermission(REWARDS_PLACING);
+		return !globakSettings.isUsePermissions() || player.hasPermission(REWARDS_PLACING);
 	}
 	
 	public static boolean hasUntouchable(Player player) {
-		return player.hasPermission(UNOUCHABLE);
+		return !globakSettings.isUsePermissions() || player.hasPermission(UNOUCHABLE);
 	}
 	
 	public static boolean hasKeepExp(Player player) {
-		return player.hasPermission(KEEP_EXP);
+		return !globakSettings.isUsePermissions() || player.hasPermission(KEEP_EXP);
 	}
 	
 	public static boolean hasMaxEnchant(Player player) {
-		return player.hasPermission(MAX_ENCHANT);
+		return !globakSettings.isUsePermissions() || player.hasPermission(MAX_ENCHANT);
 	}
 	
 	public static boolean hasAdmin(CommandSender sender) {
+		// Rely on the "ops.txt" to set this permission
 		return sender.hasPermission(ADMIN);
 	}
 	
 	public static boolean hasInfo(CommandSender sender) {
 		return sender.hasPermission(INFO);
+	}
+	
+	public static GlobalSettings getGlobakSettings() {
+		return globakSettings;
+	}
+
+	public static void setGlobakSettings(GlobalSettings globakSettings) {
+		Permissions.globakSettings = globakSettings;
 	}
 }

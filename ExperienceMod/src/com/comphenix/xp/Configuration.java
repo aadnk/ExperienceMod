@@ -34,6 +34,7 @@ import com.comphenix.xp.lookup.Query.Types;
 import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.messages.MessagePlayerQueue;
 import com.comphenix.xp.parser.ActionParser;
+import com.comphenix.xp.parser.StringListParser;
 import com.comphenix.xp.parser.Utility;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.parser.text.ItemParser;
@@ -70,6 +71,9 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 	private RewardProvider rewardProvider;
 	private ChannelProvider channelProvider;
 	private MessagePlayerQueue messageQueue;
+
+	// Global settings
+	private GlobalSettings globalSettings;
 
 	// Every action/trigger type
 	private ActionTypes actionTypes;
@@ -231,6 +235,8 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 	 */
 	public void loadFromConfig(ConfigurationSection config) {
 		
+		StringListParser listParser = new StringListParser();
+		
 		// Load scalar values
 		if (config.isDouble(MULTIPLIER_SETTING))
 			multiplier = config.getDouble(MULTIPLIER_SETTING, 1);
@@ -259,7 +265,7 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		}
 		
 		// Default message channels
-		channelProvider.setDefaultChannels(actionParser.readStrings(config, DEFAULT_CHANNELS_SETTING));
+		channelProvider.setDefaultChannels(listParser.parseSafe(config, DEFAULT_CHANNELS_SETTING));
 		
 		// Load reward type
 		String defaultReward = loadReward(config.getString(REWARD_TYPE_SETTING, null));
@@ -276,6 +282,15 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		loadItemActions(config.getConfigurationSection("items"));
 		loadGenericRewards(config.getConfigurationSection("player"));
 		checkRewards();
+	}
+	
+	
+	public GlobalSettings getGlobalSettings() {
+		return globalSettings;
+	}
+
+	public void setGlobalSettings(GlobalSettings globalSettings) {
+		this.globalSettings = globalSettings;
 	}
 	
 	private void loadRate(ConfigurationSection config) {

@@ -25,11 +25,12 @@ public class MemoryService implements HistoryService {
 	
 	/**
 	 * Constructs a simple memory-based history. 
+	 * @param maximumSize - maximum number of block changes to store.
 	 * @param timeout - number of seconds until a location is removed from the history.
 	 */
-	public MemoryService(int timeout) {
+	public MemoryService(int maximumSize, int timeout) {
 		cache = CacheBuilder.newBuilder()
-	    .maximumSize(MAXIMUM_SIZE)
+	    .maximumSize(maximumSize)
 	    .expireAfterWrite(timeout, TimeUnit.SECONDS)
 	    .build(new CacheLoader<Location, String>() {
 	    	@Override
@@ -37,6 +38,14 @@ public class MemoryService implements HistoryService {
 	    		throw new RuntimeException("Impossible to load unknown value.");
 	    	}
 		});
+	}
+	
+	/**
+	 * Constructs a simple memory-based history. 
+	 * @param timeout - number of seconds until a location is removed from the history.
+	 */
+	public MemoryService(int timeout) {
+		this(MAXIMUM_SIZE, timeout);
 	}
 
 	@Override

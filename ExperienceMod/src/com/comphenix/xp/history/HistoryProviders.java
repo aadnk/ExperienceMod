@@ -85,7 +85,8 @@ public class HistoryProviders extends ServiceProvider<HistoryService> {
 			Boolean answer = null;
 			
 			try {
-				answer = service.hasPlayerHistory(block);
+				if (isEnabled(service))
+					answer = service.hasPlayerHistory(block);
 				
 			} catch (Exception e) {
 				if (errorHandler != null)

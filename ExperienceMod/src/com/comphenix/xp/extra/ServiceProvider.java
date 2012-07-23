@@ -17,10 +17,16 @@
 
 package com.comphenix.xp.extra;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang.NullArgumentException;
+
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 
 /**
  * Represents a string-based service registry.
@@ -35,6 +41,9 @@ public class ServiceProvider<TService extends Service> {
 	
 	// List of services by name
 	protected Map<String, TService> nameLookup = new HashMap<String, TService>();
+	
+	// List of disabled services
+	protected Set<String> disabledLookup = new HashSet<String>();
 	
 	// Default service
 	private String defaultName;
@@ -140,6 +149,88 @@ public class ServiceProvider<TService extends Service> {
 	}
 	
 	/**
+	 * Retrieves a collection of every registered services.
+	 * @return Collection of every registered service.
+	 */
+	public Collection<TService> getRegisteredServices() {
+		return nameLookup.values();
+	}
+	
+	/**
+	 * Retrieves a collection of every enabled service.
+	 * @return Every enabled service.
+	 */
+	public Iterable<TService> getEnabledServices() {
+		
+		// Do not include disabled services
+		return Iterables.filter(nameLookup.values(), new Predicate<TService>() {
+			@Override
+			public boolean apply(TService service) {
+				return isEnabled(service);
+			}
+		});
+	}
+	
+	/**
+	 * Enable all services.
+	 */
+	public void enableAll() {
+		disabledLookup.clear();
+	}
+	
+	/**
+	 * Determines if a service is enabled.
+	 * @param name - name of service.
+	 * @return TRUE if the service is enabled, FALSE otherwise.
+	 */
+	public boolean isEnabled(String name) {
+		if (name == null)
+			throw new NullArgumentException("Service name cannot be null.");
+		else
+			return !disabledLookup.contains(name);
+	}
+	
+	/**
+	 * Determines if a given service is enabled.
+	 * @param service - service.
+	 * @return TRUE if the service is enabled, FALSE otherwise.
+	 */
+	public boolean isEnabled(TService service) {
+		if (service == null)
+			throw new NullArgumentException("Service cannot be null.");
+		
+		return isEnabled(service.getServiceName());
+	}
+	
+	/**
+	 * Sets whether or not a service is enabled.
+	 * @param name - name of service.
+	 * @param value - TRUE if the service should be enabled, FALSE otherwise.
+	 */
+	public void setEnabled(String name, boolean value) {
+		if (name == null)
+			throw new NullArgumentException("Service name cannot be null.");
+		
+		disabledLookup.remove(name);
+		
+		if (!value) {
+			disabledLookup.add(name);
+		}
+	}
+	
+	/**
+	 * Sets whether or not a service is enabled.
+	 * @param service - service.
+	 * @param value - TRUE if the service should be enabled, FALSE otherwise.
+	 */
+	public void setEnabled(TService service, boolean value) {
+		if (service == null)
+			throw new NullArgumentException("Service cannot be null.");
+		
+		setEnabled(service.getServiceName(), value);
+	}
+	
+	/**
 	 * Retrieves the default service by name.
 	 * @return Default service name.
 	 */
@@ -156,10 +247,17 @@ public class ServiceProvider<TService extends Service> {
 	}
 	
 	/**
-	 * Retrieves the default service.
+	 * Retrieves the default service, or the next non-disabled service if 
+	 * the default service is disabled.
 	 * @return The default service, or NULL if not found.
 	 */
 	public TService getDefaultService() {
-		return getByName(getDefaultName());
+		TService service = getByName(getDefaultName());
+		
+		// Handle disabled services
+		if (isEnabled(service))
+			return service;
+		else
+			return Iterables.getFirst(getEnabledServices(), null);
 	}
 }

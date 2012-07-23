@@ -42,6 +42,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.comphenix.xp.commands.CommandExperienceMod;
 import com.comphenix.xp.commands.CommandSpawnExp;
+import com.comphenix.xp.extra.Permissions;
+import com.comphenix.xp.extra.Service;
+import com.comphenix.xp.extra.ServiceProvider;
 import com.comphenix.xp.history.HistoryProviders;
 import com.comphenix.xp.history.LogBlockService;
 import com.comphenix.xp.history.MemoryService;
@@ -91,15 +94,13 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	private CustomBlockProviders customProvider;
 	private HistoryProviders historyProviders;
 	
+	private GlobalSettings globalSettings;
 	private ConfigurationLoader configLoader;
 	private Presets presets;
 	
 	// Repeating task
 	private static final int TICK_DELAY = 4; // 50 ms * 4 = 200 ms
 	private int serverTickTask;
-	
-	// How long until block changes are removed from the cache
-	private static final int MEMORY_TIMEOUT = 600; // 10 minutes
 	
 	// Commands
 	private CommandExperienceMod commandExperienceMod;
@@ -134,7 +135,6 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		
 		// Load history
 		historyProviders = new HistoryProviders();
-		historyProviders.register(new MemoryService(MEMORY_TIMEOUT));
 		
 		// Load reward types
 		rewardProvider.register(new RewardExperience());
@@ -191,17 +191,6 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		// Block provider
 		customProvider.setLastInteraction(interactionListener);
 		
-		// Register log block if needed
-		if (LogBlockService.exists(manager)) {
-			if (!historyProviders.containsService(LogBlockService.NAME)) {
-				historyProviders.register(LogBlockService.create(manager));
-			}
-			
-			currentLogger.info("Connected to LogBlock.");
-		} else {
-			currentLogger.info("Cannot connect to LogBlock.");
-		}
-		
 		if (hasEconomy()) {
 			// Register listener
 			manager.registerEvents(itemListener, this);
@@ -224,6 +213,32 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			currentLogger.severe("IO error when loading configurations: " + e.getMessage());
 		}
 		
+		// References
+		Permissions.setGlobakSettings(globalSettings);
+		
+		// Create memory history
+		historyProviders.register(new MemoryService(
+				globalSettings.getMaxBlocksInHistory(), 
+				globalSettings.getMaxAgeInHistory()
+		));
+		
+		// Register log block if needed
+		if (LogBlockService.exists(manager)) {
+			if (!historyProviders.containsService(LogBlockService.NAME)) {
+				historyProviders.register(LogBlockService.create(manager));
+			}
+			
+			currentLogger.info("Connected to LogBlock.");
+		} else {
+			currentLogger.info("Cannot connect to LogBlock.");
+		}
+		
+		// Disable stuff
+		disableServices(historyProviders, globalSettings.getDisabledServices());
+		disableServices(channelProvider, globalSettings.getDisabledServices());
+		disableServices(rewardProvider, globalSettings.getDisabledServices());
+		disableServices(customProvider, globalSettings.getDisabledServices());
+		
 		// Register commands
 		getCommand(commandReload).setExecutor(commandExperienceMod);
 		getCommand(commandSpawnExp).setExecutor(commandSpawn);
@@ -238,6 +253,23 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		// Inform of this problem
 		if (serverTickTask < 0)
 			printWarning(this, "Could not start repeating task for sending messages.");
+	}
+	
+	/**
+	 * Disable every service in the given list of services.
+	 * @param provider - registry of services.
+	 * @param serviceNames - services to disable.
+	 */
+	private <TService extends Service> void disableServices(ServiceProvider<TService> provider, List<String> serviceNames) {
+		
+		provider.enableAll();
+		
+		// Disable all such services
+		for (String name : serviceNames) {
+			if (provider.containsService(name)) {
+				provider.setEnabled(name, false);
+			}
+		}
 	}
 	
 	@Override
@@ -298,10 +330,14 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			// Remove previously loaded files
 			configLoader.clearCache();
 			
+			// Load globals
+			globalSettings = new GlobalSettings(this);
+			globalSettings.loadFromConfig(loadConfig("global.yml", "Creating default global settings."));
+			
 			// Load parts of the configuration
 			YamlConfiguration presetList = loadConfig("presets.yml", "Creating default preset list.");
 			loadConfig("config.yml", "Creating default configuration.");
-
+			
 			// Load it
 			presets = new Presets(presetList, this, chat, configLoader);
 			setPresets(presets);
@@ -455,6 +491,14 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		
 	public PlayerScheduler getPlayerScheduler() {
 		return playerScheduler;
+	}
+	
+	/**
+	 * Retrieves the global plugin settings.
+	 * @return Global settings.
+	 */
+	public GlobalSettings getGlobalSettings() {
+		return globalSettings;
 	}
 	
 	/**
