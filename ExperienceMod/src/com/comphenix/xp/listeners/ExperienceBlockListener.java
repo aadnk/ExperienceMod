@@ -17,6 +17,7 @@
 
 package com.comphenix.xp.listeners;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -85,7 +86,7 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 					
 				} else if (config.getSimpleBlockReward().containsKey(retrieveKey)) {
 
-					Action action = config.getSimpleBlockReward().get(retrieveKey);
+					Action action = config.getSimpleBlockReward().getAllRanked(retrieveKey);
 					RewardProvider rewards = config.getRewardProvider();
 					ChannelProvider channels = config.getChannelProvider();
 					
@@ -124,6 +125,16 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 			
 			// Done
 		}
+	}
+	
+	private Action getBlockBonusAction(ItemTree tree, ItemQuery key, Block block) {
+		
+		List<Action> actions = tree.getAllRanked(key);
+		
+		for (Action action : actions) {
+			if (action.)
+		}
+		
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

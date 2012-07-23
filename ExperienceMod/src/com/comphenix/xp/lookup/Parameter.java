@@ -80,6 +80,15 @@ public class Parameter<TParam> {
 					String.format("Duplicate parameter %s at index %s", id, param));
 	}
 	
+	/**
+	 * Indexes of queries with the given parameter.
+	 * @param param - parameter to search for.
+	 * @return Every query that is listed under the given parameter, or NULL if nothing was found.
+	 */
+	public Set<Integer> getSingle(TParam param) {
+		return reverseLookup.get(param);
+	}
+	
 	public Set<Integer> getCopy(List<TParam> params) {
 		
 		Set<Integer> copy = new HashSet<Integer>();

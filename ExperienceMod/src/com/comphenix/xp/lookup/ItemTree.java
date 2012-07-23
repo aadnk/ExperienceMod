@@ -107,4 +107,16 @@ public class ItemTree extends ActionTree<ItemQuery> implements Multipliable<Item
 		durability.putAll(tree.durability, offset);
 		playerCreated.putAll(playerCreated, offset);
 	}
+
+	public Parameter<Integer> getItemID() {
+		return itemID;
+	}
+
+	public Parameter<Integer> getDurability() {
+		return durability;
+	}
+
+	public Parameter<Boolean> getPlayerCreated() {
+		return playerCreated;
+	}
 }

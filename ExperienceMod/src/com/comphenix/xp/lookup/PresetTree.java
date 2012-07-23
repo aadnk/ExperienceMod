@@ -78,4 +78,12 @@ public class PresetTree extends SearchTree<PresetQuery, Configuration> {
 		// Any remaining items will be sorted by specificity
 		return candidates;
 	}
+
+	public Parameter<String> getPresetNames() {
+		return presetNames;
+	}
+
+	public Parameter<String> getWorlds() {
+		return worlds;
+	}
 }
