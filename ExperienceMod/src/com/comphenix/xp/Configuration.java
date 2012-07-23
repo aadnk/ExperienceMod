@@ -43,19 +43,19 @@ import com.comphenix.xp.rewards.RewardTypes;
 
 public class Configuration implements PlayerCleanupListener, Multipliable<Configuration> {
 			
-	private static final String multiplierSetting = "multiplier";
-	private static final String defaultRewardsSetting = "default rewards disabled";
-	private static final String rewardTypeSetting = "reward type";
+	private static final String MULTIPLIER_SETTING = "multiplier";
+	private static final String DEFAULT_REWARDS_SETTING = "default rewards disabled";
+	private static final String REWARD_TYPE_SETTING = "reward type";
 	
-	private static final String economyDropsSetting = "economy drop";
-	private static final String economyWorthSetting = "economy drop worth";
-	private static final String virtualScanRadiusSetting = "virtual scan radius";
+	private static final String ECONOMY_DROPS_SETTING = "economy drop";
+	private static final String ECONOMY_WORTH_SETTING = "economy drop worth";
+	private static final String VIRTUAL_SCAN_RADIUS_SETTING = "virtual scan radius";
 	
-	private static final String defaultChannelsSetting = "default channels";
-	private static final String messageMaxRateSetting = "message max rate";
+	private static final String DEFAULT_CHANNELS_SETTING = "default channels";
+	private static final String MESSAGE_MAX_RATE_SETTING = "message max rate";
 	
-	private static final double defaultScanRadius = 20;
-	private static final int defaultMessageMaxRate = 5;
+	private static final double DEFAULT_SCAN_RADIUS = 20;
+	private static final int DEFAULT_MESSAGE_RATE = 5;
 	
 	private Debugger logger;
 	
@@ -232,22 +232,22 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 	public void loadFromConfig(ConfigurationSection config) {
 		
 		// Load scalar values
-		if (config.isDouble(multiplierSetting))
-			multiplier = config.getDouble(multiplierSetting, 1);
+		if (config.isDouble(MULTIPLIER_SETTING))
+			multiplier = config.getDouble(MULTIPLIER_SETTING, 1);
 		else
-			multiplier = config.getInt(multiplierSetting, 1);
+			multiplier = config.getInt(MULTIPLIER_SETTING, 1);
 
 		// Whether or not to remove all default XP drops
-		defaultRewardsDisabled = config.getBoolean(defaultRewardsSetting, true);
-		scanRadiusSetting = readDouble(config, virtualScanRadiusSetting, defaultScanRadius);
+		defaultRewardsDisabled = config.getBoolean(DEFAULT_REWARDS_SETTING, true);
+		scanRadiusSetting = readDouble(config, VIRTUAL_SCAN_RADIUS_SETTING, DEFAULT_SCAN_RADIUS);
 		
 		// Economy item settings
-		economyItemWorth = config.getInt(economyWorthSetting, 1);
+		economyItemWorth = config.getInt(ECONOMY_WORTH_SETTING, 1);
 		economyDropItem = null;
 
 		// Economy drop item
 		try {
-			String text = config.getString(economyDropsSetting, null);
+			String text = config.getString(ECONOMY_DROPS_SETTING, null);
 			Query drop = text != null ? itemParser.parse(text) : null;
 			
 			if (drop != null && drop instanceof ItemQuery) {
@@ -259,10 +259,10 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		}
 		
 		// Default message channels
-		channelProvider.setDefaultChannels(actionParser.readStrings(config, defaultChannelsSetting));
+		channelProvider.setDefaultChannels(actionParser.readStrings(config, DEFAULT_CHANNELS_SETTING));
 		
 		// Load reward type
-		String defaultReward = loadReward(config.getString(rewardTypeSetting, null));
+		String defaultReward = loadReward(config.getString(REWARD_TYPE_SETTING, null));
 		
 		// Use default type if nothing has been set
 		if (defaultReward != null)
@@ -281,7 +281,7 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 	private void loadRate(ConfigurationSection config) {
 		
 		// Load the message queue
-		double rate = readDouble(config, messageMaxRateSetting, defaultMessageMaxRate);
+		double rate = readDouble(config, MESSAGE_MAX_RATE_SETTING, DEFAULT_MESSAGE_RATE);
 		long converted = 0;
 		
 		// Make sure the rate is valid

@@ -29,6 +29,7 @@ import org.bukkit.entity.Player;
 
 import com.comphenix.xp.Action;
 import com.comphenix.xp.ExperienceMod;
+import com.comphenix.xp.extra.Permissions;
 import com.comphenix.xp.lookup.MobQuery;
 import com.comphenix.xp.lookup.Query;
 import com.comphenix.xp.parser.ParsingException;
@@ -37,15 +38,13 @@ import com.comphenix.xp.parser.text.MobParser;
 
 public class CommandExperienceMod implements CommandExecutor {
 
-	private final String permissionAdmin = "experiencemod.admin";
-
 	// Mod command(s)
-	private final String commandReload = "experiencemod";
-	private final String subCommandToggleDebug = "debug";
-	private final String subCommandWarnings = "warnings";
-	private final String subCommandReload = "reload";
-	private final String subCommandItem = "item";
-	private final String subCommandMob = "mob";
+	private static final String COMMAND_RELOAD = "experiencemod";
+	private static final String SUB_COMMAND_TOGGLE_DEBUG = "debug";
+	private static final String SUB_COMMAND_WARNINGS = "warnings";
+	private static final String SUB_COMMAND_RELOAD = "reload";
+	private static final String SUB_COMMAND_ITEM = "item";
+	private static final String SUB_COMMAND_MOB = "mob";
 	
 	private ExperienceMod plugin;
 
@@ -64,7 +63,7 @@ public class CommandExperienceMod implements CommandExecutor {
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
 		// Execute the correct command
-		if (command != null && command.getName().equalsIgnoreCase(commandReload))
+		if (command != null && command.getName().equalsIgnoreCase(COMMAND_RELOAD))
 			return handleMainCommand(sender, args);
 		else
 			return false;
@@ -73,7 +72,7 @@ public class CommandExperienceMod implements CommandExecutor {
 	private boolean handleMainCommand(CommandSender sender, String[] args) {
 		
 		// Make sure the sender has permissions
-		if (!CommandUtilities.hasCommandPermission(sender, permissionAdmin)) {
+		if (!Permissions.hasAdmin(sender)) {
 			plugin.respond(sender, ChatColor.RED + "You haven't got permission to execute this command.");
 			return true;
 		} 
@@ -81,14 +80,14 @@ public class CommandExperienceMod implements CommandExecutor {
 		String sub = CommandUtilities.getSafe(args, 0);
 		
 		// Toggle debugging
-		if (sub.equalsIgnoreCase(subCommandToggleDebug)) {
+		if (sub.equalsIgnoreCase(SUB_COMMAND_TOGGLE_DEBUG)) {
 			
 			plugin.toggleDebug();
 			plugin.respond(sender, ChatColor.BLUE + "Debug " + (plugin.isDebugEnabled() ? " enabled " : " disabled"));
 			return true;
 			
 		// Display the parse warnings during the last configuration load
-		} else if (sub.equalsIgnoreCase(subCommandWarnings)) {
+		} else if (sub.equalsIgnoreCase(SUB_COMMAND_WARNINGS)) {
 			
 			if (sender != null && plugin.getInformer().hasWarnings())
 				plugin.getInformer().displayWarnings(sender, true);
@@ -96,17 +95,17 @@ public class CommandExperienceMod implements CommandExecutor {
 				sender.sendMessage(ChatColor.GREEN + "No warnings found.");
 			return true;
 			
-		} else if (sub.equalsIgnoreCase(subCommandItem)) {
+		} else if (sub.equalsIgnoreCase(SUB_COMMAND_ITEM)) {
 			
 			handleQueryItem(sender, args, 1);
 			return true;
 			
-		} else if (sub.equalsIgnoreCase(subCommandMob)) {
+		} else if (sub.equalsIgnoreCase(SUB_COMMAND_MOB)) {
 			
 			handleQueryMob(sender, args, 1);
 			return true;
 	
-		} else if (sub.equalsIgnoreCase(subCommandReload) || sub.length() == 0) {
+		} else if (sub.equalsIgnoreCase(SUB_COMMAND_RELOAD) || sub.length() == 0) {
 			
 			try {
 				plugin.loadDefaults(true);

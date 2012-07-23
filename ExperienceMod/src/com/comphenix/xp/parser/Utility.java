@@ -32,7 +32,7 @@ import com.google.common.collect.Lists;
 public class Utility {
 	
 	@SuppressWarnings("rawtypes")
-	private static List emptyList = new ArrayList();
+	private static final List emptyList = new ArrayList();
 	
     public static String getEnumName(String text) {
     	if (text == null)

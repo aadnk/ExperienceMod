@@ -18,10 +18,12 @@ public class Permissions {
 	public final static String REWARDS_BREWING = "experiencemod.rewards.brewing";
 	public final static String REWARDS_CRAFTING = "experiencemod.rewards.crafting";
 	public final static String REWARDS_FISHING = "experiencemod.rewards.fishing";
+	
 	public final static String UNOUCHABLE = "experiencemod.untouchable";
-
+	public final static String ADMIN = "experiencemod.admin";
+	
 	// Whether or not to display warning messages
-	public final static String permissionInfo = "experiencemod.info";
+	public final static String INFO = "experiencemod.info";
 	
 	public static boolean hasRewardSmelting(Player player) {
 		return player.hasPermission(REWARDS_SMELTING);
@@ -63,7 +65,11 @@ public class Permissions {
 		return player.hasPermission(MAX_ENCHANT);
 	}
 	
+	public static boolean hasAdmin(CommandSender sender) {
+		return sender.hasPermission(ADMIN);
+	}
+	
 	public static boolean hasInfo(CommandSender sender) {
-		return sender.hasPermission(permissionInfo);
+		return sender.hasPermission(INFO);
 	}
 }

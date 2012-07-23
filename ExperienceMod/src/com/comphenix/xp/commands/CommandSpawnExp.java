@@ -29,15 +29,15 @@ import org.bukkit.entity.Player;
 
 import com.comphenix.xp.ExperienceMod;
 import com.comphenix.xp.Server;
+import com.comphenix.xp.extra.Permissions;
 import com.comphenix.xp.parser.Utility;
 
 public class CommandSpawnExp implements CommandExecutor {
 
-	private final String permissionAdmin = "experiencemod.admin";
-	private final String commandSpawnExp = "spawnexp";
+	private static final String COMMAND_SPAWN_XP = "spawnexp";
 
 	// Constants
-	private final int spawnExpMaxDistance = 50;
+	private static final int SPAWN_EXP_MAX_DISTANCE = 50;
 	
 	private ExperienceMod plugin;
 
@@ -49,7 +49,7 @@ public class CommandSpawnExp implements CommandExecutor {
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		
 		// Execute the correct command
-		if (command != null && command.getName().equalsIgnoreCase(commandSpawnExp))
+		if (command != null && command.getName().equalsIgnoreCase(COMMAND_SPAWN_XP))
 			return handleSpawnExp(sender, args);
 		else
 			return false;
@@ -64,7 +64,7 @@ public class CommandSpawnExp implements CommandExecutor {
 		}
 		
 		// Make sure the sender has permissions
-		if (!CommandUtilities.hasCommandPermission(sender, permissionAdmin)) {
+		if (!Permissions.hasAdmin(sender)) {
 			plugin.respond(sender, ChatColor.RED + "You haven't got permission to execute this command.");
 			return true;
 		}
@@ -80,7 +80,7 @@ public class CommandSpawnExp implements CommandExecutor {
 			}
 			
 			Block startBlock = player.getEyeLocation().getBlock();
-			List<Block> list = player.getLastTwoTargetBlocks(null, spawnExpMaxDistance);
+			List<Block> list = player.getLastTwoTargetBlocks(null, SPAWN_EXP_MAX_DISTANCE);
 			
 			// Remember the start location
 			list.add(0, startBlock);

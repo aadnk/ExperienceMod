@@ -16,7 +16,7 @@ import com.google.common.cache.CacheLoader;
  */
 public class MemoryService implements HistoryService {
 
-	public static String NAME = "MEMORY";
+	public static final String NAME = "MEMORY";
 	
 	// Maximum number of block changes to store
 	private static final int MAXIMUM_SIZE = 1000;

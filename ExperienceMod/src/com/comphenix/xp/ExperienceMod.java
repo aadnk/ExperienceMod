@@ -95,7 +95,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	private Presets presets;
 	
 	// Repeating task
-	private static final int tickDelay = 4; // 50 ms * 4 = 200 ms
+	private static final int TICK_DELAY = 4; // 50 ms * 4 = 200 ms
 	private int serverTickTask;
 	
 	// How long until block changes are removed from the cache
@@ -233,7 +233,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			public void run() {
 				onServerTick();
 			}
-		}, tickDelay, tickDelay); 
+		}, TICK_DELAY, TICK_DELAY); 
 		
 		// Inform of this problem
 		if (serverTickTask < 0)
@@ -341,7 +341,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 				
 				String worldName = world.getName();
 				String possibleOption = chat.getGroupInfoString(
-						worldName, group, Presets.optionPreset, null);
+						worldName, group, Presets.OPTION_PRESET_SETTING, null);
 
 				try {
 					if (!Utility.isNullOrIgnoreable(possibleOption) && 

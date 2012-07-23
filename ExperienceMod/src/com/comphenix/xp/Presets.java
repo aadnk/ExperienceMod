@@ -41,10 +41,10 @@ import com.google.common.collect.Lists;
  */
 public class Presets implements PlayerCleanupListener {
 
-	public static final String optionPreset = "experiencePreset";
+	public static final String OPTION_PRESET_SETTING = "experiencePreset";
 	
-	private static final String settingImportFile = "file";
-	private static final String settingLocal = "local";
+	private static final String IMPORT_FILE_SETTING = "file";
+	private static final String LOCAL_SETTING = "local";
 	
 	// Mapping of preset name and configuration
 	private PresetTree presets;
@@ -100,7 +100,7 @@ public class Presets implements PlayerCleanupListener {
 		
 		if (chat != null && sender instanceof Player) {
 			Player player = (Player) sender;
-			preset = chat.getPlayerInfoString(player, optionPreset, null);
+			preset = chat.getPlayerInfoString(player, OPTION_PRESET_SETTING, null);
 			world = player.getWorld().getName();
 		}
 		
@@ -165,8 +165,8 @@ public class Presets implements PlayerCleanupListener {
 	private Configuration getLocal(ConfigurationSection data, ConfigurationLoader loader) {
 		
 		// Retrieve using the configuration section
-		if (data.isConfigurationSection(settingLocal)) {
-			return loader.getFromSection(data.getConfigurationSection(settingLocal));
+		if (data.isConfigurationSection(LOCAL_SETTING)) {
+			return loader.getFromSection(data.getConfigurationSection(LOCAL_SETTING));
 		} else {
 			return null;
 		}
@@ -192,10 +192,10 @@ public class Presets implements PlayerCleanupListener {
 	
 	private List<String> getFiles(ConfigurationSection data) {
 		
-		if (data.isString(settingImportFile))
-			return Lists.newArrayList(data.getString(settingImportFile));
-		else if (data.isList(settingImportFile))
-			return data.getStringList(settingImportFile);
+		if (data.isString(IMPORT_FILE_SETTING))
+			return Lists.newArrayList(data.getString(IMPORT_FILE_SETTING));
+		else if (data.isList(IMPORT_FILE_SETTING))
+			return data.getStringList(IMPORT_FILE_SETTING);
 		else
 			return Lists.newArrayList();
 	}
