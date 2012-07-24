@@ -34,7 +34,7 @@ import com.comphenix.xp.parser.Utility;
 
 public class CommandSpawnExp implements CommandExecutor {
 
-	private static final String COMMAND_SPAWN_XP = "spawnexp";
+	public static final String COMMAND_SPAWN_XP = "spawnexp";
 
 	// Constants
 	private static final int SPAWN_EXP_MAX_DISTANCE = 50;

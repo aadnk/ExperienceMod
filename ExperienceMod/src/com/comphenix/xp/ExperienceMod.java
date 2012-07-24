@@ -65,10 +65,6 @@ import com.comphenix.xp.rewards.*;
 public class ExperienceMod extends JavaPlugin implements Debugger {
 	
 	private static final int DEFAULT_BUFFER_SIZE = 1024 * 4;
-
-	private final String permissionInfo = "experiencemod.info";
-	private final String commandReload = "experiencemod";
-	private final String commandSpawnExp = "spawnexp";
 	
 	private Logger currentLogger;
 	private PluginManager manager;
@@ -229,8 +225,9 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		disableServices(customProvider, globalSettings.getDisabledServices());
 		
 		// Register commands
-		getCommand(commandReload).setExecutor(commandExperienceMod);
-		getCommand(commandSpawnExp).setExecutor(commandSpawn);
+		getCommand(CommandExperienceMod.COMMAND_RELOAD).setExecutor(commandExperienceMod);
+		getCommand(CommandExperienceMod.COMMAND_ABBREVIATED).setExecutor(commandExperienceMod);
+		getCommand(CommandSpawnExp.COMMAND_SPAWN_XP).setExecutor(commandSpawn);
 		
 		// Begin server tick
 		serverTickTask = getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
@@ -620,7 +617,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			String formattedMessage = String.format("[ExperienceMod] " + message, params);
 			
 			// Every player with the info permission will also see this message
-			getServer().broadcast(formattedMessage, permissionInfo);
+			getServer().broadcast(formattedMessage, Permissions.INFO);
 		}
 	}
 

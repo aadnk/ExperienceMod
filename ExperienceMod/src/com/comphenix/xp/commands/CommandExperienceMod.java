@@ -39,12 +39,14 @@ import com.comphenix.xp.parser.text.MobParser;
 public class CommandExperienceMod implements CommandExecutor {
 
 	// Mod command(s)
-	private static final String COMMAND_RELOAD = "experiencemod";
-	private static final String SUB_COMMAND_TOGGLE_DEBUG = "debug";
-	private static final String SUB_COMMAND_WARNINGS = "warnings";
-	private static final String SUB_COMMAND_RELOAD = "reload";
-	private static final String SUB_COMMAND_ITEM = "item";
-	private static final String SUB_COMMAND_MOB = "mob";
+	public static final String COMMAND_RELOAD = "experiencemod";
+	public static final String COMMAND_ABBREVIATED = "expmod";
+	
+	public static final String SUB_COMMAND_TOGGLE_DEBUG = "debug";
+	public static final String SUB_COMMAND_WARNINGS = "warnings";
+	public static final String SUB_COMMAND_RELOAD = "reload";
+	public static final String SUB_COMMAND_ITEM = "item";
+	public static final String SUB_COMMAND_MOB = "mob";
 	
 	private ExperienceMod plugin;
 
@@ -63,7 +65,10 @@ public class CommandExperienceMod implements CommandExecutor {
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
 		// Execute the correct command
-		if (command != null && command.getName().equalsIgnoreCase(COMMAND_RELOAD))
+		if (command != null && 
+				command.getName().equalsIgnoreCase(COMMAND_RELOAD) || 
+				command.getName().equalsIgnoreCase(COMMAND_ABBREVIATED))
+			
 			return handleMainCommand(sender, args);
 		else
 			return false;
