@@ -220,7 +220,6 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		
 		// Register commands
 		getCommand(CommandExperienceMod.COMMAND_RELOAD).setExecutor(commandExperienceMod);
-		getCommand(CommandExperienceMod.COMMAND_ABBREVIATED).setExecutor(commandExperienceMod);
 		getCommand(CommandSpawnExp.COMMAND_SPAWN_XP).setExecutor(commandSpawn);
 		
 		// Begin server tick

@@ -67,7 +67,7 @@ public class HawkeyeService implements HistoryService {
 			
 			SearchParser searchParser = new SearchParser();
 			searchParser.loc = blockLocation.toVector();
-			searchParser.actions = Arrays.asList(DataType.BLOCK_PLACE);
+			searchParser.actions = Arrays.asList(DataType.BLOCK_PLACE, DataType.BLOCK_FORM);
 			searchParser.radius = 0;
 			searchParser.worlds = new String[] {blockLocation.getWorld().getName()};
 			searching = true;
