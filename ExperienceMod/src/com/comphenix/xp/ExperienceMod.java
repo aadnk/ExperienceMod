@@ -270,8 +270,10 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		
 		// Disable all such services
 		for (String name : serviceNames) {
-			if (provider.containsService(name)) {
-				provider.setEnabled(name, false);
+			String enumName = Utility.getEnumName(name);
+			
+			if (provider.containsService(enumName)) {
+				provider.setEnabled(enumName, false);
 			}
 		}
 	}
