@@ -18,15 +18,15 @@
 package com.comphenix.xp.extra;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang.NullArgumentException;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 
 /**
  * Represents a string-based service registry.
@@ -40,10 +40,10 @@ public class ServiceProvider<TService extends Service> {
 	public static String defaultServiceName = "DEFAULT";
 	
 	// List of services by name
-	protected Map<String, TService> nameLookup = new HashMap<String, TService>();
+	protected Map<String, TService> nameLookup = new ConcurrentHashMap<String, TService>();
 	
 	// List of disabled services
-	protected Set<String> disabledLookup = new HashSet<String>();
+	protected Set<String> disabledLookup = Sets.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
 	
 	// Default service
 	private String defaultName;

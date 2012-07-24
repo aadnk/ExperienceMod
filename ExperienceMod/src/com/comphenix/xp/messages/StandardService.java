@@ -17,8 +17,8 @@
 
 package com.comphenix.xp.messages;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.comphenix.xp.parser.Utility;
 
@@ -33,7 +33,7 @@ import org.bukkit.entity.Player;
 public class StandardService implements ChannelService {
 
 	public static final String NAME = "STANDARD";
-	private static Map<String, Channels> channelList = new HashMap<String, Channels>();
+	private static Map<String, Channels> channelList = new ConcurrentHashMap<String, Channels>();
 	
 	public enum Channels {
 		GLOBAL,

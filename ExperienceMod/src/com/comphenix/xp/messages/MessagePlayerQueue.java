@@ -17,8 +17,8 @@
 
 package com.comphenix.xp.messages;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.entity.Player;
 
@@ -28,7 +28,7 @@ import com.comphenix.xp.listeners.PlayerCleanupListener;
 
 public class MessagePlayerQueue implements PlayerCleanupListener {
 	
-	private Map<Player, MessageQueue> queues = new HashMap<Player, MessageQueue>();
+	private Map<Player, MessageQueue> queues = new ConcurrentHashMap<Player, MessageQueue>();
 	
 	private long messageDelay;
 	

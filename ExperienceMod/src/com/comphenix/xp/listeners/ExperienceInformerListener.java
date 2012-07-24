@@ -17,8 +17,8 @@
 
 package com.comphenix.xp.listeners;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.AbstractQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -32,7 +32,7 @@ import com.comphenix.xp.extra.Permissions;
 
 public class ExperienceInformerListener implements Listener {
 
-	private List<String> warningMessages = new ArrayList<String>();
+	private AbstractQueue<String> warningMessages = new ConcurrentLinkedQueue<String>();
 
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void onPlayerJoinEvent(PlayerJoinEvent event) {

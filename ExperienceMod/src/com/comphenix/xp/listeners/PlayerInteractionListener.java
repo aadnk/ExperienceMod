@@ -1,7 +1,7 @@
 package com.comphenix.xp.listeners;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang.NullArgumentException;
 import org.bukkit.entity.HumanEntity;
@@ -22,7 +22,7 @@ import com.comphenix.xp.lookup.ItemQuery;
 public class PlayerInteractionListener implements PlayerCleanupListener, Listener {
 
 	// Last clicked block
-	private Map<String, ClickEvent> lastRightClicked = new HashMap<String, ClickEvent>();
+	private Map<String, ClickEvent> lastRightClicked = new ConcurrentHashMap<String, ClickEvent>();
 	
 	// Last clicked event
 	private class ClickEvent {

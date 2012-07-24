@@ -34,14 +34,13 @@ import com.comphenix.xp.Configuration;
 import com.comphenix.xp.Debugger;
 import com.comphenix.xp.Presets;
 import com.comphenix.xp.Range;
+import com.comphenix.xp.extra.Permissions;
 import com.comphenix.xp.lookup.MobQuery;
 import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.rewards.RewardProvider;
 
 public class ExperienceMobListener extends AbstractExperienceListener {
 
-	private final String permissionUntouchable = "experiencemod.untouchable";
-	
 	private Debugger debugger;
 	
 	// To determine spawn reason
@@ -108,7 +107,7 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 								id, killer.getName());
 					
 					// Events will not be directly cancelled for untouchables
-					if (!killer.hasPermission(permissionUntouchable)) {
+					if (!Permissions.hasUntouchable(killer)) {
 						// To cancel this event, spawn a new mob at the exact same location.
 						LivingEntity spawned = entity.getWorld().spawnCreature(entity.getLocation(), entity.getType());
 						spawned.addPotionEffects(entity.getActivePotionEffects());

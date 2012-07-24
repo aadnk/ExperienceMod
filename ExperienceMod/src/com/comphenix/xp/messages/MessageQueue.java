@@ -17,10 +17,10 @@
 
 package com.comphenix.xp.messages;
 
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.commons.lang.NullArgumentException;
 import org.bukkit.entity.Player;
@@ -31,8 +31,8 @@ import com.comphenix.xp.Debugger;
 public class MessageQueue {
 	
 	// Map of every message to send in the future
-	private Map<Action, MessageFormatter> lookup = new HashMap<Action, MessageFormatter>();
-	private Queue<Action> ordered = new LinkedList<Action>();
+	private Map<Action, MessageFormatter> lookup = new ConcurrentHashMap<Action, MessageFormatter>();
+	private Queue<Action> ordered = new ConcurrentLinkedQueue<Action>();
 	
 	private long messageDelay;
 	private long lastMessageTime;

@@ -57,16 +57,16 @@ public class Permissions {
 		return !globalSettings.isUsePermissions() || player.hasPermission(REWARDS_PLACING);
 	}
 	
-	public static boolean hasUntouchable(Player player) {
-		return !globalSettings.isUsePermissions() || player.hasPermission(UNOUCHABLE);
-	}
-	
 	public static boolean hasKeepExp(Player player) {
 		return !globalSettings.isUsePermissions() || player.hasPermission(KEEP_EXP);
 	}
 	
 	public static boolean hasMaxEnchant(Player player) {
 		return !globalSettings.isUsePermissions() || player.hasPermission(MAX_ENCHANT);
+	}
+	
+	public static boolean hasUntouchable(Player player) {
+		return player.hasPermission(UNOUCHABLE);
 	}
 	
 	public static boolean hasAdmin(CommandSender sender) {

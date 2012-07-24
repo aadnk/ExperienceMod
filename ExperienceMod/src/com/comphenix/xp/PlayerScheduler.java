@@ -11,6 +11,7 @@ import org.bukkit.scheduler.BukkitScheduler;
 
 import com.comphenix.xp.listeners.PlayerCleanupListener;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimaps;
 import com.google.common.collect.SetMultimap;
 
 /**
@@ -20,7 +21,7 @@ import com.google.common.collect.SetMultimap;
  */
 public class PlayerScheduler implements PlayerCleanupListener {
 
-	private SetMultimap<String, PlayerRunnable> tasks = HashMultimap.create();
+	private SetMultimap<String, PlayerRunnable> tasks = Multimaps.synchronizedSetMultimap(createMap());
 
 	private int defaultTicks;
 	private BukkitScheduler scheduler;
@@ -29,6 +30,11 @@ public class PlayerScheduler implements PlayerCleanupListener {
 	public PlayerScheduler(BukkitScheduler scheduler, Plugin plugin) {
 		this.scheduler = scheduler;
 		this.plugin = plugin;
+	}
+
+	// Creates our multimap
+	private static SetMultimap<String, PlayerRunnable> createMap() {
+		return HashMultimap.create();
 	}
 	
 	/**

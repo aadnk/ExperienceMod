@@ -21,10 +21,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicates;
@@ -33,8 +33,8 @@ import com.google.common.collect.Lists;
 
 public abstract class SearchTree<TKey, TValue> {
 
-	protected Map<Integer, TValue> flatten = new HashMap<Integer, TValue>();
-	protected Map<Integer, Integer> paramCount = new HashMap<Integer, Integer>();
+	protected Map<Integer, TValue> flatten = new ConcurrentHashMap<Integer, TValue>();
+	protected Map<Integer, Integer> paramCount = new ConcurrentHashMap<Integer, Integer>();
 	protected int currentID;
 	
 	protected ValueComparer comparer = new ValueComparer(); 
