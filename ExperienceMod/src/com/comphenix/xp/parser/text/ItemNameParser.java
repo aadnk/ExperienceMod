@@ -71,7 +71,7 @@ public class ItemNameParser extends TextParser<Set<Integer>> {
 	/**
 	 * Registers a new material for the item parser. 
 	 * @param name - name of the material. Only capital letters and no underscores/spaces.
-	 * @param material - the associated material id.
+	 * @param id - the associated material id.
 	 */
 	public void register(String name, Integer id) {
 		lookupMaterial.put(name, id);

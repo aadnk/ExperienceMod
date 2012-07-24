@@ -168,7 +168,6 @@ public class ItemQuery implements Query {
 	 * Constructs a query with the given IDs and durabilities.
 	 * @param itemID - list of IDs.
 	 * @param durability - list of durabilities.
-	 * @param playerCreated - option specifying whether or not the block was placed by a player.
 	 */
 	public ItemQuery(List<Integer> itemID, List<Integer> durability) {
 		this(itemID, durability, Utility.getElementList((Boolean) null));

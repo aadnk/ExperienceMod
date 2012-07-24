@@ -85,7 +85,7 @@ public class ConfigurationLoader {
 
 	/**
 	 * Sets the parser responsible for parsing mob queries.
-	 * @param itemParser - the new mob query parser.
+	 * @param mobParser - the new mob query parser.
 	 */
 	public void setMobParser(MobParser mobParser) {
 		this.mobParser = mobParser;

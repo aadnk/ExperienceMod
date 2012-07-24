@@ -39,7 +39,6 @@ public class GlobalSettings {
 	/**
 	 * Initialize configuration from a configuration section.
 	 * @param config - configuration section to load from.
-	 * @return 
 	 */
 	public void loadFromConfig(ConfigurationSection config) {
 	
