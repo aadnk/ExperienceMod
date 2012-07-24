@@ -58,7 +58,7 @@ public class PlayerInteractionListener implements PlayerCleanupListener, Listene
 		// Make sure this is a valid inventory open event
 		if (player != null && player instanceof Player) {
 			// This information is now outdated
-			lastRightClicked.put(player.getName(), null);
+			lastRightClicked.remove(player.getName());
 		}	
 	}
 	

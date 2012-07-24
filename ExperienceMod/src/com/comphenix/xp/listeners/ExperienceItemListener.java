@@ -415,7 +415,7 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 		final ItemStack preCursor = getStackCopy(player.getItemOnCursor());
 
 		// Await future data
-		scheduler.schedule(player, TASK_TAG, new Runnable() {
+		scheduler.scheduleSync(player, TASK_TAG, new Runnable() {
 			@Override
 			public void run() {
 				final ItemStack[] postInv = player.getInventory().getContents();

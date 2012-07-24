@@ -18,15 +18,15 @@
 package com.comphenix.xp.lookup;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class Parameter<TParam> {
 	
-	protected Map<TParam, Set<Integer>> reverseLookup = new ConcurrentHashMap<TParam, Set<Integer>>();
+	protected Map<TParam, Set<Integer>> reverseLookup = new HashMap<TParam, Set<Integer>>();
 
 	public int size() {
 		return reverseLookup.size();

@@ -38,11 +38,11 @@ public class PlayerScheduler implements PlayerCleanupListener {
 	}
 	
 	/**
-	 * Schedules a task for execution on behalf of a player.
+	 * Schedules a task for execution on the main thread, associated with the given player.
 	 * @param player - player to execute on behalf of.
 	 * @param tag - unique tag or task name.
 	 */
-	public void schedule(Player player, String tag, Runnable runnable) {
+	public void scheduleSync(Player player, String tag, Runnable runnable) {
 
 		if (runnable == null)
 			throw new NullArgumentException("runnable");
@@ -58,7 +58,7 @@ public class PlayerScheduler implements PlayerCleanupListener {
 		playerTask.setTaskID(taskID);
 		tasks.put(player.getName(), playerTask);
 	}
-	
+
 	private Set<PlayerRunnable> getTasks(Player player) {
 		return tasks.get(player.getName());
 	}
