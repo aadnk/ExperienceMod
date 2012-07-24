@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="WINDOWS-1252" standalone="no"?>
 <jardesc>
-    <jar path="E:/Games/Minecraft/Server Mods/1.2 R4/2.2.0/ExperienceMod.jar"/>
+    <jar path="E:/Games/Minecraft/Server Mods/1.2 R4/2.2.1/ExperienceMod.jar"/>
     <options buildIfNeeded="true" compress="true" descriptionLocation="/ExperienceMod/Compile.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="false" overwrite="false" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
     <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
     <selectedProjects/>
@@ -11,7 +11,6 @@
         </sealing>
     </manifest>
     <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
-        <folder path="/ExperienceMod/api"/>
         <javaElement handleIdentifier="=ExperienceMod/src"/>
     </selectedElements>
 </jardesc>
