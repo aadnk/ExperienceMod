@@ -8,5 +8,6 @@
 	<classpathentry kind="lib" path="lib/Vault.jar"/>
 	<classpathentry kind="lib" path="E:/Games/Minecraft/Server Mods/API/Herochat.jar"/>
 	<classpathentry kind="lib" path="lib/LogBlock.jar"/>
+	<classpathentry kind="lib" path="lib/HawkEye.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

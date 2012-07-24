@@ -1,8 +1,10 @@
 package com.comphenix.xp;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.lang.NullArgumentException;
+import org.apache.commons.lang.ObjectUtils;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -18,7 +20,7 @@ import com.google.common.collect.SetMultimap;
  */
 public class PlayerScheduler implements PlayerCleanupListener {
 
-	private SetMultimap<String, Integer> tasks = HashMultimap.create();
+	private SetMultimap<String, PlayerRunnable> tasks = HashMultimap.create();
 
 	private int defaultTicks;
 	private BukkitScheduler scheduler;
@@ -32,32 +34,48 @@ public class PlayerScheduler implements PlayerCleanupListener {
 	/**
 	 * Schedules a task for execution on behalf of a player.
 	 * @param player - player to execute on behalf of.
+	 * @param tag - unique tag or task name.
 	 */
-	public void schedule(Player player, Runnable runnable) {
+	public void schedule(Player player, String tag, Runnable runnable) {
 
 		if (runnable == null)
 			throw new NullArgumentException("runnable");
 		if (player == null)
 			throw new NullArgumentException("player");
+		if (tag == null)
+			throw new NullArgumentException("tag");
 		
-		PlayerRunnable playerTask = new PlayerRunnable(player.getName(), runnable);
+		PlayerRunnable playerTask = new PlayerRunnable(player.getName(), tag, runnable);
 		Integer taskID = scheduler.scheduleSyncDelayedTask(plugin, playerTask, defaultTicks);
 		
 		// Now, update the task ID
 		playerTask.setTaskID(taskID);
-		tasks.put(player.getName(), taskID);
+		tasks.put(player.getName(), playerTask);
 	}
 	
-	public Set<Integer> getTasks(Player player) {
+	private Set<PlayerRunnable> getTasks(Player player) {
 		return tasks.get(player.getName());
+	}
+	
+	public Set<PlayerRunnable> getTasks(Player player, String tag) {
+		
+		Set<PlayerRunnable> copy = new HashSet<PlayerRunnable>();
+		
+		// Filter out runnables with different tags
+		for (PlayerRunnable runnable : getTasks(player)) {
+			if (ObjectUtils.equals(runnable.getTag(), tag)) {
+				copy.add(runnable);
+			}
+		}
+		return copy;
 	}
 
 	@Override
 	public void removePlayerCache(Player player) {
 		
 		// Stop all associated tasks
-		for (int id : getTasks(player)) {
-			scheduler.cancelTask(id);
+		for (PlayerRunnable runnable : getTasks(player)) {
+			scheduler.cancelTask(runnable.getTaskID());
 		}
 		
 		// Then remove them
@@ -89,17 +107,19 @@ public class PlayerScheduler implements PlayerCleanupListener {
 	}
 	
 	// Our runnable that cleans up after itself
-	private class PlayerRunnable implements Runnable {
+	public class PlayerRunnable implements Runnable {
 
 		// Name and task ID
 		private String name;
+		private String tag;
 		private int taskID;
 		
 		// The task to execute
 		private Runnable task;
 		
-		public PlayerRunnable(String name, Runnable task) {
+		public PlayerRunnable(String name, String tag, Runnable task) {
 			this.name = name;
+			this.tag = tag;
 			this.task = task;
 		}
 		
@@ -108,7 +128,23 @@ public class PlayerScheduler implements PlayerCleanupListener {
 			task.run();
 			
 			// Clean up after ourself
-			tasks.remove(name, taskID);
+			tasks.remove(name, this);
+		}
+		
+		public String getName() {
+			return name;
+		}
+
+		public Runnable getTask() {
+			return task;
+		}
+
+		public String getTag() {
+			return tag;
+		}
+		
+		public int getTaskID() {
+			return taskID;
 		}
 
 		public void setTaskID(int taskID) {

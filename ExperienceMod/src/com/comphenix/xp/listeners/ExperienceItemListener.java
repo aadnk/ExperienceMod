@@ -54,6 +54,9 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 	private PlayerScheduler scheduler;
 	private CustomBlockProviders blockProvider;
 	
+	// Task IDs
+	private static final String TASK_TAG = "item";
+	
 	// Random source
 	private Random random = new Random();
 	
@@ -277,7 +280,7 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 		if (event.isShiftClick() || response.isForceHack()) {
 			
 			// Don't waste resources if we're already waiting
-			if (scheduler.getTasks(player).size() > 0) {
+			if (scheduler.getTasks(player, TASK_TAG).size() > 0) {
 				debugger.printDebug(this, "Duplicated scheduled task aborted.");
 				return;
 				
@@ -365,7 +368,7 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 					stack.setDurability(marker.toDurability());
 				}
 			}
-
+			
 			@Override
 			public boolean canPerform(Player player, Action action, int count) {
 				return fundamental.canPerform(player, action, count);
@@ -412,7 +415,7 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 		final ItemStack preCursor = getStackCopy(player.getItemOnCursor());
 
 		// Await future data
-		scheduler.schedule(player, new Runnable() {
+		scheduler.schedule(player, TASK_TAG, new Runnable() {
 			@Override
 			public void run() {
 				final ItemStack[] postInv = player.getInventory().getContents();

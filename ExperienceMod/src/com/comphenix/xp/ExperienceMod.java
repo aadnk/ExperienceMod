@@ -45,6 +45,7 @@ import com.comphenix.xp.commands.CommandSpawnExp;
 import com.comphenix.xp.extra.Permissions;
 import com.comphenix.xp.extra.Service;
 import com.comphenix.xp.extra.ServiceProvider;
+import com.comphenix.xp.history.HawkeyeService;
 import com.comphenix.xp.history.HistoryProviders;
 import com.comphenix.xp.history.LogBlockService;
 import com.comphenix.xp.history.MemoryService;
@@ -218,17 +219,8 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 				globalSettings.getMaxBlocksInHistory(), 
 				globalSettings.getMaxAgeInHistory()
 		));
-		
-		// Register log block if needed
-		if (LogBlockService.exists(manager)) {
-			if (!historyProviders.containsService(LogBlockService.NAME)) {
-				historyProviders.register(LogBlockService.create(manager));
-			}
-			
-			currentLogger.info("Connected to LogBlock.");
-		} else {
-			currentLogger.info("Cannot connect to LogBlock.");
-		}
+	
+		registerHistoryServices();
 		
 		// Disable stuff
 		disableServices(historyProviders, globalSettings.getDisabledServices());
@@ -250,6 +242,31 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		// Inform of this problem
 		if (serverTickTask < 0)
 			printWarning(this, "Could not start repeating task for sending messages.");
+	}
+	
+	private void registerHistoryServices() {
+		
+		// Register log block if exists
+		if (LogBlockService.exists(manager)) {
+			if (!historyProviders.containsService(LogBlockService.NAME)) {
+				historyProviders.register(LogBlockService.create(manager));
+			}
+			
+			currentLogger.info("Connected to LogBlock.");
+		} else {
+			currentLogger.info("Cannot connect to LogBlock.");
+		}
+		
+		// Register Hawkeye if it exists
+		if (HawkeyeService.exists(manager)) {
+			if (!historyProviders.containsService(HawkeyeService.NAME)) {
+				historyProviders.register(new HawkeyeService(this));
+			}
+			
+			currentLogger.info("Connected to Hawkeye.");
+		} else {
+			currentLogger.info("Cannot connect to Hawkeye.");
+		}
 	}
 	
 	/**
@@ -617,6 +634,10 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	@Override
 	public void printWarning(Object sender, String message, Object... params) {
 		String warningMessage = ChatColor.RED + "Warning: " + message;
+		
+		if (debugEnabled) {
+			currentLogger.warning(String.format("Warning sent from %s.", sender));
+		}
 		
 		// Print immediately
 		currentLogger.warning(String.format(warningMessage, params));

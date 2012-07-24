@@ -4,7 +4,6 @@ import java.util.Comparator;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.bukkit.Location;
 
 import com.comphenix.xp.Debugger;
@@ -52,15 +51,7 @@ public class HistoryProviders extends ServiceProvider<HistoryService> {
 		return hasPlayerHistory(block, acceptGuesses, new ErrorHandler<Exception>() {
 			@Override
 			public void onError(Exception error) {
-				Throwable cause = ExceptionUtils.getCause(error);
-				
-				// Print error and its cause
-				if (debugger == null)
-					error.printStackTrace();
-				else if (cause == null)
-					debugger.printWarning(HistoryProviders.this, "Error: %s", error.getMessage());
-				else
-					debugger.printWarning(HistoryProviders.this, "%s: %s", error.getMessage(), cause.getMessage());
+				error.printStackTrace();
 			}
 		});
 	}

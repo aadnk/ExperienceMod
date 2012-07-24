@@ -45,10 +45,10 @@ import com.comphenix.xp.parser.Utility;
 import com.comphenix.xp.rewards.RewardProvider;
 
 public class ExperienceBlockListener extends AbstractExperienceListener {
-		
+	
 	private Debugger debugger;
 	private HistoryProviders historyProviders;
-	
+
 	// Random source
 	private Random random = new Random();
 	
@@ -118,7 +118,7 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 					RewardProvider rewards = config.getRewardProvider();
 					ChannelProvider channels = config.getChannelProvider();
 					
-					// Guard here too
+					// Guard
 					if (action == null)
 						return;
 					
@@ -128,13 +128,14 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 					if (debugger != null)
 						debugger.printDebug(this, "Block destroyed by %s: Spawned %d xp for item %s.", 
 							player.getName(), exp, block.getType());
+
 				}
 			}
 			
 			// Done
 		}
 	}
-
+	
 	private Action getBlockBonusAction(ItemTree tree, ItemQuery key, Block block) {
 		
 		List<Integer> ids = tree.getAllRankedID(key);

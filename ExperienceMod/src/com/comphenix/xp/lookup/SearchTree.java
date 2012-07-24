@@ -33,8 +33,8 @@ import com.google.common.collect.Lists;
 
 public abstract class SearchTree<TKey, TValue> {
 
-	protected HashMap<Integer, TValue> flatten = new HashMap<Integer, TValue>();
-	protected HashMap<Integer, Integer> paramCount = new HashMap<Integer, Integer>();
+	protected Map<Integer, TValue> flatten = new HashMap<Integer, TValue>();
+	protected Map<Integer, Integer> paramCount = new HashMap<Integer, Integer>();
 	protected int currentID;
 	
 	protected ValueComparer comparer = new ValueComparer(); 
