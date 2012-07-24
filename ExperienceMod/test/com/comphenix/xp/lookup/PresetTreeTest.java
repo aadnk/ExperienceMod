@@ -3,6 +3,8 @@ package com.comphenix.xp.lookup;
 import static org.junit.Assert.*;
 
 import org.junit.Test;
+
+import com.comphenix.xp.ActionTypes;
 import com.comphenix.xp.Configuration;
 
 public class PresetTreeTest {
@@ -17,8 +19,8 @@ public class PresetTreeTest {
 		
 		PresetQuery getUniversal = PresetQuery.fromExact((String) null, null);
 		
-		Configuration one = new Configuration(null);
-		Configuration two = new Configuration(null);
+		Configuration one = new Configuration(null, ActionTypes.Default());
+		Configuration two = new Configuration(null, ActionTypes.Default());
 		
 		tree.put(universal, one);
 		tree.put(emptyPreset, two);

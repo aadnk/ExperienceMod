@@ -20,6 +20,7 @@ package com.comphenix.xp.parser.text;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.bukkit.DyeColor;
 import org.bukkit.GrassSpecies;
@@ -117,8 +118,15 @@ public class ItemDurabilityParser extends TextParser<Integer> {
 						"Cannot parse %s - named durabilities only works with known item ids.", text);
 			}
 			
+			ItemCategory category = ItemCategory.matchItem(itemID);
+			
+			// Cannot parse durability
+			if (category == null) {
+				throw ParsingException.fromFormat("Invalid durability value %s.", text);
+			}
+			
 			// Quickly find the correct durability list to use
-			switch (ItemCategory.matchItem(itemID)) {
+			switch (category) {
 			case TREE_BLOCKS:
 				durability = getTreeSpecies(text, filtered);
 				break;
@@ -145,10 +153,6 @@ public class ItemDurabilityParser extends TextParser<Integer> {
 			case COAL_ITEMS:
 				durability = getCoalData(text, filtered);
 				break;
-				
-			default:
-				// Cannot parse durability
-				throw ParsingException.fromFormat("Invalid durability value %s.", text);
 			}
 
 			// We used a name!
@@ -287,13 +291,18 @@ public class ItemDurabilityParser extends TextParser<Integer> {
 		try {
 		
 			ItemNameParser parser = new ItemNameParser();
-			Integer attempt = parser.parse(text);
+			Set<Integer> attempt = parser.parse(text);
 			
-			// See if it succeeded
-			if (attempt != null) 
-				return Material.getMaterial(attempt);
-			else 
-				return null;
+			// Get the first Bukkit material
+			for (Integer id : attempt) {
+				Material mat = Material.getMaterial(id);
+				
+				if (mat != null)
+					return mat;
+			}
+			
+			// Or just NULL
+			return null;
 		
 		} catch (ParsingException e) {
 			return null;

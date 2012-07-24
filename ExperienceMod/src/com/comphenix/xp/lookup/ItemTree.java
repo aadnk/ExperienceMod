@@ -26,7 +26,8 @@ public class ItemTree extends ActionTree<ItemQuery> implements Multipliable<Item
 
 	protected Parameter<Integer> itemID;
 	protected Parameter<Integer> durability; 
-
+	protected Parameter<Boolean> playerCreated;
+	
 	// Only used by the hack in PotionTree.
 	ItemTree() {
 		super(1);
@@ -41,12 +42,14 @@ public class ItemTree extends ActionTree<ItemQuery> implements Multipliable<Item
 		
 		this.itemID = other.itemID;
 		this.durability = other.durability;
+		this.playerCreated = other.playerCreated;
 	}
 	
 	public ItemTree(double multiplier) {
 		super(multiplier);
 		this.itemID = new Parameter<Integer>();
 		this.durability = new Parameter<Integer>();
+		this.playerCreated = new Parameter<Boolean>();
 	}
 
 	@Override
@@ -66,6 +69,10 @@ public class ItemTree extends ActionTree<ItemQuery> implements Multipliable<Item
 		if (source.hasDurability()) {
 			durability.put(source.getDurability(), id); paramCount++;
 		}
+		
+		if (source.hasPlayerCreated()) {
+			playerCreated.put(source.getPlayerCreated(), id); paramCount++;
+		}
 
 		return paramCount;
 	}
@@ -83,6 +90,10 @@ public class ItemTree extends ActionTree<ItemQuery> implements Multipliable<Item
 		if (source.hasDurability())
 			durability.retain(candidates, source.getDurability());
 		
+		// Remove items with conflicting player creation/placing status
+		if (source.hasPlayerCreated())
+			playerCreated.retain(candidates, source.getPlayerCreated());
+		
 		// Any remaining items will be sorted by specificity
 		return candidates;
 	}
@@ -94,5 +105,18 @@ public class ItemTree extends ActionTree<ItemQuery> implements Multipliable<Item
 
 		itemID.putAll(tree.itemID, offset);
 		durability.putAll(tree.durability, offset);
+		playerCreated.putAll(playerCreated, offset);
+	}
+
+	public Parameter<Integer> getItemID() {
+		return itemID;
+	}
+
+	public Parameter<Integer> getDurability() {
+		return durability;
+	}
+
+	public Parameter<Boolean> getPlayerCreated() {
+		return playerCreated;
 	}
 }

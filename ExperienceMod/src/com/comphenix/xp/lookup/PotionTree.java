@@ -146,4 +146,20 @@ public class PotionTree extends ActionTree<PotionQuery> implements Multipliable<
 		extended.putAll(tree.extended, offset);
 		splash.putAll(tree.splash, offset);
 	}
+
+	public Parameter<PotionType> getType() {
+		return type;
+	}
+
+	public Parameter<Integer> getLevel() {
+		return level;
+	}
+
+	public Parameter<Boolean> getExtended() {
+		return extended;
+	}
+
+	public Parameter<Boolean> getSplash() {
+		return splash;
+	}
 }

@@ -33,7 +33,7 @@ import com.comphenix.xp.Debugger;
 
 public class ItemRewardListener implements Listener {
 
-	private static final int soundRadius = 5;
+	private static final int SOUND_RADIUS = 5;
 	
 	private HashMap<UUID, Integer> queue = new HashMap<UUID, Integer>();
 	private RewardService reward;
@@ -72,7 +72,7 @@ public class ItemRewardListener implements Listener {
 				}
 				
 				// Just play a sound
-				player.getWorld().playEffect(item.getLocation(), Effect.CLICK1, soundRadius);
+				player.getWorld().playEffect(item.getLocation(), Effect.CLICK1, SOUND_RADIUS);
 			}
 		}
 	}

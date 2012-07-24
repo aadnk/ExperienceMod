@@ -98,14 +98,27 @@ public class MessageFormatter {
 			throw new NullArgumentException("a");
 		if (b == null)
 			throw new NullArgumentException("b");
-		if (!ObjectUtils.equals(a.getSource(), b.getSource()))
+		
+		// Add the two formatters
+		return a.add(b);
+	}
+	
+	/**
+	 * Adds every parameter in both message formatters, creating a new message 
+	 * formatter with the results.
+	 * @param other - message formatter to add.
+	 * @return The resulting message formatter.
+	 */
+	public MessageFormatter add(MessageFormatter other) {
+		
+		if (!ObjectUtils.equals(getSource(), other.getSource()))
 			throw new IllegalArgumentException("Message formatters for different players cannot be added.");
 		
 		// Add values
 		return new MessageFormatter(
-				a.getSource(), 
-				getInt(a.getExperience()) + getInt(b.getExperience()),
-				getInt(a.getCount()) + getInt(b.getCount())
+				getSource(), 
+				getInt(getExperience()) + getInt(other.getExperience()),
+				getInt(getCount()) + getInt(other.getCount())
 		);
 	}
 	

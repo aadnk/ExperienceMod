@@ -27,6 +27,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
+import com.comphenix.xp.listeners.PlayerCleanupListener;
 import com.comphenix.xp.lookup.PresetQuery;
 import com.comphenix.xp.lookup.PresetTree;
 import com.comphenix.xp.parser.ParsingException;
@@ -38,12 +39,12 @@ import com.google.common.collect.Lists;
 /**
  * Contains every loaded configuration preset.
  */
-public class Presets {
+public class Presets implements PlayerCleanupListener {
 
-	public static final String optionPreset = "experiencePreset";
+	public static final String OPTION_PRESET_SETTING = "experiencePreset";
 	
-	private static final String settingImportFile = "file";
-	private static final String settingLocal = "local";
+	private static final String IMPORT_FILE_SETTING = "file";
+	private static final String LOCAL_SETTING = "local";
 	
 	// Mapping of preset name and configuration
 	private PresetTree presets;
@@ -99,7 +100,7 @@ public class Presets {
 		
 		if (chat != null && sender instanceof Player) {
 			Player player = (Player) sender;
-			preset = chat.getPlayerInfoString(player, optionPreset, null);
+			preset = chat.getPlayerInfoString(player, OPTION_PRESET_SETTING, null);
 			world = player.getWorld().getName();
 		}
 		
@@ -147,7 +148,7 @@ public class Presets {
 		
 		// Make sure there is anything to return
 		if (files.isEmpty())
-			result = new Configuration(logger);
+			result = new Configuration(logger, loader.getActionTypes());
 		else
 			result = Configuration.fromMultiple(files, logger);
 		
@@ -164,8 +165,8 @@ public class Presets {
 	private Configuration getLocal(ConfigurationSection data, ConfigurationLoader loader) {
 		
 		// Retrieve using the configuration section
-		if (data.isConfigurationSection(settingLocal)) {
-			return loader.getFromSection(data.getConfigurationSection(settingLocal));
+		if (data.isConfigurationSection(LOCAL_SETTING)) {
+			return loader.getFromSection(data.getConfigurationSection(LOCAL_SETTING));
 		} else {
 			return null;
 		}
@@ -191,10 +192,10 @@ public class Presets {
 	
 	private List<String> getFiles(ConfigurationSection data) {
 		
-		if (data.isString(settingImportFile))
-			return Lists.newArrayList(data.getString(settingImportFile));
-		else if (data.isList(settingImportFile))
-			return data.getStringList(settingImportFile);
+		if (data.isString(IMPORT_FILE_SETTING))
+			return Lists.newArrayList(data.getString(IMPORT_FILE_SETTING));
+		else if (data.isList(IMPORT_FILE_SETTING))
+			return data.getStringList(IMPORT_FILE_SETTING);
 		else
 			return Lists.newArrayList();
 	}
@@ -202,20 +203,7 @@ public class Presets {
 	public Collection<Configuration> getConfigurations() {
 		return presets.getValues();
 	}
-	
-	/**
-	 * Removes a given player from being referenced by any preset node. Must be called when a player logs out.
-	 * @param player - player to remove.
-	 */
-	public void removePlayer(Player player) {
-		// Make sure messages are being sent
-		if (presets != null) {
-			for (Configuration config : presets.getValues()) {
-				config.removePlayer(player);
-			}	
-		}
-	}
-	
+		
 	public void onTick() {
 		
 		// Make sure messages are being sent
@@ -223,6 +211,17 @@ public class Presets {
 			for (Configuration config : presets.getValues()) {
 				config.onTick();
 			}		
+		}
+	}
+
+	@Override
+	public void removePlayerCache(Player player) {
+
+		// Make sure messages are being sent
+		if (presets != null) {
+			for (Configuration config : presets.getValues()) {
+				config.removePlayerCache(player);
+			}	
 		}
 	}
 }

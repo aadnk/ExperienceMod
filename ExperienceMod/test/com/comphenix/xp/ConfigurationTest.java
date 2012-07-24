@@ -15,6 +15,9 @@ import com.comphenix.xp.lookup.MobQuery;
 import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.messages.Message;
 import com.comphenix.xp.parser.ActionParser;
+import com.comphenix.xp.parser.text.ItemNameParser;
+import com.comphenix.xp.parser.text.ItemParser;
+import com.comphenix.xp.parser.text.MobParser;
 import com.comphenix.xp.rewards.RewardProvider;
 import com.comphenix.xp.rewards.RewardTypes;
 import com.google.common.collect.Lists;
@@ -69,7 +72,14 @@ public class ConfigurationTest {
 	
 	// Load configuration from text
 	private Configuration createConfig(String text, Debugger debugger, RewardProvider provider) {
-		return new Configuration(fromText(text), debugger, provider, new ChannelProvider());
+		Configuration config = new Configuration(debugger, provider, new ChannelProvider());
+		ItemNameParser nameParser = new ItemNameParser();
+		
+		config.setItemParser(new ItemParser(nameParser));
+		config.setMobParser(new MobParser());
+		config.setActionTypes(ActionTypes.Default());
+		config.loadFromConfig(fromText(text));
+		return config;
 	}
 	
 	private YamlConfiguration fromText(String text) {

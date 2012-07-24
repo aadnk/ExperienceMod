@@ -26,12 +26,10 @@ import org.bukkit.event.enchantment.PrepareItemEnchantEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 
 import com.comphenix.xp.Debugger;
+import com.comphenix.xp.extra.Permissions;
 
 public class ExperienceEnhancementsListener implements Listener {
-	
-	private final String permissionKeepExp = "experiencemod.keepexp";
-	private final String permissionMaxEnchant = "experiencemod.maxenchant";
-	
+		
 	private Debugger debugger;
 	
 	public ExperienceEnhancementsListener(Debugger debugger) {
@@ -45,7 +43,7 @@ public class ExperienceEnhancementsListener implements Listener {
 		
 		if (player != null) {
 			// Permission check
-	        if(player.hasPermission(permissionKeepExp)) {
+	        if(Permissions.hasKeepExp(player)) {
 
 	            event.setDroppedExp(0);
 	            event.setKeepLevel(true);
@@ -66,7 +64,7 @@ public class ExperienceEnhancementsListener implements Listener {
 		
 		if (player != null) {
 			// Permission check
-	        if(player.hasPermission(permissionMaxEnchant)) {
+	        if(Permissions.hasMaxEnchant(player)) {
 	        	
 	        	int[] costs = event.getExpLevelCostsOffered();
 	        	int index = costs.length - 1;

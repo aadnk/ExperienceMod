@@ -214,6 +214,27 @@ public class MobQuery implements Query {
 	}
 	
 	@Override
+	public boolean match(Query other) {
+
+		// Yes, we could construct a MobTree, put the current MobQuery 
+		// into it and query after other, but this is faster. Probably.
+		if (other instanceof MobQuery) {
+			MobQuery query = (MobQuery) other;
+			
+			// Make sure the current query is the superset of other
+			return QueryMatching.matchParameter(type, query.type) &&
+				   QueryMatching.matchParameter(deathCause, query.deathCause) &&
+				   QueryMatching.matchParameter(spawner, query.spawner) &&
+				   QueryMatching.matchParameter(baby, query.baby) &&
+				   QueryMatching.matchParameter(tamed, query.tamed) &&
+				   QueryMatching.matchParameter(playerKill, query.playerKill);
+		}
+		
+		// Query must be of the same type
+		return false;
+	}
+	
+	@Override
 	public String toString() {
 		// TODO Auto-generated method stub
 		return String.format("%s|%s|%s|%s|%s|%s", 

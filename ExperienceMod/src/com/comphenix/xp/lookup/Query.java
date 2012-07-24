@@ -31,4 +31,15 @@ public interface Query {
 	}
 	
 	public Types getQueryType();
+	
+	/**
+	 * Determines if the given query matches the current query. 
+	 * <p>
+	 * If a query can be considered to be a subset of the universe of items, 
+	 * then this operation determines if the current set (A) has a non-empty intersection 
+	 * with the other set (B).
+	 * @param other - the other query to match.
+	 * @return TRUE if the current query contains every element of the other query.
+	 */
+	public boolean match(Query other);
 }

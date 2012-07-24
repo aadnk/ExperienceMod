@@ -17,8 +17,8 @@
 
 package com.comphenix.xp.listeners;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.AbstractQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -28,12 +28,11 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
+import com.comphenix.xp.extra.Permissions;
+
 public class ExperienceInformerListener implements Listener {
 
-	// Whether or not to display warning messages
-	private final String permissionInfo = "experiencemod.info";
-
-	private List<String> warningMessages = new ArrayList<String>();
+	private AbstractQueue<String> warningMessages = new ConcurrentLinkedQueue<String>();
 
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void onPlayerJoinEvent(PlayerJoinEvent event) {
@@ -49,7 +48,7 @@ public class ExperienceInformerListener implements Listener {
 	public boolean displayWarnings(CommandSender sender, boolean ignorePermission) {
 		
 		// Player or console
-		if (ignorePermission || sender.hasPermission(permissionInfo)) {
+		if (ignorePermission || Permissions.hasInfo(sender)) {
 			// Print warning messages
 			for (String message : warningMessages) {
 				sender.sendMessage(ChatColor.RED + "[ExperienceMod] Warning: " + message);

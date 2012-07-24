@@ -25,6 +25,9 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import com.comphenix.xp.messages.ChannelProvider;
+import com.comphenix.xp.parser.text.ItemNameParser;
+import com.comphenix.xp.parser.text.ItemParser;
+import com.comphenix.xp.parser.text.MobParser;
 import com.comphenix.xp.rewards.RewardProvider;
 
 public class ConfigurationLoader {
@@ -37,12 +40,18 @@ public class ConfigurationLoader {
 	private RewardProvider rewardProvider;
 	private ChannelProvider channelProvider;
 	
+	// Registry of action types
+	private ActionTypes actionTypes = ActionTypes.Default();
+	
+	private ItemNameParser nameParser = new ItemNameParser();
+	private ItemParser itemParser = new ItemParser(nameParser);
+	private MobParser mobParser = new MobParser();
+	
 	public ConfigurationLoader(File rootPath, Debugger logger, RewardProvider rewardProvider, ChannelProvider channelProvider) {
 		this.rootPath = rootPath;
 		this.logger = logger;
 		this.rewardProvider = rewardProvider;
 		this.channelProvider = channelProvider;
-		
 		this.configurationFiles = new HashMap<File, Configuration>();
 	}
 	
@@ -50,6 +59,71 @@ public class ConfigurationLoader {
 		configurationFiles.clear();
 	}
 	
+	/**
+	 * Retrieves the parser responsible for parsing item queries.
+	 * @return The current item query parser.
+	 */
+	public ItemParser getItemParser() {
+		return itemParser;
+	}
+
+	/**
+	 * Sets the parser responsible for parsing item queries.
+	 * @param itemParser - the new item query parser.
+	 */
+	public void setItemParser(ItemParser itemParser) {
+		this.itemParser = itemParser;
+	}
+
+	/**
+	 * Retrieves the parser responsible for parsing mob queries.
+	 * @return The current mob query parser.
+	 */
+	public MobParser getMobParser() {
+		return mobParser;
+	}
+
+	/**
+	 * Sets the parser responsible for parsing mob queries.
+	 * @param itemParser - the new mob query parser.
+	 */
+	public void setMobParser(MobParser mobParser) {
+		this.mobParser = mobParser;
+	}
+
+	/**
+	 * Retrieves the current name parser.
+	 * @return Current name parser.
+	 */
+	public ItemNameParser getNameParser() {
+		return nameParser;
+	}
+
+	/**
+	 * Sets the current name parser. Updates the item parser as well.
+	 * @param nameParser - new name parser.
+	 */
+	public void setNameParser(ItemNameParser nameParser) {
+		this.nameParser = nameParser;
+		this.itemParser = new ItemParser(nameParser);
+	}
+	
+	/**
+	 * Retrieves the current registered action types.
+	 * @return Registry of action types.
+	 */
+	public ActionTypes getActionTypes() {
+		return actionTypes;
+	}
+
+	/**
+	 * Sets the current registry of action types. This must be changed before configurations are loaded.
+	 * @param actionTypes - new action type registry.
+	 */
+	public void setActionTypes(ActionTypes actionTypes) {
+		this.actionTypes = actionTypes;
+	}
+
 	public Configuration getFromPath(String path) {
 		
 		File absolutePath = new File(rootPath, path);
@@ -62,7 +136,13 @@ public class ConfigurationLoader {
 	
 	public Configuration getFromSection(ConfigurationSection data) {
 
-		return new Configuration(data, logger, rewardProvider, channelProvider);
+		Configuration config = new Configuration(logger, rewardProvider, channelProvider);
+		
+		config.setItemParser(itemParser);
+		config.setMobParser(mobParser);
+		config.setActionTypes(actionTypes);
+		config.loadFromConfig(data);
+		return config;
 	}
 	
 	private Configuration loadFromFile(File path) {
@@ -70,7 +150,13 @@ public class ConfigurationLoader {
 		if (!configurationFiles.containsKey(path)) {
 			
 			YamlConfiguration yaml = YamlConfiguration.loadConfiguration(path);
-			Configuration config = new Configuration(yaml, logger, rewardProvider, channelProvider);
+			Configuration config = new Configuration(logger, rewardProvider, channelProvider);
+			
+			// Load from YAML
+			config.setItemParser(itemParser);
+			config.setMobParser(mobParser);
+			config.setActionTypes(actionTypes);
+			config.loadFromConfig(yaml);
 			
 			// Cache 
 			configurationFiles.put(path, config);

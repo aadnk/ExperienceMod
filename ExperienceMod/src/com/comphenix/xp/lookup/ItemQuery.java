@@ -37,22 +37,23 @@ import com.google.common.collect.Lists;
  * @author Kristian
  */
 public class ItemQuery implements Query {
-	
-	private static List<Integer> noNumbers = new ArrayList<Integer>();
-	
+
 	private List<Integer> itemID;
 	private List<Integer> durability;
+	private List<Boolean> playerCreated;
 
 	/**
-	 * Universal query.
+	 * Universal query. Matches everything.
+	 * @return The universal query.
 	 */
 	public static ItemQuery fromAny() {
-		return new ItemQuery(noNumbers, noNumbers);
+		return fromAny(null, null, null);
 	}	
 	
 	/**
 	 * Creates a query from the given material and data.
 	 * @param material - material to create from.
+	 * @return The created query.
 	 */
 	public static ItemQuery fromAny(Material material) {
 		return fromAny(material != null ? material.getId() : null, null);
@@ -62,21 +63,64 @@ public class ItemQuery implements Query {
 	 * Creates a query from the given material and data.
 	 * @param material - material to create from.
 	 * @param durability - durability to create from.
+	 * @return The created query.
 	 */
 	public static ItemQuery fromAny(Material material, Integer durability) {
 		return fromAny(material != null ? material.getId() : null, durability);
 	}
 	
+	/**
+	 * Creates a query from the given material and data, where NULL represents any value.
+	 * @param itemID - ID to create from, or NULL to indicate every ID.
+	 * @param durability - durability to create from, or NULL to indicate every durability.
+	 * @return The created query.
+	 */
 	public static ItemQuery fromAny(Integer itemID, Integer durability) {
+		return fromAny(itemID, durability, null);
+	}
+	
+	/**
+	 * Creates a query from the given material and data, where NULL represents any value.
+	 * @param itemID - ID to create from, or NULL to indicate every ID.
+	 * @param durability - durability to create from, or NULL to indicate every durability.
+	 * @param playerCreated - whether or not the block was created/placed by a player.
+	 * @return The created query.
+	 */
+	public static ItemQuery fromAny(Integer itemID, Integer durability, Boolean playerCreated) {
 		return new ItemQuery(
 				Utility.getElementList(itemID), 
-				Utility.getElementList(durability)
+				Utility.getElementList(durability),
+				Utility.getElementList(playerCreated)
 		);
+	}
+	
+	/**
+	 * Extracts the item type and durability. Note that the item count property is ignored.
+	 * @param stack - item type.
+	 * @return The created query.
+	 * @throws NullArgumentException if the stack is null.
+	 */
+	public static ItemQuery fromAny(ItemStack stack) {
+		
+		if (stack == null)
+			throw new NullArgumentException("stack");
+		
+		return fromAny(stack.getTypeId(), (int) stack.getDurability(), null);
 	}
 	
 	/**
 	 * Creates a query from a given world block.
 	 * @param block - block to create from.
+	 * @return The created query.
+	 */
+	public static ItemQuery fromAny(Block block) {
+		return fromAny(block.getTypeId(), (int) block.getData(), null);
+	}
+	
+	/**
+	 * Creates a query from a given world block.
+	 * @param block - block to create from.
+	 * @return The created query.
 	 */
 	public static ItemQuery fromExact(Block block) {
 		return fromExact(block.getTypeId(), (int) block.getData());
@@ -85,6 +129,7 @@ public class ItemQuery implements Query {
 	/**
 	 * Extracts the item type and durability. Note that the item count property is ignored.
 	 * @param stack - item type.
+	 * @return The created query.
 	 * @throws NullArgumentException if the stack is null.
 	 */
 	public static ItemQuery fromExact(ItemStack stack) {
@@ -95,16 +140,51 @@ public class ItemQuery implements Query {
 		return fromExact(stack.getTypeId(), (int) stack.getDurability());
 	}
 	
+	/**
+	 * Creates a query from the given ID and durability. NULL is used to ONLY match universal queries.
+	 * @param itemID - ID to match, or NULL to match queries without IDs.
+	 * @param durability - durability to match, or NULL to match queries without durabilities.
+	 * @return The created query.
+	 */
 	public static ItemQuery fromExact(Integer itemID, Integer durability) {
+		return fromExact(itemID, durability, null);
+	}
+	
+	/**
+	 * Creates a query from the given ID and durability. NULL is used to ONLY match universal queries.
+	 * @param itemID - ID to match, or NULL to match queries without IDs.
+	 * @param durability - durability to match, or NULL to match queries without durabilities.
+	 * @return The created query.
+	 */
+	public static ItemQuery fromExact(Integer itemID, Integer durability, Boolean playerCreated) {
 		return new ItemQuery(
 				Lists.newArrayList(itemID), 
-				Lists.newArrayList(durability)
+				Lists.newArrayList(durability),
+				Lists.newArrayList(playerCreated)
 		);
 	}
 	
+	/**
+	 * Constructs a query with the given IDs and durabilities.
+	 * @param itemID - list of IDs.
+	 * @param durability - list of durabilities.
+	 * @param playerCreated - option specifying whether or not the block was placed by a player.
+	 */
 	public ItemQuery(List<Integer> itemID, List<Integer> durability) {
+		this(itemID, durability, Utility.getElementList((Boolean) null));
+	}
+
+	
+	/**
+	 * Constructs a query with the given IDs and durabilities.
+	 * @param itemID - list of IDs.
+	 * @param durability - list of durabilities.
+	 * @param playerCreated - option specifying whether or not the block was placed by a player.
+	 */
+	public ItemQuery(List<Integer> itemID, List<Integer> durability, List<Boolean> playerCreated) {
 		this.itemID = itemID;
 		this.durability = durability;
+		this.playerCreated = playerCreated;
 	}
 
 	public List<Integer> getItemID() {
@@ -113,6 +193,10 @@ public class ItemQuery implements Query {
 
 	public List<Integer> getDurability() {
 		return durability;
+	}
+	
+	public List<Boolean> getPlayerCreated() {
+		return playerCreated;
 	}
 
 	public boolean hasItemID() {
@@ -123,10 +207,56 @@ public class ItemQuery implements Query {
 		return durability != null && !durability.isEmpty();
 	}
 	
-	public boolean hasSingleItem(Material item) {
+	public boolean hasPlayerCreated() {
+		return playerCreated != null && !playerCreated.isEmpty();
+	}
+	
+	@Override
+	public boolean match(Query other) {
+
+		if (other instanceof ItemQuery) {
+			ItemQuery query = (ItemQuery) other;
+			
+			// Make sure the current query is the superset of the given
+			return QueryMatching.matchParameter(itemID, query.itemID) &&
+				   QueryMatching.matchParameter(durability, query.durability) &&
+				   QueryMatching.matchParameter(playerCreated, query.playerCreated);
+		}
 		
-		// See if the item list contains this item only
-		return hasItemID() && itemID.size() == 1 && itemID.contains(item.getId());
+		// Query must be of the same type
+		return false;
+	}
+	
+	/**
+	 * Determines if the current query matches the given item. 
+	 * @param id - id of item, or NULL for every ID.
+	 * @param durability - durability of item, or NULL for every durability.
+	 * @return TRUE if the current query matches the given item.
+	 */
+	public boolean match(Integer id, Integer durability, Boolean playerCreated) {
+		return match(ItemQuery.fromAny(id, durability, playerCreated));
+	}
+	
+	/**
+	 * Determines if the current query matches the given item. 
+	 * @param id - id of item, or NULL for every ID.
+	 * @param durability - durability of item, or NULL for every durability.
+	 * @return TRUE if the current query matches the given item.
+	 */
+	public boolean match(Integer id, Integer durability) {
+		return match(ItemQuery.fromAny(id, durability));
+	}
+	
+	/**
+	 * Determines if the current query matches the given item.
+	 * @param item - item to test, or NULL for every possible item.
+	 * @return TRUE if the current query matches the given item.
+	 */
+	public boolean match(Material item) {
+		if (item == null)
+			return true;
+		else
+			return match(ItemQuery.fromAny(item.getId(), null));
 	}
 	
 	@Override
@@ -134,6 +264,7 @@ public class ItemQuery implements Query {
 		return new HashCodeBuilder(17, 31).
 	            append(itemID).
 	            append(durability).
+	            append(playerCreated).
 	            toHashCode();
 	}
 
@@ -150,6 +281,7 @@ public class ItemQuery implements Query {
         return new EqualsBuilder().
             append(itemID, other.itemID).
             append(durability, other.durability).
+            append(playerCreated, other.playerCreated).
             isEquals();
 	}
 	
@@ -212,8 +344,11 @@ public class ItemQuery implements Query {
 		
 		String itemsText = StringUtils.join(getMaterials(), ", ");
 		String durabilityText = StringUtils.join(durability, ", ");
-
-		if (hasDurability())
+		String playerText = Utility.formatBoolean("player", playerCreated);
+		
+		if (hasPlayerCreated())
+			return String.format("%s|%s|%s", itemsText, durabilityText, playerText);
+		else if (hasDurability())
 			return String.format("%s|%s", itemsText, durabilityText);
 		else
 			return String.format("%s", itemsText);
@@ -222,5 +357,14 @@ public class ItemQuery implements Query {
 	@Override
 	public Types getQueryType() {
 		return Types.Items;
+	}
+	
+	/**
+	 * Determines if the given item stack is non-empty.
+	 * @param stack - item stack to test.
+	 * @return TRUE if it is non-null and non-empty, FALSE otherwise.
+	 */
+	public static boolean hasItems(ItemStack stack) {
+		return stack != null && stack.getAmount() > 0;
 	}
 }

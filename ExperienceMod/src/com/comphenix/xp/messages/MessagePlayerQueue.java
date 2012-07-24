@@ -17,17 +17,18 @@
 
 package com.comphenix.xp.messages;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.entity.Player;
 
 import com.comphenix.xp.Action;
 import com.comphenix.xp.Debugger;
+import com.comphenix.xp.listeners.PlayerCleanupListener;
 
-public class MessagePlayerQueue {
+public class MessagePlayerQueue implements PlayerCleanupListener {
 	
-	private Map<Player, MessageQueue> queues = new HashMap<Player, MessageQueue>();
+	private Map<Player, MessageQueue> queues = new ConcurrentHashMap<Player, MessageQueue>();
 	
 	private long messageDelay;
 	
@@ -102,11 +103,8 @@ public class MessagePlayerQueue {
 			queue.onTick();
 	}
 
-	/**
-	 * Removes a player's message queue.
-	 * @param player - the player associated with the message queue to remove.
-	 */
-	public void removePlayer(Player player) {
+	@Override
+	public void removePlayerCache(Player player) {
 		queues.remove(player);
 	}
 }

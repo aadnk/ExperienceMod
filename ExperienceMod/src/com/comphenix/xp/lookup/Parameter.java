@@ -21,11 +21,12 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class Parameter<TParam> {
 	
-	private HashMap<TParam, Set<Integer>> reverseLookup = new HashMap<TParam, Set<Integer>>();
+	protected Map<TParam, Set<Integer>> reverseLookup = new HashMap<TParam, Set<Integer>>();
 
 	public int size() {
 		return reverseLookup.size();
@@ -77,7 +78,16 @@ public class Parameter<TParam> {
 		// Store the direct and reverse lookup
 		if (!list.add(id))
 			throw new IllegalArgumentException(
-					String.format("Duplicate parameter %s at index %i", id, param));
+					String.format("Duplicate parameter %s at index %s", id, param));
+	}
+	
+	/**
+	 * Indexes of queries with the given parameter.
+	 * @param param - parameter to search for.
+	 * @return Every query that is listed under the given parameter, or NULL if nothing was found.
+	 */
+	public Set<Integer> getSingle(TParam param) {
+		return reverseLookup.get(param);
 	}
 	
 	public Set<Integer> getCopy(List<TParam> params) {

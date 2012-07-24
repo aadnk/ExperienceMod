@@ -26,7 +26,7 @@ public class Range {
 	private double start;
 	private double end;
 	
-	public static Range Default = new Range(0);
+	public static Range DEFAULT = new Range(0);
 	
 	/**
 	 * Constructs a range of the form [value, value].

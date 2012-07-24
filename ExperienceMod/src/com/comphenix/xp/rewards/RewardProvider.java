@@ -32,7 +32,7 @@ import com.comphenix.xp.rewards.RewardTypes;
 public class RewardProvider extends ServiceProvider<RewardService> {
 	
 	// Error messages
-	private static String customUnsupported = "rewardType cannot be CUSTOM.";
+	private static String ERROR_CUSTOM_UNSUPPORTED = "rewardType cannot be CUSTOM.";
 	
 	// Enum type lookup
 	private HashMap<RewardTypes, RewardService> enumLookup;
@@ -61,7 +61,7 @@ public class RewardProvider extends ServiceProvider<RewardService> {
 		if (rewardType == null)
 			throw new NullArgumentException("rewardType");
 		if (rewardType == RewardTypes.CUSTOM)
-			throw new IllegalArgumentException(customUnsupported);
+			throw new IllegalArgumentException(ERROR_CUSTOM_UNSUPPORTED);
 		if (rewardType == RewardTypes.DEFAULT)
 			return getByName(defaultServiceName);
 		
@@ -103,7 +103,7 @@ public class RewardProvider extends ServiceProvider<RewardService> {
 		if (rewardType == null)
 			throw new NullArgumentException("rewardType");
 		if (rewardType == RewardTypes.CUSTOM)
-			throw new IllegalArgumentException(customUnsupported);
+			throw new IllegalArgumentException(ERROR_CUSTOM_UNSUPPORTED);
 		if (rewardType == RewardTypes.DEFAULT)
 			return super.unregister(defaultServiceName);
 		
@@ -134,7 +134,7 @@ public class RewardProvider extends ServiceProvider<RewardService> {
 		if (type == RewardTypes.DEFAULT)
 			return containsService(getDefaultName());
 		else if (type == RewardTypes.CUSTOM)
-			throw new IllegalArgumentException(customUnsupported);
+			throw new IllegalArgumentException(ERROR_CUSTOM_UNSUPPORTED);
 		
 		return enumLookup.containsKey(type);
 	}
@@ -169,7 +169,7 @@ public class RewardProvider extends ServiceProvider<RewardService> {
 		if (defaultType == RewardTypes.DEFAULT)
 			throw new IllegalArgumentException("The default type cannot reference itself.");
 		else if (defaultType == RewardTypes.CUSTOM)
-			throw new IllegalArgumentException(customUnsupported);
+			throw new IllegalArgumentException(ERROR_CUSTOM_UNSUPPORTED);
 		
 		setDefaultName(defaultType.name());
 	}

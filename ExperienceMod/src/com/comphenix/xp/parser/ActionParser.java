@@ -17,7 +17,6 @@
 
 package com.comphenix.xp.parser;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.bukkit.configuration.ConfigurationSection;
@@ -40,6 +39,8 @@ public class ActionParser extends ConfigurationParser<Action> {
 	private static final String messageTextSetting = "message";
 	private static final String messageChannelSetting = "channels";
 
+	private StringListParser listParser = new StringListParser();
+	
 	private RewardProvider provider;
 
 	public ActionParser(RewardProvider provider) {
@@ -76,7 +77,7 @@ public class ActionParser extends ConfigurationParser<Action> {
 			if (sub.equalsIgnoreCase(messageTextSetting)) {
 				text = values.getString(sub);
 			} else if (sub.equalsIgnoreCase(messageChannelSetting)) {
-				channels = readStrings(values, sub);
+				channels = listParser.parseSafe(values, sub);
 			} else {
 				Range range = readRange(values, sub, null);
 				
@@ -96,21 +97,6 @@ public class ActionParser extends ConfigurationParser<Action> {
 		}
 		
 		result.setId(currentID++);
-		return result;
-	}
-	
-	public List<String> readStrings(ConfigurationSection config, String key) {
-		
-		List<String> result = new ArrayList<String>();
-		
-		// Retrieve string elements
-		if (config.isString(key))
-			result.add(config.getString(key));
-		else if (config.isList(key))
-			result.addAll(config.getStringList(key));
-		else
-			return null; // No data
-		
 		return result;
 	}
 	
@@ -143,6 +129,15 @@ public class ActionParser extends ConfigurationParser<Action> {
 			// Default value
 			return defaultValue;
 		}
+	}
+	
+	/**
+	 * Creates a shallow copy of this parser with the given reward provider.
+	 * @param provider - new reward provider.
+	 * @return Shallow copy of this parser.
+	 */
+	public ActionParser createView(RewardProvider provider) {
+		return new ActionParser(provider);
 	}
 	
 	public static int getCurrentID() {

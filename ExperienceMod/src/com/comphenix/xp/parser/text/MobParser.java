@@ -76,4 +76,52 @@ public class MobParser extends TextParser<MobQuery> {
 		
 		return new MobQuery(types, causes, spawner, baby, tamed, player);
 	}
+
+	public ParameterParser<MobMatcher> getEntityTypeParser() {
+		return entityTypeParser;
+	}
+
+	public void setEntityTypeParser(ParameterParser<MobMatcher> entityTypeParser) {
+		this.entityTypeParser = entityTypeParser;
+	}
+
+	public ParameterParser<DamageCause> getDamageCauseParser() {
+		return damageCauseParser;
+	}
+
+	public void setDamageCauseParser(ParameterParser<DamageCause> damageCauseParser) {
+		this.damageCauseParser = damageCauseParser;
+	}
+
+	public BooleanParser getSpawnerParser() {
+		return spawnerParser;
+	}
+
+	public void setSpawnerParser(BooleanParser spawnerParser) {
+		this.spawnerParser = spawnerParser;
+	}
+
+	public BooleanParser getBabyParser() {
+		return babyParser;
+	}
+
+	public void setBabyParser(BooleanParser babyParser) {
+		this.babyParser = babyParser;
+	}
+
+	public BooleanParser getTamedParser() {
+		return tamedParser;
+	}
+
+	public void setTamedParser(BooleanParser tamedParser) {
+		this.tamedParser = tamedParser;
+	}
+
+	public BooleanParser getPlayerParser() {
+		return playerParser;
+	}
+
+	public void setPlayerParser(BooleanParser playerParser) {
+		this.playerParser = playerParser;
+	}
 }

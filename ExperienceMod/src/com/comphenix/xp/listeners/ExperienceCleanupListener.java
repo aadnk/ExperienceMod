@@ -17,24 +17,60 @@
 
 package com.comphenix.xp.listeners;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-import com.comphenix.xp.Presets;
-
-public class ExperienceCleanupListener extends AbstractExperienceListener {
+public class ExperienceCleanupListener implements Listener {
 	
-	public ExperienceCleanupListener(Presets presets) {
-		setPresets(presets);
+	private List<PlayerCleanupListener> listeners = new ArrayList<PlayerCleanupListener>();
+	
+	public ExperienceCleanupListener(PlayerCleanupListener... newListeners) {
+		setPlayerCleanupListeners(newListeners);
+	}
+	
+	/**
+	 * Adds a player quit listener.
+	 * @param listener - the player quit listener to add.
+	 */
+	public void addPlayerCleanupListener(PlayerCleanupListener listener) {
+		listeners.add(listener);
+	}
+	
+	/**
+	 * Removes the given player quit listener.
+	 * @param listener - the player quit listener to remove.
+	 */
+	public void removePlayerCleanupListener(PlayerCleanupListener listener) {
+		listeners.remove(listener);
+	}
+	
+	/**
+	 * Replaces the current list of player listeners with the given list.
+	 * @param newListeners - new list of player listeners.
+	 */
+	public void setPlayerCleanupListeners(PlayerCleanupListener... newListeners) {
+		// Add every referenced listener
+		for (PlayerCleanupListener listen : newListeners) {
+			addPlayerCleanupListener(listen);
+		}
 	}
 	
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onPlayerQuitEvent(PlayerQuitEvent event) {
 		
-		if (event.getPlayer() != null) {
+		Player player = event.getPlayer();
+		
+		if (player != null) {
 			// Cleanup after the player is removed
-			getPresets().removePlayer(event.getPlayer());
+			for (PlayerCleanupListener listen : listeners) {
+				listen.removePlayerCache(player);
+			}
 		}
 	}
 }

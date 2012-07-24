@@ -18,6 +18,7 @@
 package com.comphenix.xp.parser.text;
 
 import java.util.List;
+import java.util.Set;
 import java.util.Queue;
 
 import org.apache.commons.lang.StringUtils;
@@ -27,16 +28,26 @@ import com.comphenix.xp.lookup.PotionQuery;
 import com.comphenix.xp.lookup.Query;
 import com.comphenix.xp.parser.TextParser;
 import com.comphenix.xp.parser.ParsingException;
+import com.comphenix.xp.parser.Utility;
+import com.comphenix.xp.parser.primitives.BooleanParser;
 
 public class ItemParser extends TextParser<Query> {
 	
-	private ParameterParser<Integer> itemNameParser = new ParameterParser<Integer>(new ItemNameParser());
+	private ParameterParser<Set<Integer>> itemNameParser;
 	
 	private ItemDurabilityParser elementDurability = new ItemDurabilityParser();
 	private ParameterParser<Integer> durabilityParser = new ParameterParser<Integer>(elementDurability);
 	
+	// Parse options
+	private BooleanParser playerParser = new BooleanParser("player");
+	
 	// Our potion parser
-	private PotionParser potionParser = new PotionParser();
+	private PotionParser potionParser;
+	
+	public ItemParser(ItemNameParser nameParser) {
+		potionParser = new PotionParser(nameParser, new PotionTypeParser());
+		itemNameParser = new ParameterParser<Set<Integer>>(nameParser);
+	}
 	
 	@Override
 	public Query parse(String text) throws ParsingException {
@@ -50,6 +61,7 @@ public class ItemParser extends TextParser<Query> {
 		List<Integer> itemIDs = null;
 		List<Integer> durabilities = null;
 		
+		ParsingException errorReason = null;
 		Integer first = null;
 		
 		boolean isPotion = false;
@@ -57,7 +69,7 @@ public class ItemParser extends TextParser<Query> {
 		
 		try {
 			// Get item IDs
-			itemIDs = itemNameParser.parse(tokens);
+			itemIDs = Utility.flatten(itemNameParser.parse(tokens));
 			first = null;
 			
 			// Get the first element
@@ -90,22 +102,6 @@ public class ItemParser extends TextParser<Query> {
 			if (hasNegativeIntegers(itemIDs) || hasNegativeIntegers(durabilities)) 
 				throw new ParsingException("Item ID or durability cannot contain negative numbers");
 			
-			// Still more tokens? Something is wrong.
-			if (!tokens.isEmpty()) {
-				if (isPotion) 
-					return parseAsPotion(text);
-				else
-					throw ParsingException.fromFormat("Unknown item tokens: ", StringUtils.join(tokens, ", "));
-			}
-			
-			// Return universal potion query
-			if (isPotion && durabilities.isEmpty()) {
-				return PotionQuery.fromAny();
-			}
-			
-			// At this point we have all we need to know
-			return new ItemQuery(itemIDs, durabilities);
-			
 		} catch (ParsingException ex) {
 
 			// Potion? Try again.
@@ -116,8 +112,62 @@ public class ItemParser extends TextParser<Query> {
 			if (!sameCategory && elementDurability.isUsedName())
 				throw new ParsingException("Named durabilities with different data categories.");
 			else
-				throw ex;
+				// Try more
+				errorReason = ex;
 		}
+			
+		// Scan for the "player creation" option
+		List<Boolean> playerCreation = playerParser.parseAny(tokens);
+		
+		// Still more tokens? Something is wrong.
+		if (!tokens.isEmpty()) {
+			if (isPotion) 
+				return parseAsPotion(text);
+			else if (errorReason == null)
+				throw ParsingException.fromFormat("Unknown item tokens: ", StringUtils.join(tokens, ", "));
+			else
+				throw errorReason;
+		}
+		
+		// Return universal potion query
+		if (isPotion && durabilities.isEmpty()) {
+			return PotionQuery.fromAny();
+		}
+		
+		// At this point we have all we need to know
+		return new ItemQuery(itemIDs, durabilities, playerCreation);
+	}
+	
+	public ParameterParser<Set<Integer>> getItemNameParser() {
+		return itemNameParser;
+	}
+
+	public void setItemNameParser(ParameterParser<Set<Integer>> itemNameParser) {
+		this.itemNameParser = itemNameParser;
+	}
+
+	public ItemDurabilityParser getElementDurability() {
+		return elementDurability;
+	}
+
+	public void setElementDurability(ItemDurabilityParser elementDurability) {
+		this.elementDurability = elementDurability;
+	}
+
+	public ParameterParser<Integer> getDurabilityParser() {
+		return durabilityParser;
+	}
+
+	public void setDurabilityParser(ParameterParser<Integer> durabilityParser) {
+		this.durabilityParser = durabilityParser;
+	}
+
+	public PotionParser getPotionParser() {
+		return potionParser;
+	}
+
+	public void setPotionParser(PotionParser potionParser) {
+		this.potionParser = potionParser;
 	}
 
 	private boolean hasNegativeIntegers(List<Integer> values) {

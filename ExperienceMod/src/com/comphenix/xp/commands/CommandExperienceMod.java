@@ -25,13 +25,12 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 import com.comphenix.xp.Action;
-import com.comphenix.xp.Configuration;
 import com.comphenix.xp.ExperienceMod;
-import com.comphenix.xp.lookup.ItemQuery;
+import com.comphenix.xp.extra.Permissions;
 import com.comphenix.xp.lookup.MobQuery;
-import com.comphenix.xp.lookup.PotionQuery;
 import com.comphenix.xp.lookup.Query;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.parser.text.ItemParser;
@@ -39,30 +38,37 @@ import com.comphenix.xp.parser.text.MobParser;
 
 public class CommandExperienceMod implements CommandExecutor {
 
-	private final String permissionAdmin = "experiencemod.admin";
-
 	// Mod command(s)
-	private final String commandReload = "experiencemod";
-	private final String subCommandToggleDebug = "debug";
-	private final String subCommandWarnings = "warnings";
-	private final String subCommandReload = "reload";
-	private final String subCommandItem = "item";
-	private final String subCommandMob = "mob";
+	public static final String COMMAND_RELOAD = "experiencemod";
+	public static final String COMMAND_ABBREVIATED = "expmod";
+	
+	public static final String SUB_COMMAND_TOGGLE_DEBUG = "debug";
+	public static final String SUB_COMMAND_WARNINGS = "warnings";
+	public static final String SUB_COMMAND_RELOAD = "reload";
+	public static final String SUB_COMMAND_ITEM = "item";
+	public static final String SUB_COMMAND_MOB = "mob";
 	
 	private ExperienceMod plugin;
 
-	private ItemParser itemParser = new ItemParser();
-	private MobParser mobParser = new MobParser();
+	private ItemParser itemParser;
+	private MobParser mobParser;
 	
 	public CommandExperienceMod(ExperienceMod plugin) {
 		this.plugin = plugin;
+		
+		// Load item and mob parsers
+		itemParser = plugin.getConfigLoader().getItemParser();
+		mobParser = plugin.getConfigLoader().getMobParser();
 	}
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
 		// Execute the correct command
-		if (command != null && command.getName().equalsIgnoreCase(commandReload))
+		if (command != null && 
+				command.getName().equalsIgnoreCase(COMMAND_RELOAD) || 
+				command.getName().equalsIgnoreCase(COMMAND_ABBREVIATED))
+			
 			return handleMainCommand(sender, args);
 		else
 			return false;
@@ -71,7 +77,7 @@ public class CommandExperienceMod implements CommandExecutor {
 	private boolean handleMainCommand(CommandSender sender, String[] args) {
 		
 		// Make sure the sender has permissions
-		if (!CommandUtilities.hasCommandPermission(sender, permissionAdmin)) {
+		if (!Permissions.hasAdmin(sender)) {
 			plugin.respond(sender, ChatColor.RED + "You haven't got permission to execute this command.");
 			return true;
 		} 
@@ -79,14 +85,14 @@ public class CommandExperienceMod implements CommandExecutor {
 		String sub = CommandUtilities.getSafe(args, 0);
 		
 		// Toggle debugging
-		if (sub.equalsIgnoreCase(subCommandToggleDebug)) {
+		if (sub.equalsIgnoreCase(SUB_COMMAND_TOGGLE_DEBUG)) {
 			
 			plugin.toggleDebug();
 			plugin.respond(sender, ChatColor.BLUE + "Debug " + (plugin.isDebugEnabled() ? " enabled " : " disabled"));
 			return true;
 			
 		// Display the parse warnings during the last configuration load
-		} else if (sub.equalsIgnoreCase(subCommandWarnings)) {
+		} else if (sub.equalsIgnoreCase(SUB_COMMAND_WARNINGS)) {
 			
 			if (sender != null && plugin.getInformer().hasWarnings())
 				plugin.getInformer().displayWarnings(sender, true);
@@ -94,17 +100,17 @@ public class CommandExperienceMod implements CommandExecutor {
 				sender.sendMessage(ChatColor.GREEN + "No warnings found.");
 			return true;
 			
-		} else if (sub.equalsIgnoreCase(subCommandItem)) {
+		} else if (sub.equalsIgnoreCase(SUB_COMMAND_ITEM)) {
 			
 			handleQueryItem(sender, args, 1);
 			return true;
 			
-		} else if (sub.equalsIgnoreCase(subCommandMob)) {
+		} else if (sub.equalsIgnoreCase(SUB_COMMAND_MOB)) {
 			
 			handleQueryMob(sender, args, 1);
 			return true;
 	
-		} else if (sub.equalsIgnoreCase(subCommandReload) || sub.length() == 0) {
+		} else if (sub.equalsIgnoreCase(SUB_COMMAND_RELOAD) || sub.length() == 0) {
 			
 			try {
 				plugin.loadDefaults(true);
@@ -126,11 +132,10 @@ public class CommandExperienceMod implements CommandExecutor {
 	private void handleQueryMob(CommandSender sender, String[] args, int offset) {
 
 		try {
-			Configuration config = plugin.getPresets().getConfiguration(sender);
 			String text = StringUtils.join(args, " ", offset, args.length);
-			
 			MobQuery query = mobParser.parse(text);
-			List<Action> results = config.getExperienceDrop().getAllRanked(query);
+			
+			List<Action> results = plugin.getMobReward(getPlayer(sender), query);
 			
 			// Query result
 			displayActions(sender, results);
@@ -143,7 +148,7 @@ public class CommandExperienceMod implements CommandExecutor {
 	
 	private void handleQueryItem(CommandSender sender, String[] args, int offset) {
 
-		Configuration.ActionTypes type = Configuration.ActionTypes.matchAction(
+		Integer type = plugin.getActionTypes().getType(
 				CommandUtilities.getSafe(args, offset));
 		
 		// Make sure it's valid
@@ -153,36 +158,11 @@ public class CommandExperienceMod implements CommandExecutor {
 		}
 
 		try {
-			Configuration config = plugin.getPresets().getConfiguration(sender);
 			String text = StringUtils.join(args, " ", offset + 1, args.length);
-			
 			Query query = itemParser.parse(text);
-			List<Action> results = null;
 			
-			switch (type) {
-			case BLOCK:
-				results = config.getSimpleBlockReward().getAllRanked((ItemQuery) query); 
-				break;
-			case BONUS:
-				results = config.getSimpleBonusReward().getAllRanked((ItemQuery) query); 
-				break;
-			case CRAFTING:
-				results = config.getSimpleCraftingReward().getAllRanked((ItemQuery) query); 
-				break;
-			case SMELTING:
-				results = config.getSimpleSmeltingReward().getAllRanked((ItemQuery) query); 
-				break;
-			case PLACE:
-				results = config.getSimplePlacingReward().getAllRanked((ItemQuery) query); 
-				break;
-			case BREWING:
-				// Handle both possibilities
-				if (query instanceof ItemQuery)
-					results = config.getSimpleBrewingReward().getAllRanked((ItemQuery) query);
-				else
-					results = config.getComplexBrewingReward().getAllRanked((PotionQuery) query);
-				break;
-			}
+			// Determine player rewards
+			List<Action> results = plugin.getPlayerReward(getPlayer(sender), type, query);
 			
 			// Finally, display query result
 			displayActions(sender, results);
@@ -195,6 +175,14 @@ public class CommandExperienceMod implements CommandExecutor {
 			plugin.respond(sender,
 					ChatColor.RED + "Query parsing error: " + e.getMessage());
 		}
+	}
+	
+	// Gets the player, or NULL
+	private Player getPlayer(CommandSender sender) {
+		if (sender instanceof Player)
+			return (Player) sender;
+		else
+			return null;
 	}
 	
 	private void displayActions(CommandSender sender, List<Action> actions) {

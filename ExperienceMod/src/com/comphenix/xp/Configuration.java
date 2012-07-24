@@ -21,16 +21,20 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import com.comphenix.xp.listeners.PlayerCleanupListener;
 import com.comphenix.xp.lookup.*;
 import com.comphenix.xp.lookup.Query.Types;
 import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.messages.MessagePlayerQueue;
 import com.comphenix.xp.parser.ActionParser;
+import com.comphenix.xp.parser.StringListParser;
 import com.comphenix.xp.parser.Utility;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.parser.text.ItemParser;
@@ -38,48 +42,21 @@ import com.comphenix.xp.parser.text.MobParser;
 import com.comphenix.xp.rewards.RewardProvider;
 import com.comphenix.xp.rewards.RewardTypes;
 
-public class Configuration implements Multipliable<Configuration> {
+public class Configuration implements PlayerCleanupListener, Multipliable<Configuration> {
+			
+	private static final String MULTIPLIER_SETTING = "multiplier";
+	private static final String DEFAULT_REWARDS_SETTING = "default rewards disabled";
+	private static final String REWARD_TYPE_SETTING = "reward type";
 	
-	// Quick lookup of action types
-	private static HashMap<String, ActionTypes> lookup = 
-			new HashMap<String, ActionTypes>();
+	private static final String ECONOMY_DROPS_SETTING = "economy drop";
+	private static final String ECONOMY_WORTH_SETTING = "economy drop worth";
+	private static final String VIRTUAL_SCAN_RADIUS_SETTING = "virtual scan radius";
 	
-	public enum ActionTypes {
-		BLOCK("BLOCK", "BLOCK_SOURCE"),
-		BONUS("BONUS", "BONUS_SOURCE"),
-		PLACE("PLACE", "PLACING", "PLACING_RESULT"),
-		SMELTING("SMELTING", "SMELTING_RESULT"),
-		CRAFTING("CRAFTING", "CRAFTING_RESULT"),
-		BREWING("BREWING", "BREWING_RESULT"),
-		UNKNOWN();
-		
-		private ActionTypes(String... names) {
-			for (String name : names) {
-				lookup.put(name, this);
-			}
-		}
-		
-		public static ActionTypes matchAction(String action) {
-			if (lookup == null)
-				return UNKNOWN;
-			else
-				return lookup.get(Utility.getEnumName(action));
-		}
-	}
-		
-	private static final String multiplierSetting = "multiplier";
-	private static final String defaultRewardsSetting = "default rewards disabled";
-	private static final String rewardTypeSetting = "reward type";
+	private static final String DEFAULT_CHANNELS_SETTING = "default channels";
+	private static final String MESSAGE_MAX_RATE_SETTING = "message max rate";
 	
-	private static final String economyDropsSetting = "economy drop";
-	private static final String economyWorthSetting = "economy drop worth";
-	private static final String virtualScanRadiusSetting = "virtual scan radius";
-	
-	private static final String defaultChannelsSetting = "default channels";
-	private static final String messageMaxRateSetting = "message max rate";
-	
-	private static final double defaultScanRadius = 20;
-	private static final int defaultMessageMaxRate = 5;
+	private static final double DEFAULT_SCAN_RADIUS = 20;
+	private static final int DEFAULT_MESSAGE_RATE = 5;
 	
 	private Debugger logger;
 	
@@ -95,23 +72,27 @@ public class Configuration implements Multipliable<Configuration> {
 	private ChannelProvider channelProvider;
 	private MessagePlayerQueue messageQueue;
 
+	// Global settings
+	private GlobalSettings globalSettings;
+
+	// Every action/trigger type
+	private ActionTypes actionTypes;
+	
+	// Every standard reward
+	private Map<Integer, ItemTree> actionRewards = new HashMap<Integer, ItemTree>();
+	private Map<Integer, PotionTree> complexRewards = new HashMap<Integer, PotionTree>();
+	
 	private MobTree experienceDrop;
-	private ItemTree simpleBlockReward;
-	private ItemTree simpleBonusReward;
-	private ItemTree simplePlacingReward;
-	private ItemTree simpleSmeltingReward;
-	private ItemTree simpleCraftingReward;
-	private ItemTree simpleBrewingReward;
-	private PotionTree complexBrewingReward;
 	private PlayerRewards playerRewards;
 	
-	private ItemParser itemParser = new ItemParser();
-	private MobParser mobParser = new MobParser();
+	private ItemParser itemParser;
+	private MobParser mobParser;
 	private ActionParser actionParser;
-	
-	public Configuration(Debugger debugger) {
+
+	public Configuration(Debugger debugger, ActionTypes actionTypes) {
 		this.logger = debugger;
 		this.defaultRewardsDisabled = false;
+		this.actionTypes = actionTypes;
 		initialize(1);
 	}
 	
@@ -138,26 +119,63 @@ public class Configuration implements Multipliable<Configuration> {
 		if (other.messageQueue != null) {
 			this.messageQueue = other.messageQueue.createView();
 		}
+		if (other.actionParser != null) {
+			this.actionParser = other.actionParser.createView(rewardProvider);
+		}
+		
+		// Copy parsers
+		this.itemParser = other.itemParser;
+		this.mobParser = other.mobParser;
+		this.actionTypes = other.actionTypes;
 		
 		// Copy (shallow) trees
+		this.actionRewards = copyActionsWithMultiplier(other.actionRewards, newMultiplier);
+		this.complexRewards = copyActionsWithMultiplier(other.complexRewards, newMultiplier);
 		this.experienceDrop = other.experienceDrop.withMultiplier(newMultiplier);
-		this.simpleBlockReward = other.simpleBlockReward.withMultiplier(newMultiplier);
-		this.simpleBonusReward = other.simpleBonusReward.withMultiplier(newMultiplier);
-		this.simplePlacingReward = other.simplePlacingReward.withMultiplier(newMultiplier);
-		this.simpleSmeltingReward = other.simpleSmeltingReward.withMultiplier(newMultiplier);
-		this.simpleCraftingReward = other.simpleCraftingReward.withMultiplier(newMultiplier);
-		this.simpleBrewingReward = other.simpleBrewingReward.withMultiplier(newMultiplier);
-		this.complexBrewingReward = other.complexBrewingReward.withMultiplier(newMultiplier);
 		this.playerRewards = other.playerRewards.withMultiplier(newMultiplier);
 		this.checkRewards();
 	}
-	
-	public Configuration(ConfigurationSection config, Debugger debugger, RewardProvider provider, ChannelProvider channels) {
+		
+	public Configuration(Debugger debugger, RewardProvider provider, ChannelProvider channels) {
 		this.logger = debugger;
 		this.rewardProvider = provider;
 		this.channelProvider = channels;
 		this.actionParser = new ActionParser(provider);
-		loadFromConfig(config);
+	}
+	
+	// Makes a copy of a action reward tree
+	private static <TParam extends Multipliable<TParam>> Map<Integer, TParam> copyActionsWithMultiplier(
+			Map<Integer, TParam> rewards, double newMultiplier) {
+		
+		Map<Integer, TParam> copy = new HashMap<Integer, TParam>();
+		
+		// Treat null as empty
+		if (rewards == null)
+			return copy;
+		
+		for (Entry<Integer, TParam> entry : rewards.entrySet()) {
+			copy.put(entry.getKey(), entry.getValue().withMultiplier(newMultiplier));
+		}
+		
+		return copy;
+	}
+
+	// Merges action reward trees
+	private static <TParam, TTree extends ActionTree<TParam>> void mergeActions(
+				Map<Integer, TTree> destination, Map<Integer, TTree> source) {
+		
+		// Merge all trees
+		for (Entry<Integer, TTree> entry : source.entrySet()) {
+			TTree tree = destination.get(entry.getKey());
+			
+			Integer key = entry.getKey();
+			TTree value = entry.getValue();
+			
+			if (tree == null)
+				destination.put(key, value);
+			else
+				destination.get(key).putAll(value);
+		}
 	}
 	
 	/**
@@ -176,19 +194,20 @@ public class Configuration implements Multipliable<Configuration> {
 		else if (configurations.size() == 1)
 			return configurations.get(0);
 		
-		Configuration copy = new Configuration(debugger);
+		Configuration copy = null;
 		
 		// Merge everything in order
 		for (Configuration config : configurations) {
-			copy.complexBrewingReward.putAll(config.complexBrewingReward);
+			
+			// Initialize first time around
+			if (copy == null) {
+				copy = new Configuration(debugger, config.actionTypes);
+			}
+			
 			copy.experienceDrop.putAll(config.experienceDrop);
 			copy.playerRewards.putAll(config.playerRewards);
-			copy.simpleBlockReward.putAll(config.simpleBlockReward);
-			copy.simpleBonusReward.putAll(config.simpleBonusReward);
-			copy.simpleBrewingReward.putAll(config.simpleBrewingReward);
-			copy.simpleCraftingReward.putAll(config.simpleCraftingReward);
-			copy.simplePlacingReward.putAll(config.simplePlacingReward);
-			copy.simpleSmeltingReward.putAll(config.simpleSmeltingReward);
+			mergeActions(copy.actionRewards, config.actionRewards);
+			mergeActions(copy.complexRewards, config.complexRewards);
 			
 			// This will be the last set value
 			copy.defaultRewardsDisabled = config.defaultRewardsDisabled;
@@ -198,6 +217,9 @@ public class Configuration implements Multipliable<Configuration> {
 			copy.economyItemWorth = config.economyItemWorth;
 			copy.economyDropItem = config.economyDropItem;
 			copy.scanRadiusSetting = config.scanRadiusSetting;
+			copy.itemParser = config.itemParser;
+			copy.mobParser = config.mobParser;
+			copy.actionParser = config.actionParser;
 			
 			// Multiply all multipliers
 			copy.multiplier *= config.multiplier; 
@@ -207,25 +229,31 @@ public class Configuration implements Multipliable<Configuration> {
 		return new Configuration(copy, copy.multiplier);
 	}
 
-	private void loadFromConfig(ConfigurationSection config) {
+	/**
+	 * Initialize configuration from a configuration section.
+	 * @param config - configuration section to load from.
+	 */
+	public void loadFromConfig(ConfigurationSection config) {
+		
+		StringListParser listParser = new StringListParser();
 		
 		// Load scalar values
-		if (config.isDouble(multiplierSetting))
-			multiplier = config.getDouble(multiplierSetting, 1);
+		if (config.isDouble(MULTIPLIER_SETTING))
+			multiplier = config.getDouble(MULTIPLIER_SETTING, 1);
 		else
-			multiplier = config.getInt(multiplierSetting, 1);
+			multiplier = config.getInt(MULTIPLIER_SETTING, 1);
 
 		// Whether or not to remove all default XP drops
-		defaultRewardsDisabled = config.getBoolean(defaultRewardsSetting, true);
-		scanRadiusSetting = readDouble(config, virtualScanRadiusSetting, defaultScanRadius);
+		defaultRewardsDisabled = config.getBoolean(DEFAULT_REWARDS_SETTING, true);
+		scanRadiusSetting = readDouble(config, VIRTUAL_SCAN_RADIUS_SETTING, DEFAULT_SCAN_RADIUS);
 		
 		// Economy item settings
-		economyItemWorth = config.getInt(economyWorthSetting, 1);
+		economyItemWorth = config.getInt(ECONOMY_WORTH_SETTING, 1);
 		economyDropItem = null;
 
 		// Economy drop item
 		try {
-			String text = config.getString(economyDropsSetting, null);
+			String text = config.getString(ECONOMY_DROPS_SETTING, null);
 			Query drop = text != null ? itemParser.parse(text) : null;
 			
 			if (drop != null && drop instanceof ItemQuery) {
@@ -237,10 +265,10 @@ public class Configuration implements Multipliable<Configuration> {
 		}
 		
 		// Default message channels
-		channelProvider.setDefaultChannels(actionParser.readStrings(config, defaultChannelsSetting));
+		channelProvider.setDefaultChannels(listParser.parseSafe(config, DEFAULT_CHANNELS_SETTING));
 		
 		// Load reward type
-		String defaultReward = loadReward(config.getString(rewardTypeSetting, null));
+		String defaultReward = loadReward(config.getString(REWARD_TYPE_SETTING, null));
 		
 		// Use default type if nothing has been set
 		if (defaultReward != null)
@@ -256,10 +284,19 @@ public class Configuration implements Multipliable<Configuration> {
 		checkRewards();
 	}
 	
+	
+	public GlobalSettings getGlobalSettings() {
+		return globalSettings;
+	}
+
+	public void setGlobalSettings(GlobalSettings globalSettings) {
+		this.globalSettings = globalSettings;
+	}
+	
 	private void loadRate(ConfigurationSection config) {
 		
 		// Load the message queue
-		double rate = readDouble(config, messageMaxRateSetting, defaultMessageMaxRate);
+		double rate = readDouble(config, MESSAGE_MAX_RATE_SETTING, DEFAULT_MESSAGE_RATE);
 		long converted = 0;
 		
 		// Make sure the rate is valid
@@ -278,13 +315,13 @@ public class Configuration implements Multipliable<Configuration> {
 		
 		// Clear previous values
 		experienceDrop = new MobTree(multiplier);
-		simpleBlockReward = new ItemTree(multiplier);
-		simpleBonusReward = new ItemTree(multiplier);
-		simplePlacingReward = new ItemTree(multiplier);
-		simpleSmeltingReward = new ItemTree(multiplier);
-		simpleCraftingReward = new ItemTree(multiplier);
-		simpleBrewingReward = new ItemTree(multiplier);
-		complexBrewingReward = new PotionTree(multiplier);
+		
+		// Initialize all the default rewards
+		for (Integer types : actionTypes.getTypes()) {
+			actionRewards.put(types, new ItemTree(multiplier));
+			complexRewards.put(types, new PotionTree(multiplier));
+		}
+		
 		playerRewards = new PlayerRewards(multiplier);
 		this.multiplier = multiplier;
 	}
@@ -293,15 +330,19 @@ public class Configuration implements Multipliable<Configuration> {
 		
 		List<Action> actions = new ArrayList<Action>();
 		
-		// Copy the content of every single collection
-		actions.addAll(experienceDrop.getValues());
-		actions.addAll(simpleBlockReward.getValues());
-		actions.addAll(simpleBonusReward.getValues());
-		actions.addAll(simplePlacingReward.getValues());
-		actions.addAll(simpleSmeltingReward.getValues());
-		actions.addAll(simpleCraftingReward.getValues());
-		actions.addAll(simpleBrewingReward.getValues());
-		actions.addAll(complexBrewingReward.getValues());
+		// Add every simple action
+		for (Integer types : actionTypes.getTypes()) {
+			ItemTree items = getActionReward(types);
+			PotionTree potions = getComplexReward(types);
+			
+			if (items != null) 
+				actions.addAll(items.getValues());
+			if (potions != null)
+				actions.addAll(potions.getValues());
+		}
+		
+		// Copy the content of every special collection
+		actions.addAll(experienceDrop.getValues());		
 		actions.addAll(playerRewards.getValues());
 		return actions;
 	}
@@ -390,12 +431,12 @@ public class Configuration implements Multipliable<Configuration> {
 			try {
 				Query item = itemParser.parse(key);
 				ConfigurationSection itemSection = config.getConfigurationSection(key);
-				boolean isItemType = item.getQueryType() == Types.Items;
+				Types queryType = item.getQueryType();
 				
 				// Read the different rewards
 				for (String action : itemSection.getKeys(false)) {
 					
-					ActionTypes type = ActionTypes.matchAction(action);
+					Integer type = actionTypes.getType(action);
 					
 					if (type == null) {
 						
@@ -411,29 +452,17 @@ public class Configuration implements Multipliable<Configuration> {
 						break;
 					}
 					
-					// Switch on the block type
-					switch (type) {
-					case BLOCK:
-						loadActionOnItem(itemSection, action, item, simpleBlockReward, Query.Types.Items);
+					// Handle the special case of potion queries
+					switch (queryType) {
+					case Items:
+						loadActionOnItem(itemSection, action, item, getActionReward(type), queryType);
 						break;
-					case BONUS:
-						loadActionOnItem(itemSection, action, item, simpleBonusReward, Query.Types.Items);
-						break;
-					case PLACE:
-						loadActionOnItem(itemSection, action, item, simplePlacingReward, Query.Types.Items);
-						break;
-					case SMELTING:
-						loadActionOnItem(itemSection, action, item, simpleSmeltingReward, Query.Types.Items);
-						break;
-					case CRAFTING:
-						loadActionOnItem(itemSection, action, item, simpleCraftingReward, Query.Types.Items);
-						break;
-					case BREWING:
-						loadActionOnItem(itemSection, action, item, 
-							isItemType ? simpleBrewingReward : complexBrewingReward,
-							isItemType ? Query.Types.Items : Query.Types.Potions);
+						
+					case Potions:
+						loadActionOnItem(itemSection, action, item, getComplexReward(type), queryType);
 						break;
 					}
+					
 				}
 
 			} catch (ParsingException ex) {
@@ -529,34 +558,60 @@ public class Configuration implements Multipliable<Configuration> {
 		return experienceDrop;
 	}
 
-	public ItemTree getSimpleBlockReward() {
-		return simpleBlockReward;
+	/**
+	 * Retrieves the rewards for the given action or trigger.
+	 * @param actionID - unique ID for the given action.
+	 * @return Tree of every associated reward.
+	 */
+	public ItemTree getActionReward(Integer actionID) {
+		return actionRewards.get(actionID);
+	}
+	
+	/**
+	 * Retrieves the rewards for the given action or trigger.
+	 * @param action - name for the given action.
+	 * @return Tree of every associated reward.
+	 */
+	public ItemTree getActionReward(String action) {
+		return getActionReward(actionTypes.getType(action));
 	}
 
-	public ItemTree getSimpleBonusReward() {
-		return simpleBonusReward;
+	/**
+	 * Sets the tree of rewards for a given action.
+	 * @param actionID - unique ID for the given action.
+	 * @return Previously associated tree of rewards, or NULL if no tree was associated.
+	 */
+	public ItemTree setActionReward(Integer actionID, ItemTree tree) {
+		return actionRewards.put(actionID, tree);
 	}
-
-	public ItemTree getSimpleCraftingReward() {
-		return simpleCraftingReward;
+	
+	/**
+	 * Retrieves the complex potion rewards for the given action or trigger.
+	 * @param actionID - unique ID for the given action.
+	 * @return Tree of every associated reward.
+	 */
+	public PotionTree getComplexReward(Integer actionID) {
+		return complexRewards.get(actionID);
 	}
-
-	public ItemTree getSimpleSmeltingReward() {
-		return simpleSmeltingReward;
+	
+	/**
+	 * Retrieves the complex potion rewards for the given action or trigger.
+	 * @param action - name for the given action.
+	 * @return Tree of every associated reward.
+	 */
+	public PotionTree getComplexReward(String action) {
+		return getComplexReward(actionTypes.getType(action));
 	}
-
-	public ItemTree getSimpleBrewingReward() {
-		return simpleBrewingReward;
+	
+	/**
+	 * Sets the tree of rewards for a given action.
+	 * @param actionID - unique ID for the given action.
+	 * @return Previously associated tree of rewards, or NULL if no tree was associated.
+	 */
+	public PotionTree setComplexReward(Integer actionID, PotionTree tree) {
+		return complexRewards.put(actionID, tree);
 	}
-
-	public PotionTree getComplexBrewingReward() {
-		return complexBrewingReward;
-	}
-
-	public ItemTree getSimplePlacingReward() {
-		return simplePlacingReward;
-	}
-
+	
 	public boolean isDefaultRewardsDisabled() {
 		return defaultRewardsDisabled;
 	}
@@ -602,18 +657,84 @@ public class Configuration implements Multipliable<Configuration> {
 		}
 	}
 	
+	public ItemTree getSimpleBlockReward() {
+		return getActionReward(actionTypes.getType(ActionTypes.BLOCK));
+	}
+	
+	public ItemTree getSimpleBonusReward() {
+		return getActionReward(actionTypes.getType(ActionTypes.BONUS));
+	}
+	
+	public ItemTree getSimpleBrewingReward() {
+		return getActionReward(actionTypes.getType(ActionTypes.BREWING));
+	}
+	
+	public ItemTree getSimpleCraftingReward() {
+		return getActionReward(actionTypes.getType(ActionTypes.CRAFTING));
+	}
+	
+	public ItemTree getSimplePlacingReward() {
+		return getActionReward(actionTypes.getType(ActionTypes.PLACE));
+	}
+	
+	public ItemTree getSimpleSmeltingReward() {
+		return getActionReward(actionTypes.getType(ActionTypes.SMELTING));
+	}
+	
+	public PotionTree getComplexBrewingReward() {
+		return getComplexReward(actionTypes.getType(ActionTypes.BREWING));
+	}
+
+	/**
+	 * Retrieves the current registered action types.
+	 * @return Registry of action types.
+	 */
+	public ActionTypes getActionTypes() {
+		return actionTypes;
+	}
+
+	/**
+	 * Sets the current registry of action types. This must be changed before configurations are loaded.
+	 * @param actionTypes - new action type registry.
+	 */
+	public void setActionTypes(ActionTypes actionTypes) {
+		this.actionTypes = actionTypes;
+	}
+	
+	public ItemParser getItemParser() {
+		return itemParser;
+	}
+
+	public void setItemParser(ItemParser itemParser) {
+		this.itemParser = itemParser;
+	}
+
+	public MobParser getMobParser() {
+		return mobParser;
+	}
+
+	public void setMobParser(MobParser mobParser) {
+		this.mobParser = mobParser;
+	}
+
+	public ActionParser getActionParser() {
+		return actionParser;
+	}
+
+	public void setActionParser(ActionParser actionParser) {
+		this.actionParser = actionParser;
+	}
+
 	// Let the message queue know
 	public void onTick() {
 		if (messageQueue != null) 
 			messageQueue.onTick();
 	}
 
-	/**
-	 * Removes a given player from any live buffers or caches.
-	 * @param player - player to remove.
-	 */
-	public void removePlayer(Player player) {
-		if (messageQueue != null) 
-			messageQueue.removePlayer(player);
+	@Override
+	public void removePlayerCache(Player player) {
+		// Removes a given player from any live buffers or caches.
+		if (messageQueue != null)
+			messageQueue.removePlayerCache(player);
 	}
 }

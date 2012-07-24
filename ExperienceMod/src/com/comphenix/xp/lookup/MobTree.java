@@ -140,4 +140,28 @@ public class MobTree extends ActionTree<MobQuery> implements Multipliable<MobTre
 		tamed.putAll(tree.tamed, offset);
 		playerKill.putAll(tree.playerKill, offset);
 	}
+
+	public Parameter<EntityType> getType() {
+		return type;
+	}
+
+	public Parameter<DamageCause> getDeathCause() {
+		return deathCause;
+	}
+
+	public Parameter<Boolean> getSpawner() {
+		return spawner;
+	}
+
+	public Parameter<Boolean> getBaby() {
+		return baby;
+	}
+
+	public Parameter<Boolean> getTamed() {
+		return tamed;
+	}
+
+	public Parameter<Boolean> getPlayerKill() {
+		return playerKill;
+	}
 }

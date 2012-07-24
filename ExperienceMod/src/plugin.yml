@@ -1,5 +1,5 @@
 name: ExperienceMod
-version: 2.1.0
+version: 2.2.0
 description: This plugin recreates the new experience rewards in 1.3 for 1.2.5. 
 author: Comphenix
 website: http://www.comphenix.net/ExperienceMod
@@ -7,12 +7,13 @@ dev-url: http://dev.bukkit.org/server-mods/experiencemod/
 
 main: com.comphenix.xp.ExperienceMod
 database: false
-softdepend: [Vault, HeroChat]
+softdepend: [Vault, HeroChat, LogBlock, HawkEye]
 
 commands:
    experiencemod:
       description: Reloads configuration OR toggles debug mode.
       usage: /<command> [debug]|[warnings]
+      aliases: [expmod]
       permission: experiencemod.admin
       permission-message: You don't have <permission>
    spawnexp:

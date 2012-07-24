@@ -19,6 +19,10 @@ package com.comphenix.xp.parser;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 
 /**
  * Parsing utility functions.
@@ -28,7 +32,7 @@ import java.util.List;
 public class Utility {
 	
 	@SuppressWarnings("rawtypes")
-	private static List emptyList = new ArrayList();
+	private static final List emptyList = new ArrayList();
 	
     public static String getEnumName(String text) {
     	if (text == null)
@@ -40,7 +44,7 @@ public class Utility {
     
 	public static String formatBoolean(String booleanName, List<Boolean> value) {
 		// Mirror the query syntax
-		if (value == null || value.isEmpty())
+		if (value == null || value.isEmpty() || value.contains(null))
 			return "";
 		else 
 			return value.get(0) ? booleanName : "!" + booleanName;
@@ -59,6 +63,15 @@ public class Utility {
 			items.add(value);
 			return items;
 		}		
+	}
+	
+	/**
+	 * Aggregates every element in a list of lists into a single list.
+	 * @param list - list of lists to aggregate.
+	 * @return List containing the element of each list in the given list.
+	 */
+	public static List<Integer> flatten(List<Set<Integer>> list) {
+		return Lists.newArrayList(Iterables.concat(list));
 	}
 	
 	/**
