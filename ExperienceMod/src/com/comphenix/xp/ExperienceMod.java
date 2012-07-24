@@ -248,7 +248,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		}
 		
 		// Register Hawkeye if it exists
-		if (HawkeyeService.exists(manager)) {
+		if (manager.getPlugin("HawkEye") != null) {
 			if (!historyProviders.containsService(HawkeyeService.NAME)) {
 				historyProviders.register(new HawkeyeService(this));
 			}

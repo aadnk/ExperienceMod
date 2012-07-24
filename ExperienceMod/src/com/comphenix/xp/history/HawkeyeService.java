@@ -11,9 +11,7 @@ import com.comphenix.xp.Debugger;
 
 import uk.co.oliwali.HawkEye.DataType;
 import uk.co.oliwali.HawkEye.SearchParser;
-import uk.co.oliwali.HawkEye.callbacks.BaseCallback;
 import uk.co.oliwali.HawkEye.database.SearchQuery.SearchDir;
-import uk.co.oliwali.HawkEye.database.SearchQuery.SearchError;
 import uk.co.oliwali.HawkEye.entry.BlockChangeEntry;
 import uk.co.oliwali.HawkEye.entry.DataEntry;
 import uk.co.oliwali.HawkEye.util.BlockUtil;
@@ -73,30 +71,8 @@ public class HawkeyeService implements HistoryService {
 			searching = true;
 			
 			// Search synchronously (TODO: make it async)
-			HawkEyeAPI.performSearch(new BaseCallback() {
-				@Override
-				public void execute() {
-	
-					// This should be the most recent change
-					if (results == null || results.size() == 0) {
-						searchResult = null;
-					} else {
-						searchResult = results.get(0);
-					}
-					
-					synchronized (lock) {
-						searching = false;
-						lock.notifyAll();
-					}
-				}
-				
-				@Override
-				public void error(SearchError arg0, String arg1) {
-					// Damn
-					if (debugger != null)
-						debugger.printWarning(HawkeyeService.this, "Error: %s %s", arg0, arg1);
-				}
-			}, searchParser, SearchDir.DESC);
+			HawkEyeAPI.performSearch(new HawkeyeCallback(debugger, this), 
+					searchParser, SearchDir.DESC);
 			
 			// Wait for it to be done
 			if (searching) {
@@ -143,6 +119,26 @@ public class HawkeyeService implements HistoryService {
 		} catch (IllegalAccessException e) {
 			throw new HistoryException("Cannot use reflection. Illegal access.");
 		}
+	}
+	
+	public boolean isSearching() {
+		return searching;
+	}
+
+	public void setSearching(boolean searching) {
+		this.searching = searching;
+	}
+
+	public DataEntry getSearchResult() {
+		return searchResult;
+	}
+
+	public void setSearchResult(DataEntry searchResult) {
+		this.searchResult = searchResult;
+	}
+
+	public Object getLock() {
+		return lock;
 	}
 	
 	@Override
