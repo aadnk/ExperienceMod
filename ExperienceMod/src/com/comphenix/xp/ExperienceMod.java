@@ -218,12 +218,6 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	
 		registerHistoryServices();
 		
-		// Disable stuff
-		disableServices(historyProviders, globalSettings.getDisabledServices());
-		disableServices(channelProvider, globalSettings.getDisabledServices());
-		disableServices(rewardProvider, globalSettings.getDisabledServices());
-		disableServices(customProvider, globalSettings.getDisabledServices());
-		
 		// Register commands
 		getCommand(CommandExperienceMod.COMMAND_RELOAD).setExecutor(commandExperienceMod);
 		getCommand(CommandExperienceMod.COMMAND_ABBREVIATED).setExecutor(commandExperienceMod);
@@ -345,6 +339,12 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			globalSettings = new GlobalSettings(this);
 			globalSettings.loadFromConfig(loadConfig("global.yml", "Creating default global settings."));
 			Permissions.setGlobalSettings(globalSettings);
+			
+			// Disable stuff
+			disableServices(historyProviders, globalSettings.getDisabledServices());
+			disableServices(channelProvider, globalSettings.getDisabledServices());
+			disableServices(rewardProvider, globalSettings.getDisabledServices());
+			disableServices(customProvider, globalSettings.getDisabledServices());
 			
 			// Load parts of the configuration
 			YamlConfiguration presetList = loadConfig("presets.yml", "Creating default preset list.");
