@@ -39,14 +39,17 @@ public abstract class ActionTree<TKey> extends SearchTree<TKey, Action>{
 	}
 	
 	@Override
-	public Action get(TKey element) {
-		Action result = super.get(element);
+	public Action get(Integer id) {
+		return addMultiplier(super.get(id));
+	}
+	
+	private Action addMultiplier(Action source) {
 		
 		// Automatically include the multiplier
-		if (result != null)
-			return result.multiply(multiplier);
+		if (source != null)
+			return source.multiply(multiplier);
 		else
-			return result;
+			return source;
 	}
 	
 	/**
