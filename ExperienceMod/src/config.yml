@@ -1,32 +1,64 @@
 multiplier: 1
+
+# Set this to TRUE to completely remove the default experience drop
 default rewards disabled: false
+
+# Default experience type (can be set to VIRTUAL and CURRENCY)
 reward type: experience
+
+# The item to drop when awarding currency. Remove it if you want to give 
+# currency directly.
 economy drop: slime ball
+
+# The value of each currency item.
 economy drop worth: 1
+
+# When using the VIRTUAL reward type, experience will only be granted 
+# automatically for actions that can be directly traced to the player. Mobs 
+# that die from traps will instead drop experience orbs if there are other 
+#players within this radius:
 virtual scan radius: 20
+
+# The default channel to use. If you're not using HeroChat, any channel will do.
 default channels: [global]
 
+# Mobs can be selected by name|death_case|[spawner]|[baby]|[tamed]:
 mobs:
   enderman:
     first: 1
     last: 10
+  # Matches all mobs that have spawned from a monster spawner
   ?|spawner: 0
+  # Disable XP from mobs that are killed by splash potions
+  #?|magic: 0
 
+# Generic rewards
 player:
   fishing success: [3, 5]
   fishing failure: 0
 
+ # Select items using name|durability
+ # Select potions with potion|potion type|level|[extended]|[splash]
+ #
+ #  Trigger/action     Description
+ #   block source       Block mined without silk touch. 
+ #   bonus                 Block mined.
+ #   smelting result    Smelted items.
+ #   crafting result      Crafted items.
+ #   brewing result      Brewed potions.
+ #   placing result       Placed blocks.
 items:
   coal ore:
     block source: 5
   lapis ore:
     block source: 15
-  redstone ore:
-    block source: 20
-  glowing redstone ore:
+  glowing redstone ore, redstone ore:
     block source: 20
   diamond ore:
-    block source: 150
+    block source: 
+      default: 150 # Give the default reward type
+      message: '{player} got {count} DIAMOND and {experience} exp!'
+      channels: [global]
   mob spawner:
     bonus:
       first: 250
