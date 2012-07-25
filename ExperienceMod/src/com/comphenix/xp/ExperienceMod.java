@@ -108,8 +108,6 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	@Override
 	public void onLoad() {
 
-		RewardEconomy rewardEconomy;
-		
 		// Initialize scheduler
 		playerScheduler = new PlayerScheduler(Bukkit.getScheduler(), this);
 		manager = getServer().getPluginManager();
@@ -117,19 +115,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		// Initialize rewards
 		currentLogger = this.getLogger();
 		rewardProvider = new RewardProvider();
-		
-		// Load economy, if it exists
-		try {
-			if (!hasEconomy())
-				economy = getRegistration(Economy.class);
-			if (!hasChat())
-				chat = getRegistration(Chat.class);
-		
-		} catch (NoClassDefFoundError e) {
-			// No vault
-		} catch (NullPointerException e) {
-		}
-		
+				
 		// Load history
 		historyProviders = new HistoryProviders();
 		
@@ -154,19 +140,6 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			currentLogger.info("Using standard chat.");
 		}
 		
-		// Don't register economy rewards unless we can
-		if (hasEconomy()) {
-			itemListener = new ItemRewardListener(this);
-			rewardEconomy = new RewardEconomy(economy, this, itemListener); 
-			
-			// Associate everything
-			rewardProvider.register(rewardEconomy);
-			itemListener.setReward(rewardEconomy);
-			
-			// Inform the player
-			currentLogger.info("Economy enabled.");
-		}
-		
 		// Initialize block providers
 		customProvider = new CustomBlockProviders();
 		customProvider.register(new StandardBlockService());
@@ -188,9 +161,37 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		// Block provider
 		customProvider.setLastInteraction(interactionListener);
 		
+		// Load economy, if it exists
+		try {
+			if (!hasEconomy())
+				economy = getRegistration(Economy.class);
+			if (!hasChat())
+				chat = getRegistration(Chat.class);
+		
+		} catch (NoClassDefFoundError e) {
+		} catch (NullPointerException e) {
+			e.printStackTrace();
+		}
+		
+		// Don't register economy rewards unless we can
 		if (hasEconomy()) {
+			itemListener = new ItemRewardListener(this);
+			RewardEconomy rewardEconomy = new RewardEconomy(economy, this, itemListener);
+			
+			// Associate everything
+			rewardProvider.register(rewardEconomy);
+			itemListener.setReward(rewardEconomy);
+			
+			// Inform the player
+			currentLogger.info("Economy enabled.");
+			
 			// Register listener
 			manager.registerEvents(itemListener, this);
+			
+		} else {
+			
+			// Damn it
+			currentLogger.info("Economy not registered.");
 		}
 		
 		try {
@@ -249,11 +250,18 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		
 		// Register Hawkeye if it exists
 		if (manager.getPlugin("HawkEye") != null) {
-			if (!historyProviders.containsService(HawkeyeService.NAME)) {
-				historyProviders.register(new HawkeyeService(this));
+			try {
+				if (!historyProviders.containsService(HawkeyeService.NAME)) {
+					historyProviders.register(new HawkeyeService(this));
+				}
+
+				currentLogger.info("Connected to Hawkeye.");
+				
+			} catch (NoClassDefFoundError e) {
+				// Occurs if HawkEye disables itself, usually because of database problems.
+				currentLogger.info("Cannot connect to Hawkeye. Database connection not found.");
 			}
 			
-			currentLogger.info("Connected to Hawkeye.");
 		} else {
 			currentLogger.info("Cannot connect to Hawkeye.");
 		}
@@ -413,7 +421,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
         RegisteredServiceProvider<TClass> registry = getServer().getServicesManager().getRegistration(type);
         
         if (registry != null) 
-            return registry.getProvider();
+        	return registry.getProvider();
         else
         	return null;
     }
