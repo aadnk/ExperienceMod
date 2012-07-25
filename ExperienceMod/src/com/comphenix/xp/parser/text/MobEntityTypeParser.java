@@ -34,7 +34,24 @@ public class MobEntityTypeParser extends TextParser<MobMatcher> {
 			throw new ParsingException("Text cannot be empty or null.");
 		
 		Category possibleCategory = MobMatcher.Category.fromName(text);
-		EntityType type = EntityType.fromName(text);
+		
+		Integer mobID = tryParse(text);
+		String enumName = Utility.getEnumName(text);
+		EntityType type = EntityType.valueOf(enumName);
+		
+		// If this didn't work, try some more alternatives
+		if (type == null && possibleCategory == null) {
+			if (mobID != null) {
+				type = EntityType.fromId(mobID);
+				
+				if (type == null)
+					throw ParsingException.fromFormat("Unable to find a mob with the ID %s", mobID);
+				
+			} else {
+				// Try getting it from the mob names
+				type = EntityType.fromName(text);
+			}
+		}
 		
 		// Check for invalid entries
 		if (possibleCategory == null) {

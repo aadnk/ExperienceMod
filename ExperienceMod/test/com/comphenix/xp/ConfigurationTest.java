@@ -51,7 +51,8 @@ public class ConfigurationTest {
 		Configuration second = createConfig(
 				"multiplier: 1\n" +
 				"mobs:\n" + 
-				"  zombie: 0\n", debugger, provider);
+				"  zombie: 0\n" +
+				"  pig zombie: 1\n", debugger, provider);
 		
 		Configuration result = Configuration.fromMultiple(Lists.newArrayList(first, second), debugger);
 		
