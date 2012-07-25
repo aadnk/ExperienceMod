@@ -337,7 +337,8 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 				
 				// Simple enough
 				if (rewardAction.canPerform(player, action, count)) {
-					rewardAction.performAction(player, toCraft, action, count);
+					ItemStack current = response.getOverridableCurrentItem(event);
+					rewardAction.performAction(player, current, action, count);
 					
 				} else {
 					// Events will not be cancelled for untouchables
@@ -366,6 +367,9 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 				
 					marker.setBeenRewarded(true);
 					stack.setDurability(marker.toDurability());
+					
+					if (debugger != null)
+						debugger.printDebug(this, "Added potion marker. New durability: %s", marker.toDurability());
 				}
 			}
 			
