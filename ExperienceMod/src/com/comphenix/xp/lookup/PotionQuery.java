@@ -18,7 +18,6 @@
 package com.comphenix.xp.lookup;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
@@ -89,7 +88,7 @@ public class PotionQuery implements Query {
 		if (potionObject == null)
 			throw new IllegalArgumentException("Potion must be non-zero.");
 		
-		loadFromPotions(Arrays.asList(potionObject));
+		addPotion(potionObject);
 	}
 	
 	public PotionQuery(ItemQuery query) {
@@ -98,20 +97,21 @@ public class PotionQuery implements Query {
 		if (!query.hasDurability())
 			throw new IllegalArgumentException("Must contain a durability value.");
 		
-		List<Potion> potions = new ArrayList<Potion>(); 
-		
-		for (Integer durability : query.getDurability()) {
-			potions.add(Potion.fromDamage(durability));
-		}
-		
-		loadFromPotions(potions);
-	}
-
-	private void loadFromPotions(List<Potion> source) {
 		reset();
 		
-		// Initialize values
-		for (Potion potion : source) {
+		for (Integer durability : query.getDurability()) {
+			if (durability == 0) {
+				type.add(PotionType.WATER);
+			} else {
+				addPotion(Potion.fromDamage(durability));
+			}
+		}
+	}
+
+	private void addPotion(Potion potion) {
+		
+		// Load values
+		if (potion != null) {
 			type.add(potion.getType());
 			level.add(potion.getLevel());
 			extended.add(potion.hasExtendedDuration());
