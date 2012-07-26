@@ -17,60 +17,40 @@
 
 package com.comphenix.xp.parser.text;
 
-import org.bukkit.entity.EntityType;
+import java.util.List;
 
 import com.comphenix.xp.parser.TextParser;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.parser.Utility;
-import com.comphenix.xp.parser.text.MobMatcher.Category;
 
-public class MobEntityTypeParser extends TextParser<MobMatcher> {
+public class MobEntityTypeParser extends TextParser<List<Short>> {
 
+	private MobMatcher matcher;
+	
+	public MobEntityTypeParser(MobMatcher matcher) {
+		this.matcher = matcher;
+	}
+	
 	@Override
-	public MobMatcher parse(String text) throws ParsingException {
+	public List<Short> parse(String text) throws ParsingException {
 		
 		// Make sure we're not passed an empty element
 		if (Utility.isNullOrIgnoreable(text))
 			throw new ParsingException("Text cannot be empty or null.");
-		
-		Category possibleCategory = MobMatcher.Category.fromName(text);
-		
+		 
 		Integer mobID = tryParse(text);
-		String enumName = Utility.getEnumName(text);
-		EntityType type = EntityType.valueOf(enumName);
-		
-		// If this didn't work, try some more alternatives
-		if (type == null && possibleCategory == null) {
-			if (mobID != null) {
-				type = EntityType.fromId(mobID);
-				
-				if (type == null)
-					throw ParsingException.fromFormat("Unable to find a mob with the ID %s", mobID);
-				
-			} else {
-				// Try getting it from the mob names
-				type = EntityType.fromName(text);
-			}
-		}
+		List<Short> types = matcher.parse(text);
 		
 		// Check for invalid entries
-		if (possibleCategory == null) {
-			if (type == null) {
-				throw ParsingException.fromFormat("Unable to find a mob with the name %s.", text);
-				
-			} else if (type != null) {
-				if (!type.isAlive())
-					throw ParsingException.fromFormat("%s is not a mob.", text);
+		if (mobID == null) {
+			if (types == null || types.isEmpty()) {
+				throw ParsingException.fromFormat("Unable to find a mob or category with the name %s.", text);
 			}
+			
+			return types;
+			
 		} else {
-			if (possibleCategory == Category.SPECIFIC)
-				throw ParsingException.fromFormat("%s is not a mob nor a mob category.");
+			return Utility.getElementList(mobID.shortValue());
 		}
-		
-		// It's either a category or a specific mob
-		if (possibleCategory != null)
-			return new MobMatcher(possibleCategory);
-		else
-			return new MobMatcher(type);
 	}
 }

@@ -114,6 +114,9 @@ public class ItemQuery implements Query {
 	 * @return The created query.
 	 */
 	public static ItemQuery fromAny(Block block) {
+		if (block == null)
+			throw new NullArgumentException("block");
+		
 		return fromAny(block.getTypeId(), (int) block.getData(), null);
 	}
 	
@@ -123,6 +126,9 @@ public class ItemQuery implements Query {
 	 * @return The created query.
 	 */
 	public static ItemQuery fromExact(Block block) {
+		if (block == null)
+			throw new NullArgumentException("block");
+		
 		return fromExact(block.getTypeId(), (int) block.getData());
 	}
 	
@@ -133,7 +139,6 @@ public class ItemQuery implements Query {
 	 * @throws NullArgumentException if the stack is null.
 	 */
 	public static ItemQuery fromExact(ItemStack stack) {
-		
 		if (stack == null)
 			throw new NullArgumentException("stack");
 		

@@ -8,6 +8,7 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.junit.Test;
 
 import com.comphenix.xp.parser.ParsingException;
+import com.comphenix.xp.parser.text.MobMatcher;
 import com.comphenix.xp.parser.text.MobParser;
 
 public class MobParserTest {
@@ -18,9 +19,9 @@ public class MobParserTest {
 		MobQuery universal = MobQuery.fromAny();
 		MobQuery allZombies = MobQuery.fromAny(EntityType.ZOMBIE);
 		MobQuery fallingZombies = MobQuery.fromAny(EntityType.ZOMBIE, DamageCause.FALL, null, null, null, null);
-		MobQuery spawnedMobs = MobQuery.fromAny(null, null, SpawnReason.SPAWNER, null, null, null);
+		MobQuery spawnedMobs = MobQuery.fromAny((EntityType) null, null, SpawnReason.SPAWNER, null, null, null);
 		
-		MobParser parser = new MobParser();
+		MobParser parser = new MobParser(new MobMatcher());
 		
 		assertEquals(universal, parser.parse("?"));
 		assertEquals(allZombies, parser.parse("zombie"));

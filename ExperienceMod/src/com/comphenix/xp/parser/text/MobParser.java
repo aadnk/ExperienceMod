@@ -21,23 +21,29 @@ import java.util.List;
 import java.util.Queue;
 
 import org.apache.commons.lang.StringUtils;
-import org.bukkit.entity.EntityType;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
 import com.comphenix.xp.lookup.MobQuery;
 import com.comphenix.xp.parser.TextParser;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.parser.primitives.BooleanParser;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 
 public class MobParser extends TextParser<MobQuery> {
 	
-	private ParameterParser<MobMatcher> entityTypeParser = new ParameterParser<MobMatcher>(new MobEntityTypeParser());
-	private ParameterParser<DamageCause> damageCauseParser = new ParameterParser<DamageCause>(new MobDamageCauseParser());
+	private ParameterParser<List<Short>> entityTypeParser;
+	private ParameterParser<DamageCause> damageCauseParser;
 	
 	private BooleanParser spawnerParser = new BooleanParser("spawner");
 	private BooleanParser babyParser = new BooleanParser("baby");
 	private BooleanParser tamedParser = new BooleanParser("tamed");
 	private BooleanParser playerParser = new BooleanParser("player");
+	
+	public MobParser(MobMatcher matcher) {
+		this.entityTypeParser = new ParameterParser<List<Short>>(new MobEntityTypeParser(matcher));
+		this.damageCauseParser = new ParameterParser<DamageCause>(new MobDamageCauseParser());
+	}
 	
 	@Override
 	public MobQuery parse(String text) throws ParsingException {
@@ -46,11 +52,11 @@ public class MobParser extends TextParser<MobQuery> {
 		
 		ParsingException errorReason = null;
 		
-		List<EntityType> types = null;
+		List<Short> types = null;
 		List<DamageCause> causes = null;
 		
 		try {
-			types = MobMatcher.convertToTypes(entityTypeParser.parse(tokens));
+			types = flatten(entityTypeParser.parse(tokens));
 			causes = damageCauseParser.parse(tokens);
 			
 		} catch (ParsingException e) {
@@ -77,11 +83,15 @@ public class MobParser extends TextParser<MobQuery> {
 		return new MobQuery(types, causes, spawner, baby, tamed, player);
 	}
 
-	public ParameterParser<MobMatcher> getEntityTypeParser() {
+	private List<Short> flatten(List<List<Short>> list) {
+		return Lists.newArrayList(Iterables.concat(list));
+	}
+	
+	public ParameterParser<List<Short>> getEntityTypeParser() {
 		return entityTypeParser;
 	}
 
-	public void setEntityTypeParser(ParameterParser<MobMatcher> entityTypeParser) {
+	public void setEntityTypeParser(ParameterParser<List<Short>> entityTypeParser) {
 		this.entityTypeParser = entityTypeParser;
 	}
 

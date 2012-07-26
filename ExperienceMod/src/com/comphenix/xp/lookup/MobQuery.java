@@ -38,7 +38,7 @@ import com.google.common.collect.Lists;
 public class MobQuery implements Query {
 
 	// DON'T CARE fields are empty
-	private List<EntityType> type;
+	private List<Short> typeID;
 	private List<DamageCause> deathCause;
 	private List<Boolean> spawner;
 	private List<Boolean> baby;
@@ -46,7 +46,7 @@ public class MobQuery implements Query {
 	private List<Boolean> playerKill;
 	
 	// Optimize away object creations
-	private static List<EntityType> noTypes = new ArrayList<EntityType>();
+	private static List<Short> noTypes = new ArrayList<Short>();
 	private static List<DamageCause> noDamages = new ArrayList<DamageCause>();
 	private static List<Boolean> noBooleans = new ArrayList<Boolean>();
 	
@@ -66,6 +66,14 @@ public class MobQuery implements Query {
 	}
 
 	public static MobQuery fromAny(EntityType type, DamageCause deathCause, SpawnReason reason, 
+		       Boolean baby, Boolean tamed, Boolean playerKill) {
+		
+		// Convert type to type ID
+		return fromAny(type != null ? type.getTypeId() : null, 
+				deathCause, reason, baby, tamed, playerKill);
+	}
+	
+	public static MobQuery fromAny(Short typeID, DamageCause deathCause, SpawnReason reason, 
 							       Boolean baby, Boolean tamed, Boolean playerKill) {
 		
 		List<Boolean> spawner;
@@ -76,7 +84,7 @@ public class MobQuery implements Query {
 			spawner = new ArrayList<Boolean>();
 		
 		return new MobQuery(
-				 	Utility.getElementList(type),
+				 	Utility.getElementList(typeID),
 				 	Utility.getElementList(deathCause),
 				 	spawner,
 				 	Utility.getElementList(baby),
@@ -111,8 +119,15 @@ public class MobQuery implements Query {
 
 	public static MobQuery fromExact(EntityType type, DamageCause deathCause, SpawnReason reason, 
 									 Boolean baby, Boolean tamed, Boolean playerKill) {
+		
+		return fromExact(type != null ? type.getTypeId() : null, 
+				deathCause, reason, baby, tamed, playerKill);
+	}
+	
+	public static MobQuery fromExact(Short typeID, DamageCause deathCause, SpawnReason reason, 
+									 Boolean baby, Boolean tamed, Boolean playerKill) {
 		return new MobQuery(
-				Lists.newArrayList(type), 
+				Lists.newArrayList(typeID), 
 				Lists.newArrayList(deathCause),
 				Lists.newArrayList(reason == null ? null : 
 					(reason == SpawnReason.SPAWNER)),
@@ -123,9 +138,9 @@ public class MobQuery implements Query {
 	}
 	
 	
-	public MobQuery(List<EntityType> type, List<DamageCause> deathCause, List<Boolean> spawner, 
+	public MobQuery(List<Short> typeID, List<DamageCause> deathCause, List<Boolean> spawner, 
 					List<Boolean> baby, List<Boolean> tamed, List<Boolean> playerKill) {
-		this.type = type;
+		this.typeID = typeID;
 		this.deathCause = deathCause;
 		this.spawner = spawner;
 		this.baby = baby;
@@ -137,8 +152,8 @@ public class MobQuery implements Query {
 		return deathCause;
 	}
 	
-	public List<EntityType> getType() {
-		return type;
+	public List<Short> getType() {
+		return typeID;
 	}
 	
 	public List<Boolean> getSpawner() {
@@ -158,7 +173,7 @@ public class MobQuery implements Query {
 	}
 	
 	public boolean hasType() {
-		return type != null && !type.isEmpty();
+		return typeID != null && !typeID.isEmpty();
 	}
 	
 	public boolean hasDeathCause() {
@@ -184,7 +199,7 @@ public class MobQuery implements Query {
 	@Override
 	public int hashCode() {
 		return new HashCodeBuilder(17, 31).
-	            append(type).
+	            append(typeID).
 	            append(deathCause).
 	            append(spawner).
 	            append(baby).
@@ -204,7 +219,7 @@ public class MobQuery implements Query {
 
         MobQuery other = (MobQuery) obj;
         return new EqualsBuilder().
-            append(type, other.type).
+            append(typeID, other.typeID).
             append(deathCause, other.deathCause).
             append(spawner, other.spawner).
             append(baby, other.baby).
@@ -222,7 +237,7 @@ public class MobQuery implements Query {
 			MobQuery query = (MobQuery) other;
 			
 			// Make sure the current query is the superset of other
-			return QueryMatching.matchParameter(type, query.type) &&
+			return QueryMatching.matchParameter(typeID, query.typeID) &&
 				   QueryMatching.matchParameter(deathCause, query.deathCause) &&
 				   QueryMatching.matchParameter(spawner, query.spawner) &&
 				   QueryMatching.matchParameter(baby, query.baby) &&
@@ -236,9 +251,8 @@ public class MobQuery implements Query {
 	
 	@Override
 	public String toString() {
-		// TODO Auto-generated method stub
 		return String.format("%s|%s|%s|%s|%s|%s", 
-							hasType() ? StringUtils.join(type, ", ") : "",
+							hasType() ? StringUtils.join(typeID, ", ") : "",
 							hasDeathCause() ? StringUtils.join(deathCause, ", ") : "",
 						    Utility.formatBoolean("spawner", spawner),
 							Utility.formatBoolean("baby", baby),

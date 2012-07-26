@@ -21,7 +21,7 @@ public class MobTreeTest {
 		MobQuery fallGib = MobQuery.fromAny(null, DamageCause.FALL);
 		MobQuery magicGib = MobQuery.fromAny(null, DamageCause.MAGIC);
 		MobQuery zombieKill = MobQuery.fromAny(EntityType.ZOMBIE);
-		MobQuery noSpawnXP = MobQuery.fromAny(null, null, SpawnReason.SPAWNER, null, null, null);
+		MobQuery noSpawnXP = MobQuery.fromAny((EntityType) null, null, SpawnReason.SPAWNER, null, null, null);
 		
 		Action zombieValue = new Action(def, new Range(5));
 		Action magicValue = new Action(def,  new Range(2));

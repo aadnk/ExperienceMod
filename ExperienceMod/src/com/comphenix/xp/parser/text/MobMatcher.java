@@ -18,170 +18,191 @@
 package com.comphenix.xp.parser.text;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import com.comphenix.xp.parser.ParsingException;
+import com.comphenix.xp.parser.TextParser;
 import com.comphenix.xp.parser.Utility;
-
-import org.bukkit.entity.EntityType;
 import com.google.common.collect.Lists;
 
+import org.apache.commons.lang.NullArgumentException;
+import org.bukkit.entity.EntityType;
+
 /**
- * Used in conjunction with the MobEntityTypeParser to encode multiple entity types per parse token.
+ * Used by the MobEntityTypeParser to parse mob names or categories.
  * @author Kristian
  */
-public class MobMatcher {
-	/**
-	 * Every mob category.
-	 * @author Kristian
-	 */
-	public enum Category {
-		// Categories
-		/**
-		 * Utility mobs may be created by and serve the player. 
-		 */
-		UTILITY(EntityType.IRON_GOLEM, EntityType.SNOWMAN),
+public class MobMatcher extends TextParser<List<Short>> {
+	
+	private Map<String, List<Short>> categories = new HashMap<String, List<Short>>();
+	private Map<String, Short> names = new HashMap<String, Short>();
+	
+	public MobMatcher() {
+		loadDefaultCategories();
+		loadDefaultMobs();
+	}
 		
-		/**
-		 * Passive mobs will never attack the player.
-		 */
-		PASSIVE(EntityType.CHICKEN, EntityType.COW, EntityType.MUSHROOM_COW, EntityType.OCELOT, 
-				EntityType.PIG, EntityType.SHEEP, EntityType.SQUID, EntityType.VILLAGER),
-				
-		/**
-		 * Neutral mobs will not attack the player unless provoked. The act of provoking neutral mobs varies between mobs. 
-		 */
-		NEUTRAL(EntityType.IRON_GOLEM, EntityType.ENDERMAN, EntityType.PIG_ZOMBIE, EntityType.WOLF),
+	protected void loadDefaultCategories() {
+		// Utility mobs may be created by and serve the player. 
+		registerCategory("UTILITY", EntityType.IRON_GOLEM, EntityType.SNOWMAN);
 		
-		/**
-		 * Hostile mobs will attack the player when in range.
-		 */
-		HOSTILE(EntityType.BLAZE, EntityType.CAVE_SPIDER, EntityType.CREEPER, EntityType.GHAST, 
+		// Passive mobs will never attack the player.
+		registerCategory("PASSIVE", EntityType.CHICKEN, EntityType.COW, EntityType.MUSHROOM_COW, EntityType.OCELOT, 
+				EntityType.PIG, EntityType.SHEEP, EntityType.SQUID, EntityType.VILLAGER);
+		
+		// Neutral mobs will not attack the player unless provoked. The act of provoking neutral mobs varies between mobs. 
+		registerCategory("NEUTRAL", EntityType.IRON_GOLEM, EntityType.ENDERMAN, EntityType.PIG_ZOMBIE, EntityType.WOLF);
+		
+		// Hostile mobs will attack the player when in range.
+		registerCategory("HOSTILE", EntityType.BLAZE, EntityType.CAVE_SPIDER, EntityType.CREEPER, EntityType.GHAST, 
 				EntityType.MAGMA_CUBE, EntityType.SILVERFISH, EntityType.SKELETON, EntityType.SLIME, 
-				EntityType.SPIDER, EntityType.ZOMBIE),
-				
-		/**
-		 * Boss mobs have a large amount of health and spawn only once per world. 
-		 */
-		BOSS(EntityType.ENDER_DRAGON),
-				
-		/**
-		 * Special marker indicating a custom category.
-		 */
-		SPECIFIC;
+				EntityType.SPIDER, EntityType.ZOMBIE);
 		
-		private List<EntityType> members;
+		// Boss mobs have a large amount of health and spawn only once per world. 
+		registerCategory("BOSS", EntityType.ENDER_DRAGON);
+	}
+	
+	protected void loadDefaultMobs() {
 		
-		private Category(EntityType... members) {
-			if (members.length == 0)
-				this.members = null;
-			else
-				this.members = Arrays.asList(members);
-		}
-		
-		public List<EntityType> getMembers() {
-			return members;
-		}
-		
-		/**
-		 * Retrieves the category with the same ENUM name, or NULL if no such category exists.
-		 * @param text - name of the category to find.
-		 * @return The found category or NULL if no such category can be found.
-		 */
-		public static Category fromName(String text) {
-			
-			String enumed = Utility.getEnumName(text);
-			
-			for (Category category : values()) {
-				if (category.name().equals(enumed))
-					return category;
+		// Add every default entity type and name
+		for (EntityType type : EntityType.values()) {
+			if (type != null && type.isAlive() && type.isSpawnable()) {
+				registerMob(type.name(), type.getTypeId());
+				registerMob(type.getName(), type.getTypeId());
 			}
-			
-			// No such category found
-			return null;
 		}
 	}
 	
-	private Category category;
-	private EntityType specific;
-	
-	public MobMatcher(EntityType specificMob) {
-		this.category = Category.SPECIFIC;
-		this.specific = specificMob;
-	}
-	
-	public MobMatcher(Category category) {
-		this.category = category;
-		this.specific = null;
-	}
-	
 	/**
-	 * Retrieves the mob category this matcher is set to.
-	 * @return The current mob category.
+	 * Retrieves the category with the same ENUM name, or NULL if no such category exists.
+	 * @param text - name of the category to find.
+	 * @return The found category's list of mobs, or NULL if no such category can be found.
 	 */
-	public Category getCategory() {
-		return category;
-	}
-	
-	/**
-	 * Sets the mob category of this matcher.
-	 * @param category - new mob category.
-	 */
-	public void setCategory(Category category) {
-		this.category = category;
-	}
-
-	/**
-	 * Retrieves the specific or single entity type of this matcher.
-	 */
-	public EntityType getSpecific() {
-		return specific;
-	}
-
-	/**
-	 * Set the specific or single entity type of this matcher.
-	 * @param specific - specific entity type.
-	 */
-	public void setSpecific(EntityType specific) {
-		this.specific = specific;
-	}
-	
-	/**
-	 * Retrieves every entity type that matches this rule.
-	 * @return Every matched entity type.
-	 */
-	public List<EntityType> getEntityTypes() {
-		if (category == Category.SPECIFIC)
-			return Lists.newArrayList(specific);
-		else
-			return category.getMembers();
-	}
-	
-	/**
-	 * Adds every EntityType that matches the current rule to the given list.
-	 * @param destination - the given list to add entity types.
-	 */
-	public void addToList(List<EntityType> destination) {
-		if (category == Category.SPECIFIC)
-			destination.add(getSpecific());
-		else
-			destination.addAll(getEntityTypes());
-	}
-	
-	
-	/**
-	 * Flattens the entity list in every matcher.
-	 * @param matchers - list of matchers.
-	 * @return The flattened entity list.
-	 */
-	public static List<EntityType> convertToTypes(List<MobMatcher> matchers) {
-		List<EntityType> entityTypes = new ArrayList<EntityType>();
+	public List<Short> getCategoryFromName(String text) {
 		
-		for (MobMatcher matcher : matchers) {
-			matcher.addToList(entityTypes);
+		String enumed = Utility.getEnumName(text);
+		return categories.get(enumed);
+	}
+	
+	/**
+	 * Retrieves the mob with the same ENUM name, or NULL if no such mob is registered.
+	 * @param text - name of the mob to find.
+	 * @return The found mob ID, or NULL if no such mob can be found.
+	 */
+	public Short getMobFromName(String text) {
+		
+		String enumed = Utility.getEnumName(text);
+		return names.get(enumed);
+	}
+	
+	/**
+	 * Registers a category with the given name.
+	 * @param categoryName - name of the category.
+	 * @param types - list of mobs in that category.
+	 */
+	public void registerCategory(String categoryName, EntityType... types) {
+		
+		if (categoryName == null)
+			throw new NullArgumentException("categoryName");
+		if (types == null)
+			throw new NullArgumentException("types");
+		
+		List<Short> ids = new ArrayList<Short>();
+		
+		// Get all the type IDs
+		for (EntityType type : types) {
+			if (type != null)
+				ids.add(type.getTypeId());
 		}
 		
-		// Flatten
-		return entityTypes;
+		categories.put(categoryName, ids);
+	}
+	
+	/**
+	 * Registers a category with the given name.
+	 * @param categoryName - name of the category.
+	 * @param types - list of mob ids in that category.
+	 */
+	public void registerCategory(String categoryName, Short... types) {
+		
+		if (categoryName == null)
+			throw new NullArgumentException("categoryName");
+		if (types == null)
+			throw new NullArgumentException("types");
+		
+		categories.put(categoryName, Lists.newArrayList(types));
+	}
+	
+	/**
+	 * Unregisters the given category.
+	 * @param categoryName - name of the category to unregister.
+	 * @return List of mobs from the category that was unregistered, or NULL if no category could be found.
+	 */
+	public List<Short> unregisterCategory(String categoryName) {
+		
+		if (categoryName == null)
+			throw new NullArgumentException("categoryName");	
+		
+		return categories.remove(categoryName);
+	}
+	
+	/**
+	 * Retrieves a collection of currently registered categories.
+	 * @return Collection of registered categories.
+	 */
+	public Collection<String> getRegisteredCategories() {
+		return categories.keySet();
+	}
+	
+	/**
+	 * Register an individual mob.
+ 	 * @param mobName - ENUM name of the mob.
+	 * @param id - the unique type ID of the mob.
+	 */
+	public void registerMob(String mobName, Short id) {
+
+		if (mobName == null)
+			throw new NullArgumentException("mobName");
+		if (id == null)
+			throw new NullArgumentException("id");
+
+		names.put(mobName, id);
+	}
+
+	/**
+	 * Unregisters an individual mob.
+	 * @param mobName - name of the mob to unregister.
+	 * @return The previously registered mob's ID, or NULl if no mob could be found.
+	 */
+	public Short unregisterMob(String mobName) {
+		
+		if (mobName == null)
+			throw new NullArgumentException("mobName");
+		
+		return names.remove(mobName);
+	}
+	
+	/**
+	 * Retrieves a collection of currently registered mobs.
+	 * @return Collection of registered mobs.
+	 */
+	public Collection<String> getRegisteredMobs() {
+		return names.keySet();
+	}
+
+	@Override
+	public List<Short> parse(String text) throws ParsingException {
+
+		String enumed = Utility.getEnumName(text);
+		
+		if (categories.containsKey(enumed))
+			return categories.get(enumed);
+		else if (names.containsKey(enumed))
+			return Utility.getElementList(names.get(enumed));
+		else
+			return Utility.getElementList(null);
 	}
 }

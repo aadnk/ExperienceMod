@@ -70,7 +70,7 @@ public class Utility {
 	 * @param list - list of lists to aggregate.
 	 * @return List containing the element of each list in the given list.
 	 */
-	public static List<Integer> flatten(List<Set<Integer>> list) {
+	public static <T> List<T> flatten(List<Set<T>> list) {
 		return Lists.newArrayList(Iterables.concat(list));
 	}
 	

@@ -21,6 +21,7 @@ import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.parser.text.ItemNameParser;
 import com.comphenix.xp.parser.text.ItemParser;
+import com.comphenix.xp.parser.text.MobMatcher;
 import com.comphenix.xp.parser.text.MobParser;
 import com.comphenix.xp.rewards.RewardProvider;
 import com.comphenix.xp.rewards.RewardTypes;
@@ -53,7 +54,7 @@ public class ItemTreeTest {
 		// Load the default configuration
 		configuration = new Configuration(injected, rewards, channels);
 		configuration.setItemParser(new ItemParser(new ItemNameParser()));
-		configuration.setMobParser(new MobParser());
+		configuration.setMobParser(new MobParser(new MobMatcher()));
 		configuration.setActionTypes(ActionTypes.Default());
 		configuration.loadFromConfig(defaultFile);
     }

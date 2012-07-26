@@ -20,7 +20,6 @@ package com.comphenix.xp.lookup;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.bukkit.entity.EntityType;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
 import com.comphenix.xp.Action;
@@ -28,7 +27,7 @@ import com.comphenix.xp.Action;
 public class MobTree extends ActionTree<MobQuery> implements Multipliable<MobTree> {
 
 	// DON'T CARE fields are marked with NULL
-	protected Parameter<EntityType> type;
+	protected Parameter<Short> type;
 	protected Parameter<DamageCause> deathCause;
 	protected Parameter<Boolean> spawner;
 	protected Parameter<Boolean> baby;
@@ -52,7 +51,7 @@ public class MobTree extends ActionTree<MobQuery> implements Multipliable<MobTre
 	
 	public MobTree(double multiplier) {
 		super(multiplier);
-		this.type = new Parameter<EntityType>();
+		this.type = new Parameter<Short>();
 		this.deathCause = new Parameter<DamageCause>();
 		this.spawner = new Parameter<Boolean>();
 		this.baby = new Parameter<Boolean>();
@@ -141,7 +140,7 @@ public class MobTree extends ActionTree<MobQuery> implements Multipliable<MobTre
 		playerKill.putAll(tree.playerKill, offset);
 	}
 
-	public Parameter<EntityType> getType() {
+	public Parameter<Short> getType() {
 		return type;
 	}
 

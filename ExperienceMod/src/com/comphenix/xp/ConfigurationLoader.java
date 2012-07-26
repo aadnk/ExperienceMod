@@ -27,6 +27,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.parser.text.ItemNameParser;
 import com.comphenix.xp.parser.text.ItemParser;
+import com.comphenix.xp.parser.text.MobMatcher;
 import com.comphenix.xp.parser.text.MobParser;
 import com.comphenix.xp.rewards.RewardProvider;
 
@@ -45,7 +46,9 @@ public class ConfigurationLoader {
 	
 	private ItemNameParser nameParser = new ItemNameParser();
 	private ItemParser itemParser = new ItemParser(nameParser);
-	private MobParser mobParser = new MobParser();
+	
+	private MobMatcher mobMatcher = new MobMatcher();
+	private MobParser mobParser = new MobParser(mobMatcher);
 	
 	public ConfigurationLoader(File rootPath, Debugger logger, RewardProvider rewardProvider, ChannelProvider channelProvider) {
 		this.rootPath = rootPath;
@@ -73,6 +76,23 @@ public class ConfigurationLoader {
 	 */
 	public void setItemParser(ItemParser itemParser) {
 		this.itemParser = itemParser;
+	}
+
+	/**
+	 * Retrieves the current mob name and mob category parser.
+	 * @return Current mob name/mob category parser.
+	 */
+	public MobMatcher getMobMatcher() {
+		return mobMatcher;
+	}
+
+	/**
+	 * Sets the current mob name and mob category parser. Also recreates the mob parser.
+	 * @param mobMatcher - new mob name/mob category parser.
+	 */
+	public void setMobMatcher(MobMatcher mobMatcher) {
+		this.mobMatcher = mobMatcher;
+		this.mobParser = new MobParser(mobMatcher);
 	}
 
 	/**
