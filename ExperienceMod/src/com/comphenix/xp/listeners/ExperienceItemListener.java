@@ -303,8 +303,11 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 							
 							// Don't touch the inventory of the untouchables
 							if (!Permissions.hasUntouchable(player)) {
+								
+								if (originalBlockInventory != null)
+									blockInventory.setContents(originalBlockInventory);
+								
 								playerInventory.setContents(originalPlayerInventory);
-								blockInventory.setContents(originalBlockInventory);
 								player.setItemOnCursor(toStore);
 							}
 						}
@@ -487,15 +490,24 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 	 * @return A copy of the content.
 	 */
 	private ItemStack[] getInventoryCopy(Inventory inventory) {
-		
-		final ItemStack[] copy = inventory.getContents();
-		
-		// Clone the array. The content may (was for me) mutable.
-		for (int i = 0; i < copy.length; i++) {
-			copy[i] = copy[i] != null ? copy[i].clone() : null;
+	
+		try {
+			ItemStack[] copy = inventory.getContents();
+			
+			// Clone the array. The content may (was for me) mutable.
+			for (int i = 0; i < copy.length; i++) {
+				copy[i] = copy[i] != null ? copy[i].clone() : null;
+			}
+			
+			return copy;
+
+		} catch (NullPointerException e) {
+			// Lazy mod authors!
+			if (debugger != null)
+				debugger.printDebug(this, "Unable to get inventory content. Cannot fully cancel reward.");
+
+			return null;
 		}
-		
-		return copy;
 	}
 	
 	// Makes a copy of a item stack
