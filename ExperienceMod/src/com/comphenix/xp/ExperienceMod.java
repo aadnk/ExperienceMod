@@ -284,6 +284,9 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			
 			if (provider.containsService(enumName)) {
 				provider.setEnabled(enumName, false);
+			} else {
+				// We should really complain about this
+				printWarning(this, "Cannot disable %s: Service doesn't exist.", name);
 			}
 		}
 	}
