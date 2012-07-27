@@ -112,6 +112,9 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		playerScheduler = new PlayerScheduler(Bukkit.getScheduler(), this);
 		manager = getServer().getPluginManager();
 		
+		// Informs about negative events
+		informer = new ExperienceInformerListener();
+		
 		// Initialize rewards
 		currentLogger = this.getLogger();
 		rewardProvider = new RewardProvider();
@@ -151,7 +154,6 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	@Override
 	public void onEnable() {
 		
-		informer = new ExperienceInformerListener();
 		interactionListener = new PlayerInteractionListener();
 		
 		// Commands
@@ -338,9 +340,11 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		// Read from disk again
 		if (reload || presets == null) {
 			
-			// Reset warnings
-			informer.clearMessages();
-			
+			// Reset warnings if this is the second time around
+			if (reload) {
+				informer.clearMessages();
+			}
+				
 			// Remove previously loaded files
 			configLoader.clearCache();
 			
