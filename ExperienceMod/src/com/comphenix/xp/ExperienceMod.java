@@ -55,6 +55,7 @@ import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.messages.HeroService;
 import com.comphenix.xp.messages.MessageFormatter;
 import com.comphenix.xp.messages.StandardService;
+import com.comphenix.xp.metrics.DataCollector;
 import com.comphenix.xp.mods.BlockResponse;
 import com.comphenix.xp.mods.CustomBlockProviders;
 import com.comphenix.xp.mods.StandardBlockService;
@@ -96,7 +97,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	private Presets presets;
 
 	// Metrics!
-	
+	private DataCollector dataCollector;
 	
 	// Repeating task
 	private static final int TICK_DELAY = 4; // 50 ms * 4 = 200 ms
@@ -223,6 +224,11 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		));
 	
 		registerHistoryServices();
+		
+		// Collect data, if enabled
+		if (globalSettings.isUseMetrics()) {
+			dataCollector = new DataCollector(this);
+		}
 		
 		// Register commands
 		getCommand(CommandExperienceMod.COMMAND_RELOAD).setExecutor(commandExperienceMod);
@@ -540,6 +546,10 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		return configLoader.getActionTypes();
 	}
 
+	public DataCollector getDataCollector() {
+		return dataCollector;
+	}
+
 	/**
 	 * Retrieves a list of action rewards that applies when a mob is killed, either by the environment (when KILLER is NULL), 
 	 * or by a player. 
@@ -661,8 +671,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		// Add to list of warnings
 	    informer.addWarningMessage(String.format(message, params));
 	}
-	
-	
+
 	// Taken from Apache Commons-IO
 	private static long copyLarge(InputStream input, OutputStream output) throws IOException {
 		byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
