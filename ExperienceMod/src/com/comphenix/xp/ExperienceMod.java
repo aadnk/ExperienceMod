@@ -94,11 +94,14 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	private GlobalSettings globalSettings;
 	private ConfigurationLoader configLoader;
 	private Presets presets;
+
+	// Metrics!
+	
 	
 	// Repeating task
 	private static final int TICK_DELAY = 4; // 50 ms * 4 = 200 ms
 	private int serverTickTask;
-	
+
 	// Commands
 	private CommandExperienceMod commandExperienceMod;
 	private CommandSpawnExp commandSpawn;

@@ -69,6 +69,14 @@ public class ExperienceInformerListener implements Listener {
 		warningMessages.clear();
 	}
 	
+	/**
+	 * The number of warnings currently stored.
+	 * @return Number of warnings.
+	 */
+	public int messageCount() {
+		return warningMessages.size();
+	}
+	
 	public boolean hasWarnings() {
 		return !warningMessages.isEmpty();
 	}

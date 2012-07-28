@@ -13,16 +13,19 @@ public class GlobalSettings {
 	public static final String MAX_BLOCKS_IN_HISTORY_SETTING = "max blocks in history";
 	public static final String MAX_AGE_IN_HISTORY_SETTING = "max age in history";
 	public static final String USE_PERMISSIONS = "use permissions";
+	public static final String USE_METRICS = "use metrics";
 	public static final String DISABLED_SERVICES = "disabled services";
 	
 	private static final int DEFAULT_MAX_BLOCKS_IN_HISTORY = 5000;
 	private static final int DEFAULT_MAX_AGE_IN_HISTORY = 600; // 10 minutes
 	private static final boolean DEFAULT_USE_PERMISSIONS = true;
+	private static final boolean DEFAULT_USE_METRICS = true;
 	
 	// Block changes memory history
 	private int maxBlocksInHistory;
 	private int maxAgeInHistory;
-	
+
+	private boolean useMetrics;
 	private boolean usePermissions;
 	private List<String> disabledServices;
 	
@@ -46,9 +49,10 @@ public class GlobalSettings {
 		maxBlocksInHistory = config.getInt(MAX_BLOCKS_IN_HISTORY_SETTING, DEFAULT_MAX_BLOCKS_IN_HISTORY);
 		maxAgeInHistory = config.getInt(MAX_AGE_IN_HISTORY_SETTING, DEFAULT_MAX_AGE_IN_HISTORY);
 		
+		useMetrics = config.getBoolean(USE_METRICS, DEFAULT_USE_METRICS);
 		usePermissions = config.getBoolean(USE_PERMISSIONS, DEFAULT_USE_PERMISSIONS);
 		disabledServices = listParser.parseSafe(config, DISABLED_SERVICES);
-
+		
 		// Handle errors
 		if (disabledServices == null) {
 			debugger.printDebug(this, "No disabled service setting found.");
@@ -64,6 +68,14 @@ public class GlobalSettings {
 		}
 	}
 
+	public boolean isUseMetrics() {
+		return useMetrics;
+	}
+
+	public void setUseMetrics(boolean useMetrics) {
+		this.useMetrics = useMetrics;
+	}
+	
 	public int getMaxBlocksInHistory() {
 		return maxBlocksInHistory;
 	}
