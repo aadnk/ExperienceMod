@@ -100,7 +100,19 @@ public class Presets implements PlayerCleanupListener {
 		
 		if (chat != null && sender instanceof Player) {
 			Player player = (Player) sender;
-			preset = chat.getPlayerInfoString(player, OPTION_PRESET_SETTING, null);
+			
+			try {
+				preset = chat.getPlayerInfoString(player, OPTION_PRESET_SETTING, null);
+				
+			} catch (RuntimeException e) {
+				// Must be a runtime exception, otherwise we'd have to handle it from the method above.
+				if (!ignorableException(e)) {
+					throw e;
+				} else {
+					logger.printDebug(this, "Ignored NPE from mChat.");
+				}
+			}
+			
 			world = player.getWorld().getName();
 		}
 		
@@ -223,5 +235,20 @@ public class Presets implements PlayerCleanupListener {
 				config.removePlayerCache(player);
 			}	
 		}
+	}
+
+	/**
+	 * Determines whether or not the given exception can be ignored if thrown from getGroupInfoString.
+	 * @param e - the exception to test.
+	 * @see net.milkbowl.vault.chat.Chat#getGroupInfoString(String, String, String, String) Chat.getGroupInfoString
+	 * @return TRUE if it can be ignored, FALSE otherwise.
+	 */
+	public boolean ignorableException(Exception e) {
+		// This plugin insists on using NullPointerExceptions as a good flag for "not found". Excellent.
+		if (e instanceof NullPointerException && chat.getName().equals("mChatSuite"))
+			return true;
+		
+		// Treat it normally
+		return false;
 	}
 }

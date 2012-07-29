@@ -25,7 +25,9 @@ public class DataCollector {
 		
 		try {
 			// Initialize metrics
-			metrics = new Metrics(mod);
+			this.mod = mod;
+			this.metrics = new Metrics(mod);
+			
 			addOptionalMods();
 			addWarningCount();
 			

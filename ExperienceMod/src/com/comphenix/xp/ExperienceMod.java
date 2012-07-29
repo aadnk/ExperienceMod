@@ -22,6 +22,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Collection;
 import java.util.List;
 import java.util.MissingResourceException;
 import java.util.logging.Logger;
@@ -38,6 +39,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;
+import org.bukkit.plugin.ServicesManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.comphenix.xp.commands.CommandExperienceMod;
@@ -62,6 +64,8 @@ import com.comphenix.xp.mods.StandardBlockService;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.parser.Utility;
 import com.comphenix.xp.rewards.*;
+import com.google.common.base.Function;
+import com.google.common.collect.Lists;
 
 public class ExperienceMod extends JavaPlugin implements Debugger {
 	
@@ -170,9 +174,14 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		// Load economy, if it exists
 		try {
 			if (!hasEconomy())
-				economy = getRegistration(Economy.class);
+				economy = getRegistration(Economy.class, null);
 			if (!hasChat())
-				chat = getRegistration(Chat.class);
+				chat = getRegistration(Chat.class, new Function<Chat, Boolean>() {
+					public Boolean apply(Chat element) {
+						// Try not to use mChatSuite if we don't have to
+						return element.getName().equalsIgnoreCase("mChatSuite");
+					}
+				});
 		
 		} catch (NoClassDefFoundError e) {
 		} catch (NullPointerException e) {
@@ -189,7 +198,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			itemListener.setReward(rewardEconomy);
 			
 			// Inform the player
-			currentLogger.info("Economy enabled.");
+			currentLogger.info("Economy enabled. Using " + economy.getName() + ".");
 			
 			// Register listener
 			manager.registerEvents(itemListener, this);
@@ -198,6 +207,11 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			
 			// Damn it
 			currentLogger.info("Economy not registered.");
+		}
+		
+		// Display chat hook
+		if (hasChat()) {
+			currentLogger.info("Hooked " + chat.getName() + " for chat options.");
 		}
 		
 		try {
@@ -409,14 +423,18 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		if (chat == null)
 			return;
 		
+		String possibleOption = "";
+		
 		for (String group : chat.getGroups()) {
 			for (World world : getServer().getWorlds()) {
 				
 				String worldName = world.getName();
-				String possibleOption = chat.getGroupInfoString(
-						worldName, group, Presets.OPTION_PRESET_SETTING, null);
-
+				
 				try {
+					// We have to be careful here - the plugin might throw an error
+					possibleOption = chat.getGroupInfoString(worldName, 
+						group, Presets.OPTION_PRESET_SETTING, null);
+					
 					if (!Utility.isNullOrIgnoreable(possibleOption) && 
 						!presets.containsPreset(possibleOption, worldName)) {
 						
@@ -427,19 +445,52 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 					
 				} catch (ParsingException e) {
 					printWarning(this, "Preset '%s' causes error: %s", possibleOption, e.getMessage());
+
+				} catch (Exception e) {
+					// mChat seems to throw this a lot
+					if (!presets.ignorableException(e))
+						printWarning(this, "Preset '%s' threw exception: %s", possibleOption, e.toString());
 				}
 			}
 		}
 	}
 
-	private <TClass> TClass getRegistration(Class<TClass> type)
+	private <TClass> TClass getRegistration(Class<TClass> type, Function<TClass, Boolean> isLowPriority)
     {
-        RegisteredServiceProvider<TClass> registry = getServer().getServicesManager().getRegistration(type);
+		ServicesManager manager = getServer().getServicesManager();
+		
+        Collection<RegisteredServiceProvider<TClass>> registry = manager.getRegistrations(type);
+        List<TClass> lower = Lists.newArrayList();
+        List<TClass> higher = Lists.newArrayList();
         
-        if (registry != null) 
-        	return registry.getProvider();
-        else
+        if (registry != null) {
+        	
+        	// Sort by priority
+        	for (RegisteredServiceProvider<TClass> provider : registry) {
+        		if (provider.getPlugin() != null) {
+        			TClass element = provider.getProvider();
+        			
+        			// Use our "lambda"
+        			if (isLowPriority != null && isLowPriority.apply(element)) {
+        				lower.add(provider.getProvider());
+        			} else {
+        				higher.add(provider.getProvider());
+        			}
+        		}
+        	}
+        	
+        	// Take the first highest, if possible
+        	if (higher.size() > 0)
+        		return higher.get(0);
+        	else if (lower.size() > 0)
+        		return lower.get(0);
+        	else
+        		// Nothing found!
+        		return null;
+        	
+        } else {
         	return null;
+        }
     }
 	
 	private boolean hasEconomy() {
