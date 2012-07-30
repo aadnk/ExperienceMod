@@ -65,6 +65,14 @@ public class BlockResponse {
 	}
 	
 	/**
+	 * Sets the default behavior that will handle the inventory event.
+	 * @param defaultBehavior - new default behavior, or NULL for a custom behavior.
+	 */
+	public void setDefaultBehavior(InventoryType defaultBehavior) {
+		this.defaultBehavior = defaultBehavior;
+	}
+	
+	/**
 	 * Whether or not this response contains a default behavior.
 	 * @return TRUE if it contains a default behavior, FALSE if it contains a custom behavior.
 	 */
