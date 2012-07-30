@@ -18,6 +18,11 @@ public class BlockResponse {
 	 * A response indicating failure.
 	 */
 	public static BlockResponse FAILURE = new BlockResponse(false);
+	
+	/**
+	 * A response indicating success, but that that ExperienceMod should leave everything up to the caller.
+	 */
+	public static BlockResponse CUSTOM = new BlockResponse((InventoryType) null, "", "");
 
 	private boolean success;
 	private boolean forceHack;

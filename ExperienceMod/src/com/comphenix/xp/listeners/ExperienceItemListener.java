@@ -329,7 +329,7 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 				
 				// Some cruft here - the stack is only divided when the user has no cursor items
 				if (partialResults && event.isRightClick() && !ItemQuery.hasItems(toStore)) {
-					count = Math.max(count / 2, 1);
+					count = count / 2 + count % 2;
 				}
 				
 				// Nothing do do
