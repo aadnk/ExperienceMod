@@ -26,6 +26,7 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import com.comphenix.xp.lookup.MobQuery;
 import com.comphenix.xp.parser.TextParser;
 import com.comphenix.xp.parser.ParsingException;
+import com.comphenix.xp.parser.Utility;
 import com.comphenix.xp.parser.primitives.BooleanParser;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -54,9 +55,9 @@ public class MobParser extends TextParser<MobQuery> {
 		
 		ParsingException errorReason = null;
 		
-		List<Short> types = null;
-		List<DamageCause> causes = null;
-		List<Integer> sizes = null;
+		List<Short> types = Utility.getElementList((Short) null);
+		List<DamageCause> causes = Utility.getElementList((DamageCause) null);;
+		List<Integer> sizes = Utility.getElementList((Integer) null);;
 		
 		try {
 			types = flatten(entityTypeParser.parse(tokens));

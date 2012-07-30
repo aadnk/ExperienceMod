@@ -58,8 +58,8 @@ public class ItemParser extends TextParser<Query> {
 		
 		Queue<String> tokens = getParameterQueue(text);
 		
-		List<Integer> itemIDs = null;
-		List<Integer> durabilities = null;
+		List<Integer> itemIDs = Utility.getElementList((Integer) null);;
+		List<Integer> durabilities = Utility.getElementList((Integer) null);;
 		
 		ParsingException errorReason = null;
 		Integer first = null;

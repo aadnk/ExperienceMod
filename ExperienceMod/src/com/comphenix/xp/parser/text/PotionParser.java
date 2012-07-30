@@ -53,9 +53,10 @@ public class PotionParser extends TextParser<PotionQuery> {
 		Queue<String> tokens = getParameterQueue(text);
 		
 		ParsingException reason = null;
-		List<Integer> items = null;
-		List<PotionType> types = null;
-		List<Integer> tiers = null;
+		
+		List<Integer> items = Utility.getElementList((Integer) null);;
+		List<PotionType> types = Utility.getElementList((PotionType) null);;
+		List<Integer> tiers = Utility.getElementList((Integer) null);;
 		
 		try {
 			items = Utility.flatten(itemNameParser.parse(tokens));
