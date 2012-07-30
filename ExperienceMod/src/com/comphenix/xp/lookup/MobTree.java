@@ -29,6 +29,7 @@ public class MobTree extends ActionTree<MobQuery> implements Multipliable<MobTre
 	// DON'T CARE fields are marked with NULL
 	protected Parameter<Short> type;
 	protected Parameter<DamageCause> deathCause;
+	protected Parameter<Integer> size;
 	protected Parameter<Boolean> spawner;
 	protected Parameter<Boolean> baby;
 	protected Parameter<Boolean> tamed;
@@ -43,6 +44,7 @@ public class MobTree extends ActionTree<MobQuery> implements Multipliable<MobTre
 		
 		this.type = other.type;
 		this.deathCause = other.deathCause;
+		this.size = other.size;
 		this.spawner = other.spawner;
 		this.baby = other.baby;
 		this.tamed = other.tamed;
@@ -53,6 +55,7 @@ public class MobTree extends ActionTree<MobQuery> implements Multipliable<MobTre
 		super(multiplier);
 		this.type = new Parameter<Short>();
 		this.deathCause = new Parameter<DamageCause>();
+		this.size = new Parameter<Integer>();
 		this.spawner = new Parameter<Boolean>();
 		this.baby = new Parameter<Boolean>();
 		this.tamed = new Parameter<Boolean>();
@@ -75,6 +78,10 @@ public class MobTree extends ActionTree<MobQuery> implements Multipliable<MobTre
 		
 		if (source.hasDeathCause()) {
 			deathCause.put(source.getDeathCause(), id); paramCount++;
+		}
+		
+		if (source.hasSize()) {
+			size.put(source.getSize(), id); paramCount++;
 		}
 		
 		if (source.hasSpawner()) {
@@ -109,6 +116,10 @@ public class MobTree extends ActionTree<MobQuery> implements Multipliable<MobTre
 			deathCause.retain(candidates, source.getDeathCause());
 		}
 		
+		if (source.hasSize()) {
+			size.retain(candidates, source.getSize());
+		}
+		
 		if (source.hasSpawner()) {
 			spawner.retain(candidates, source.getSpawner());
 		}
@@ -134,6 +145,7 @@ public class MobTree extends ActionTree<MobQuery> implements Multipliable<MobTre
 
 		type.putAll(tree.type, offset);
 		deathCause.putAll(tree.deathCause, offset);
+		size.putAll(tree.size, offset);
 		spawner.putAll(tree.spawner, offset);
 		baby.putAll(tree.baby, offset);
 		tamed.putAll(tree.tamed, offset);
@@ -148,6 +160,10 @@ public class MobTree extends ActionTree<MobQuery> implements Multipliable<MobTre
 		return deathCause;
 	}
 
+	public Parameter<Integer> getSize() {
+		return size;
+	}
+	
 	public Parameter<Boolean> getSpawner() {
 		return spawner;
 	}

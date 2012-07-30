@@ -34,6 +34,7 @@ public class MobParser extends TextParser<MobQuery> {
 	
 	private ParameterParser<List<Short>> entityTypeParser;
 	private ParameterParser<DamageCause> damageCauseParser;
+	private ParameterParser<Integer> mobSizeParser;
 	
 	private BooleanParser spawnerParser = new BooleanParser("spawner");
 	private BooleanParser babyParser = new BooleanParser("baby");
@@ -43,6 +44,7 @@ public class MobParser extends TextParser<MobQuery> {
 	public MobParser(MobMatcher matcher) {
 		this.entityTypeParser = new ParameterParser<List<Short>>(new MobEntityTypeParser(matcher));
 		this.damageCauseParser = new ParameterParser<DamageCause>(new MobDamageCauseParser());
+		this.mobSizeParser = new ParameterParser<Integer>(new MobSizeParser());
 	}
 	
 	@Override
@@ -54,10 +56,12 @@ public class MobParser extends TextParser<MobQuery> {
 		
 		List<Short> types = null;
 		List<DamageCause> causes = null;
+		List<Integer> sizes = null;
 		
 		try {
 			types = flatten(entityTypeParser.parse(tokens));
 			causes = damageCauseParser.parse(tokens);
+			sizes = mobSizeParser.parse(tokens);
 			
 		} catch (ParsingException e) {
 			// Try more
@@ -80,7 +84,7 @@ public class MobParser extends TextParser<MobQuery> {
 				throw ParsingException.fromFormat("Unknown item tokens: %s", StringUtils.join(tokens, ", "));
 		}
 		
-		return new MobQuery(types, causes, spawner, baby, tamed, player);
+		return new MobQuery(types, causes, sizes, spawner, baby, tamed, player);
 	}
 
 	private List<Short> flatten(List<List<Short>> list) {
@@ -101,6 +105,14 @@ public class MobParser extends TextParser<MobQuery> {
 
 	public void setDamageCauseParser(ParameterParser<DamageCause> damageCauseParser) {
 		this.damageCauseParser = damageCauseParser;
+	}
+	
+	public ParameterParser<Integer> getMobSizeParser() {
+		return mobSizeParser;
+	}
+
+	public void setMobSizeParser(ParameterParser<Integer> mobSizeParser) {
+		this.mobSizeParser = mobSizeParser;
 	}
 
 	public BooleanParser getSpawnerParser() {

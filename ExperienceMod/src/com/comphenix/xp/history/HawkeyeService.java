@@ -70,7 +70,8 @@ public class HawkeyeService implements HistoryService {
 			searchParser.worlds = new String[] {blockLocation.getWorld().getName()};
 			searching = true;
 			
-			// Search synchronously (TODO: make it async)
+			// Search synchronously 
+			// TODO: Make the HawkEye call async.
 			HawkEyeAPI.performSearch(new HawkeyeCallback(debugger, this), 
 					searchParser, SearchDir.DESC);
 			

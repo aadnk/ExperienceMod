@@ -81,7 +81,6 @@ public class MemoryService implements HistoryService {
 
 	@Override
 	public boolean hasFalsePositives() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
