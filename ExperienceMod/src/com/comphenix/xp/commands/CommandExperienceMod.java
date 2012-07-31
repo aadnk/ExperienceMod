@@ -47,6 +47,7 @@ public class CommandExperienceMod implements CommandExecutor {
 	public static final String SUB_COMMAND_RELOAD = "reload";
 	public static final String SUB_COMMAND_ITEM = "item";
 	public static final String SUB_COMMAND_MOB = "mob";
+	public static final String SUB_COMMAND_UPDATE = "update";
 	
 	private ExperienceMod plugin;
 
@@ -122,6 +123,12 @@ public class CommandExperienceMod implements CommandExecutor {
 			
     		return true;
 
+		} else if (sub.equalsIgnoreCase(SUB_COMMAND_UPDATE)) {
+			
+			// Attempt to update
+			plugin.getAutoUpdate().updatePlugin(sender);
+    		return true;
+			
 		} else {
 		
 			plugin.respond(sender, ChatColor.RED + "Error: Unknown subcommand.");

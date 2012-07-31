@@ -616,6 +616,14 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	}
 
 	/**
+	 * Retrieves the object responsible for notifying of new updates.
+	 * @return The object keeping track of new updates on BukkitDev.
+	 */
+	public AutoUpdate getAutoUpdate() {
+		return autoUpdate;
+	}
+
+	/**
 	 * Retrieves a list of action rewards that applies when a mob is killed, either by the environment (when KILLER is NULL), 
 	 * or by a player. 
 	 * <p>

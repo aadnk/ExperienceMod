@@ -396,22 +396,37 @@ public class AutoUpdate implements Runnable, Listener {
 			if (!split[0].equalsIgnoreCase("/update"))
 				return;
 			event.setCancelled(true);
-			if (!enabled || !needUpdate)
-				return;
 			if (split.length > 1
 					&& !plugin.getName().equalsIgnoreCase(split[1]))
 				return;
-			update(event.getPlayer());
+			updatePlugin(event.getPlayer());
 		} catch (Throwable t) {
 			printStackTraceSync(t, false);
 		}
 	}
+	
+	/**
+	 * Called by a player or the console to initiate updates.
+	 * <p>
+	 * Note that the return value only indicates that the update request was accepted and the download
+	 * process is scheduled to be executed. The update itself may still fail.
+	 * 
+	 * @param sender - the player or console that is attempting to initiate an update.
+	 * @return TRUE if the update was initiated and the download process has begun, FALSE otherwise.
+	 */
+	public boolean updatePlugin(CommandSender sender) {
+		if (enabled && needUpdate) {
+			return update(sender);
+		} else {
+			return false;
+		}
+	}
 
-	private void update(CommandSender sender) {
+	private boolean update(CommandSender sender) {
 		if (!hasPermission(sender, "autoupdate.update." + plugin.getName())) {
 			sender.sendMessage(COLOR_ERROR + plugin.getName()
 					+ ": You are not allowed to update me!");
-			return;
+			return false;
 		}
 		final BukkitScheduler bs = plugin.getServer().getScheduler();
 		final String pn = sender instanceof Player ? ((Player) sender)
@@ -477,6 +492,9 @@ public class AutoUpdate implements Runnable, Listener {
 				}
 			}
 		});
+
+		// The task was successfully created. It may still fail, though.
+		return true;
 	}
 
 	private void printStackTraceSync(Throwable t, boolean expected) {
