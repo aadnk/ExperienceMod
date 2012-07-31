@@ -18,6 +18,7 @@
 package com.comphenix.xp;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -57,6 +58,7 @@ import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.messages.HeroService;
 import com.comphenix.xp.messages.MessageFormatter;
 import com.comphenix.xp.messages.StandardService;
+import com.comphenix.xp.metrics.AutoUpdate;
 import com.comphenix.xp.metrics.DataCollector;
 import com.comphenix.xp.mods.BlockResponse;
 import com.comphenix.xp.mods.CustomBlockProviders;
@@ -102,6 +104,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 
 	// Metrics!
 	private DataCollector dataCollector;
+	private AutoUpdate autoUpdate;
 	
 	// Repeating task
 	private static final int TICK_DELAY = 4; // 50 ms * 4 = 200 ms
@@ -366,8 +369,8 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		// Read from disk again
 		if (reload || presets == null) {
 			
-			// Reset warnings if this is the second time around
 			if (reload) {
+				// Reset warnings if this is the second time around
 				informer.clearMessages();
 			}
 				
@@ -375,9 +378,21 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			configLoader.clearCache();
 			
 			// Load globals
+			YamlConfiguration globalConfig = loadConfig("global.yml", "Creating default global settings.");
 			globalSettings = new GlobalSettings(this);
-			globalSettings.loadFromConfig(loadConfig("global.yml", "Creating default global settings."));
+			globalSettings.loadFromConfig(globalConfig);
 			Permissions.setGlobalSettings(globalSettings);
+			
+			if (autoUpdate == null) {
+				try {
+					autoUpdate = new AutoUpdate(this, globalConfig);
+				} catch (Exception e) {
+					throw new FileNotFoundException(e.getMessage());
+				}
+			} else {
+				// Update updater
+				autoUpdate.setConfig(globalConfig);
+			}
 			
 			// Disable stuff
 			disableServices(historyProviders, globalSettings.getDisabledServices());
@@ -402,7 +417,6 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 				// Show potentially more warnings
 				checkIllegalPresets();
 			}
-			
 		}
 	}
 	

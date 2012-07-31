@@ -3,7 +3,8 @@ package com.comphenix.xp;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.bukkit.configuration.ConfigurationSection;
+import org.apache.commons.lang.NullArgumentException;
+import org.bukkit.configuration.file.FileConfiguration;
 
 import com.comphenix.xp.parser.StringListParser;
 
@@ -20,6 +21,9 @@ public class GlobalSettings {
 	private static final int DEFAULT_MAX_AGE_IN_HISTORY = 600; // 10 minutes
 	private static final boolean DEFAULT_USE_PERMISSIONS = true;
 	private static final boolean DEFAULT_USE_METRICS = true;
+	
+	// Configuration file
+	private FileConfiguration currentConfig;
 	
 	// Block changes memory history
 	private int maxBlocksInHistory;
@@ -43,7 +47,7 @@ public class GlobalSettings {
 	 * Initialize configuration from a configuration section.
 	 * @param config - configuration section to load from.
 	 */
-	public void loadFromConfig(ConfigurationSection config) {
+	public void loadFromConfig(FileConfiguration config) {
 	
 		// Load history memory settings
 		maxBlocksInHistory = config.getInt(MAX_BLOCKS_IN_HISTORY_SETTING, DEFAULT_MAX_BLOCKS_IN_HISTORY);
@@ -66,8 +70,41 @@ public class GlobalSettings {
 			debugger.printWarning(this, "Maximum number of blocks (in seconds) cannot be %s.", maxBlocksInHistory);
 			maxBlocksInHistory = -1;
 		}
+		
+		// Save it
+		this.currentConfig = config;
 	}
-
+	
+	/***
+	 * Retrieves the current updated configuration file.
+	 * @return Configuration file.
+	 */
+	public FileConfiguration getConfiguration() {
+		return getConfiguration(true);
+	}
+	
+	/**
+	 * Retrieves the current configuration file.
+	 * @param updated - whether or not it needs to be updated with the current values.
+	 * @return The current file configuration.
+	 */
+	public FileConfiguration getConfiguration(boolean updated) {
+		
+		if (currentConfig == null)
+			throw new IllegalStateException("Settings hasn't been loaded yet.");
+		
+		// See if the configuration section should be up to date
+		if (updated) {
+			currentConfig.set(MAX_BLOCKS_IN_HISTORY_SETTING, maxBlocksInHistory);
+			currentConfig.set(MAX_AGE_IN_HISTORY_SETTING, maxAgeInHistory);
+			currentConfig.set(USE_METRICS, useMetrics);
+			currentConfig.set(USE_PERMISSIONS, usePermissions);
+			currentConfig.set(DISABLED_SERVICES, disabledServices);
+		}
+		
+		return currentConfig;
+	}
+	
 	public boolean isUseMetrics() {
 		return useMetrics;
 	}
@@ -81,6 +118,9 @@ public class GlobalSettings {
 	}
 
 	public void setMaxBlocksInHistory(int maxBlocksInHistory) {
+		if (maxBlocksInHistory < -1)
+			throw new IllegalArgumentException("Maximum number of blocks (in seconds) cannot be less than negative one.");
+		
 		this.maxBlocksInHistory = maxBlocksInHistory;
 	}
 
@@ -89,6 +129,9 @@ public class GlobalSettings {
 	}
 
 	public void setMaxAgeInHistory(int maxAgeInHistory) {
+		if (maxAgeInHistory < -1)
+			throw new IllegalArgumentException("Maximum age (in seconds) cannot be less than negative one.");
+		
 		this.maxAgeInHistory = maxAgeInHistory;
 	}
 
@@ -105,6 +148,9 @@ public class GlobalSettings {
 	}
 
 	public void setDisabledServices(List<String> disabledServices) {
+		if (disabledServices == null)
+			throw new NullArgumentException("disabledServices");
+		
 		this.disabledServices = disabledServices;
 	}
 }
