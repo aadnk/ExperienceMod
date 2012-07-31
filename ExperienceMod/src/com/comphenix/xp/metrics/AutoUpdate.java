@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.commons.lang.NullArgumentException;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.Configuration;
@@ -38,6 +39,10 @@ import org.bukkit.scheduler.BukkitScheduler;
  *      >Bukkit Thread</a>
  */
 public class AutoUpdate implements Runnable, Listener {
+	
+	// NOTE THAT SOME VERY MINOR CHANGES HAVE BEEN MADE TO THIS CLASS. USE THE LINK ABOVE
+	// TO GET THE UNMODIFIED VERSION.
+	
 	/*
 	 * Configuration:
 	 * 
@@ -53,10 +58,11 @@ public class AutoUpdate implements Runnable, Listener {
 	 * color for error messages.
 	 */
 	private long delay = 216000L;
-	private final String ymlPrefix = "v";
+	private final String ymlPrefix = "";
 	private final String ymlSuffix = "";
 	private final String bukkitdevPrefix = "";
 	private final String bukkitdevSuffix = "";
+	private static String AUTO_UPDATE_SETTING = "auto update";
 	private String bukkitdevSlug = "";
 	private final ChatColor COLOR_INFO = ChatColor.BLUE;
 	private final ChatColor COLOR_OK = ChatColor.GREEN;
@@ -96,9 +102,9 @@ public class AutoUpdate implements Runnable, Listener {
 	 * onEnable().
 	 * 
 	 * @param plugin The instance of your plugins main class.
-	 * @throws Exception
+	 * @throws FileNotFoundException - configuration file could not be found.
 	 */
-	public AutoUpdate(Plugin plugin) throws Exception {
+	public AutoUpdate(Plugin plugin) throws FileNotFoundException {
 		this(plugin, plugin.getConfig());
 	}
 
@@ -107,11 +113,11 @@ public class AutoUpdate implements Runnable, Listener {
 	 * 
 	 * @param plugin The instance of your plugins main class.
 	 * @param config The configuration to use.
-	 * @throws Exception
+	 * @throws FileNotFoundException - configuration file could not be found.
 	 */
-	public AutoUpdate(Plugin plugin, Configuration config) throws Exception {
+	public AutoUpdate(Plugin plugin, Configuration config) throws FileNotFoundException {
 		if (plugin == null)
-			throw new Exception("Plugin can not be null");
+			throw new NullArgumentException("Plugin can not be null");
 		this.plugin = plugin;
 		av = ymlPrefix + plugin.getDescription().getVersion() + ymlSuffix;
 		if (bukkitdevSlug == null || bukkitdevSlug.equals(""))
@@ -216,9 +222,9 @@ public class AutoUpdate implements Runnable, Listener {
 			while (!lock.compareAndSet(false, true))
 				continue; // This blocks the main thread...
 			this.config = config;
-			if (!config.isSet("AutoUpdate"))
-				config.set("AutoUpdate", true);
-			checkState(config.getBoolean("AutoUpdate"), true);
+			if (!config.isSet(AUTO_UPDATE_SETTING))
+				config.set(AUTO_UPDATE_SETTING, true);
+			checkState(config.getBoolean(AUTO_UPDATE_SETTING), true);
 			lock.set(false);
 		} catch (Throwable t) {
 			printStackTraceSync(t, false);
