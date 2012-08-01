@@ -6,12 +6,15 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.lang.NullArgumentException;
+import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.commons.lang.builder.ToStringStyle;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.Configuration;
@@ -29,6 +32,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import com.google.common.collect.Lists;
+
 /**
  * @author V10lator
  * @version 1.0-Comphenix
@@ -37,9 +42,6 @@ import org.json.simple.parser.ParseException;
  *      >ExperienceMod</a>
  */
 public class AutoUpdate implements Runnable, Listener {
-	
-	// NOTE THAT SOME VERY MINOR CHANGES HAVE BEEN MADE TO THIS CLASS. USE THE LINK ABOVE
-	// TO GET THE UNMODIFIED VERSION.
 	
 	/*
 	 * Configuration:
@@ -66,8 +68,9 @@ public class AutoUpdate implements Runnable, Listener {
 	private final ChatColor COLOR_OK = ChatColor.GREEN;
 	private final ChatColor COLOR_ERROR = ChatColor.RED;
 	
-	private static String AUTO_UPDATE_SETTING = "auto update";
-	private static String SUPPORT_URL = "http://dev.bukkit.org/server-mods/experiencemod/";
+	// No need to dump these values
+	private final static String AUTO_UPDATE_SETTING = "auto update";
+	private final static String SUPPORT_URL = "http://dev.bukkit.org/server-mods/experiencemod/";
 	
 	/*
 	 * End of configuration.
@@ -81,13 +84,15 @@ public class AutoUpdate implements Runnable, Listener {
 	 * (like adding -<yourName>).
 	 */
 
-	private final String version = "1.0";
+	private final String version = "1.0-Comphenix";
 
 	private final Plugin plugin;
 	private final String bukget;
 	private final String bukgetFallback;
 	private int pid = -1;
 	private final String av;
+	
+	@SuppressWarnings("unused")
 	private Configuration config;
 
 	boolean enabled = false;
@@ -372,25 +377,31 @@ public class AutoUpdate implements Runnable, Listener {
 	}
 
 	private class SyncMessageDelayer implements Runnable {
-		private final String p;
-		private final String[] msgs;
-
-		private SyncMessageDelayer(String p, String[] msgs) {
-			this.p = p;
-			this.msgs = msgs;
+		private final String player;
+		private final String prefix;
+		private final List<String> msgs;
+		
+		private SyncMessageDelayer(String player, String[] msgs) {
+			this(player, "", Lists.newArrayList(msgs));
+		}
+		
+		private SyncMessageDelayer(String player, String prefix, List<String> list) {
+			this.player = player;
+			this.prefix = prefix;
+			this.msgs = list;
 		}
 
 		public void run() {
 			try {
 				CommandSender cs;
-				if (p != null)
-					cs = plugin.getServer().getPlayerExact(p);
+				if (player != null)
+					cs = plugin.getServer().getPlayerExact(player);
 				else
 					cs = plugin.getServer().getConsoleSender();
 				if (cs != null)
 					for (String msg : msgs)
 						if (msg != null)
-							cs.sendMessage(msg);
+							cs.sendMessage(prefix + msg);
 			} catch (Throwable t) {
 				printStackTraceSync(t, false);
 			}
@@ -512,56 +523,33 @@ public class AutoUpdate implements Runnable, Listener {
 	private void printStackTraceSync(Throwable t, boolean expected) {
 		BukkitScheduler bs = plugin.getServer().getScheduler();
 		try {
-			String prefix = plugin.getName() + " [AutoUpdate] ";
-			StringWriter sw = new StringWriter();
-			PrintWriter pw = new PrintWriter(sw);
-			t.printStackTrace(pw);
-			String[] sts = sw.toString().replace("\r", "").split("\n");
-			String[] out;
-			if (expected)
-				out = new String[sts.length + 31];
-			else
-				out = new String[sts.length + 33];
-			out[0] = prefix;
-			out[1] = prefix + "Internal error!";
-			out[2] = prefix
-					+ "If this bug hasn't been reported please open a ticket at " + SUPPORT_URL;
-			out[3] = prefix + "Include the following into your bug report:";
-			out[4] = prefix + "          ======= SNIP HERE =======";
-			int i = 5;
-			for (; i - 5 < sts.length; i++)
-				out[i] = prefix + sts[i - 5];
-			out[++i] = prefix + "          ======= DUMP =======";
-			out[++i] = prefix + "version        : " + version;
-			out[++i] = prefix + "delay          : " + delay;
-			out[++i] = prefix + "ymlPrefix      : " + ymlPrefix;
-			out[++i] = prefix + "ymlSuffix      : " + ymlSuffix;
-			out[++i] = prefix + "bukkitdevPrefix: " + bukkitdevPrefix;
-			out[++i] = prefix + "bukkitdevSuffix: " + bukkitdevSuffix;
-			out[++i] = prefix + "bukkitdevSlug  : " + bukkitdevSlug;
-			out[++i] = prefix + "COLOR_INFO     : " + COLOR_INFO.name();
-			out[++i] = prefix + "COLO_OK        : " + COLOR_OK.name();
-			out[++i] = prefix + "COLOR_ERROR    : " + COLOR_ERROR.name();
-			out[++i] = prefix + "bukget         : " + bukget;
-			out[++i] = prefix + "bukgetFallback : " + bukgetFallback;
-			out[++i] = prefix + "pid            : " + pid;
-			out[++i] = prefix + "av             : " + av;
-			out[++i] = prefix + "config         : " + config;
-			out[++i] = prefix + "lock           : " + lock.get();
-			out[++i] = prefix + "needUpdate     : " + needUpdate;
-			out[++i] = prefix + "updatePending  : " + updatePending;
-			out[++i] = prefix + "UpdateUrl      : " + updateURL;
-			out[++i] = prefix + "updateVersion  : " + updateVersion;
-			out[++i] = prefix + "pluginURL      : " + pluginURL;
-			out[++i] = prefix + "type           : " + type;
-			out[++i] = prefix + "          ======= SNIP HERE =======";
-			out[++i] = prefix;
+		    List<String> lines = new ArrayList<String>();
+			String prefix = "  ";
+
+			lines.add(String.format("[%] [AutoUpdate]:", plugin.getName()));
+			lines.add("Internal error!");
+			lines.add("");
+			lines.add("If this bug hasn't been reported please open a ticket at " + SUPPORT_URL);
+			lines.add("Include the following into your bug report:");
+			
+			lines.add("          ======= SNIP HERE =======");
+			addMultiString(lines, ExceptionUtils.getFullStackTrace(t));
+			lines.add("          ======= DUMP =======");
+			addMultiString(lines, ToStringBuilder.
+					reflectionToString(this, ToStringStyle.MULTI_LINE_STYLE).
+					replace(ChatColor.COLOR_CHAR, '&'));
+			
 			if (!expected) {
-				out[++i] = prefix + "DISABLING UPDATER!";
-				out[++i] = prefix;
+				lines.add("DISABLING UPDATER!\n");
+				lines.add("");
 			}
+
+			lines.add("          ======= SNIP HERE =======");
+			lines.add("");
+			
 			bs.scheduleSyncDelayedTask(plugin,
-					new SyncMessageDelayer(null, out));
+					new SyncMessageDelayer(null, prefix, lines));
+			
 		} catch (Throwable e) // This prevents endless loops.
 		{
 			e.printStackTrace();
@@ -585,6 +573,11 @@ public class AutoUpdate implements Runnable, Listener {
 		}
 	}
 
+	private void addMultiString(List<String> lines, String text) {
+		for (String line : text.split("\\r?\\n"))
+			lines.add(line);
+	}
+	
 	private boolean hasPermission(Permissible player, String node) {
 		if (player.isPermissionSet(node))
 			return player.hasPermission(node);
