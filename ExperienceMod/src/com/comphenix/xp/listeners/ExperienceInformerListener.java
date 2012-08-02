@@ -21,6 +21,7 @@ import java.util.AbstractQueue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -33,7 +34,12 @@ import com.comphenix.xp.extra.Permissions;
 public class ExperienceInformerListener implements Listener {
 
 	private AbstractQueue<String> warningMessages = new ConcurrentLinkedQueue<String>();
-
+	private Server server;
+	
+	public ExperienceInformerListener(Server server) {
+		this.server = server;
+	}
+	
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void onPlayerJoinEvent(PlayerJoinEvent event) {
 		
@@ -51,7 +57,7 @@ public class ExperienceInformerListener implements Listener {
 		if (ignorePermission || Permissions.hasInfo(sender)) {
 			// Print warning messages
 			for (String message : warningMessages) {
-				sender.sendMessage(ChatColor.RED + "[ExperienceMod] Warning: " + message);
+				sender.sendMessage(formatMessage(message));
 			}
 			
 			return true;
@@ -59,6 +65,25 @@ public class ExperienceInformerListener implements Listener {
 		
 		// No permission
 		return false;
+	}
+	
+	/**
+	 * Broadcast the given warning on the server.
+	 * @param message - warning to broadcast.
+	 */
+	public void broadcastWarning(String message) {
+		
+		// Use the built in broadcast mechanism
+		server.broadcast(formatMessage(message), Permissions.INFO);
+	}
+
+	/**
+	 * Formats the given message for display.
+	 * @param message - warning message to display.
+	 * @return Formatted message.
+	 */
+	protected String formatMessage(String message) {
+		return ChatColor.RED + "[ExperienceMod] Warning: " + message;
 	}
 	
 	public void addWarningMessage(String message) {

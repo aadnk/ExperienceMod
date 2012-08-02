@@ -124,7 +124,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		manager = getServer().getPluginManager();
 		
 		// Informs about negative events
-		informer = new ExperienceInformerListener();
+		informer = new ExperienceInformerListener(getServer());
 		
 		// Initialize rewards
 		currentLogger = this.getLogger();
@@ -732,17 +732,19 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 
 	@Override
 	public void printWarning(Object sender, String message, Object... params) {
-		String warningMessage = ChatColor.RED + "Warning: " + message;
+		String formatted = String.format(message, params);
+		String warningMessage = ChatColor.RED + "Warning: " + formatted;
 		
 		if (debugEnabled) {
 			currentLogger.warning(String.format("Warning sent from %s.", sender));
 		}
 		
 		// Print immediately
-		currentLogger.warning(String.format(warningMessage, params));
+		currentLogger.warning(warningMessage);
 		
 		// Add to list of warnings
-	    informer.addWarningMessage(String.format(message, params));
+	    informer.addWarningMessage(formatted);
+	    informer.broadcastWarning(formatted);
 	}
 
 	// Taken from Apache Commons-IO
