@@ -40,6 +40,7 @@ public class ActionParser extends ConfigurationParser<Action> {
 	private static final String messageChannelSetting = "channels";
 
 	private StringListParser listParser = new StringListParser();
+	private RangeParser rangeParser = new RangeParser();
 	
 	private RewardProvider provider;
 
@@ -53,7 +54,7 @@ public class ActionParser extends ConfigurationParser<Action> {
 			return null;
 
 		Action result = new Action();
-		Range topLevel = readRange(input, key, null);
+		Range topLevel = rangeParser.parse(input, key, null);
 		
 		String text = null;
 		List<String> channels = null;
@@ -79,7 +80,7 @@ public class ActionParser extends ConfigurationParser<Action> {
 			} else if (sub.equalsIgnoreCase(messageChannelSetting)) {
 				channels = listParser.parseSafe(values, sub);
 			} else {
-				Range range = readRange(values, sub, null);
+				Range range = rangeParser.parse(values, sub, null);
 				
 				if (range != null) {
 					result.addReward(sub, range);
@@ -99,38 +100,7 @@ public class ActionParser extends ConfigurationParser<Action> {
 		result.setId(currentID++);
 		return result;
 	}
-	
-	private Range readRange(ConfigurationSection config, String key, Range defaultValue) {
 		
-		String start = key + ".first";
-		String end = key + ".last";
-		
-		if (config.isDouble(key)) {
-			return new Range(config.getDouble(key));
-			
-		} else if (config.isInt(key)) {
-			return new Range((double) config.getInt(key));
-			
-		} else if (config.contains(start) && config.contains(end)) {
-			return new Range(config.getDouble(start), config.getDouble(end));
-	
-		} else if (config.isList(key)) {
-			// Try to get a double list
-			List<Double> attempt = config.getDoubleList(key);
-
-			if (attempt != null && attempt.size() == 2)
-				return new Range(attempt.get(0), attempt.get(1));
-			else if (attempt != null && attempt.size() == 1)
-				return new Range(attempt.get(0));
-			else
-				return defaultValue;
-			
-		} else {
-			// Default value
-			return defaultValue;
-		}
-	}
-	
 	/**
 	 * Creates a shallow copy of this parser with the given reward provider.
 	 * @param provider - new reward provider.

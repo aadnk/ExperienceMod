@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -67,7 +68,8 @@ public class AutoUpdate implements Runnable, Listener {
 	private final ChatColor COLOR_INFO = ChatColor.BLUE;
 	private final ChatColor COLOR_OK = ChatColor.GREEN;
 	private final ChatColor COLOR_ERROR = ChatColor.RED;
-	
+	private boolean debug;
+
 	// No need to dump these values
 	private final static String AUTO_UPDATE_SETTING = "auto update";
 	private final static String SUPPORT_URL = "http://dev.bukkit.org/server-mods/experiencemod/";
@@ -142,6 +144,18 @@ public class AutoUpdate implements Runnable, Listener {
 		plugin.getServer().getPluginManager().registerEvents(this, plugin);
 	}
 
+	public boolean isDebug() {
+		return debug;
+	}
+
+	/**
+	 * Use this to enable/disable debugging mode at runtime.
+	 * @param debug True if you want to enable it, false otherwise.
+	*/
+	public void setDebug(boolean debug) {
+		this.debug = debug;
+	}
+	
 	/**
 	 * Use this to restart the main task. This is useful after
 	 * scheduler.cancelTasks(plugin); for example.
@@ -260,7 +274,21 @@ public class AutoUpdate implements Runnable, Listener {
 					ir = new InputStreamReader(url.openStream());
 				} catch (Exception e) {
 					URL url = new URL(bukgetFallback);
-					ir = new InputStreamReader(url.openStream());
+					HttpURLConnection con = (HttpURLConnection) url.openConnection();
+					con.connect();
+					int res = con.getResponseCode();
+					if (res != 200) {
+						if (debug) {
+							plugin.getServer().getScheduler().scheduleSyncDelayedTask(
+								plugin, new SyncMessageDelayer(
+									null, new String[] { "[AutoUpdate] WARNING: Bukget returned " + res })
+							);
+						}
+						
+						lock.set(false);
+						return;
+					}
+					ir = new InputStreamReader(con.getInputStream());
 				}
 
 				String nv;
