@@ -26,6 +26,7 @@ import org.bukkit.entity.Player;
 
 import com.comphenix.xp.Configuration;
 import com.comphenix.xp.Server;
+import com.comphenix.xp.rewards.xp.ExperienceParser;
 
 /**
  * Rewards players with experience directly by simply adding the experience to their experience bar.
@@ -35,6 +36,8 @@ import com.comphenix.xp.Server;
 public class RewardVirtual implements RewardService {
 
 	private double searchRadius = 20;
+	
+	private ResourcesParser parser = new ExperienceParser();
 	
 	@Override
 	public void reward(Player player, int amount) {
@@ -89,6 +92,11 @@ public class RewardVirtual implements RewardService {
 		else
 			// Spawn experience
 			Server.spawnExperience(world, point, amount);
+	}
+	
+	@Override
+	public ResourcesParser getResourcesParser() {
+		return parser;
 	}
 
 	public double getSearchRadius() {

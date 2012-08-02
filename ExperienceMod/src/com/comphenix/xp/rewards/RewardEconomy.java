@@ -30,6 +30,7 @@ import org.bukkit.inventory.ItemStack;
 
 import com.comphenix.xp.Configuration;
 import com.comphenix.xp.Debugger;
+import com.comphenix.xp.rewards.xp.ExperienceParser;
 
 /**
  * Rewards players with currency.
@@ -49,6 +50,9 @@ public class RewardEconomy implements RewardService {
 	// Drop items instead of giving currency directly
 	private ItemStack economyItem;
 	private Integer economyWorth;
+	
+	// Ordinary experience parser
+	private ResourcesParser parser = new ExperienceParser();
 	
 	public RewardEconomy(Economy economy, Debugger debugger, ItemRewardListener listener) {
 		if (economy == null)
@@ -177,6 +181,11 @@ public class RewardEconomy implements RewardService {
 			Item spawned = world.dropItemNaturally(point, stack);
 			listener.pinReward(spawned, Math.min(amount, worth));
 		}
+	}
+	
+	@Override
+	public ResourcesParser getResourcesParser() {
+		return parser;
 	}
 	
 	/**

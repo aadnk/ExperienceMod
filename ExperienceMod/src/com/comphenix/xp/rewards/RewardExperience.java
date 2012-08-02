@@ -24,6 +24,7 @@ import org.bukkit.entity.Player;
 
 import com.comphenix.xp.Configuration;
 import com.comphenix.xp.Server;
+import com.comphenix.xp.rewards.xp.ExperienceParser;
 
 /**
  * Rewards players with experience orbs.
@@ -32,6 +33,8 @@ import com.comphenix.xp.Server;
  */
 public class RewardExperience implements RewardService {
 
+	private ResourcesParser parser = new ExperienceParser();
+	
 	@Override
 	public boolean canReward(Player player, int amount) {
 		// Accept anything. We've already warned about negative amounts.
@@ -67,6 +70,11 @@ public class RewardExperience implements RewardService {
 		
 		// And here
 		Server.spawnExperience(world, point, amount);
+	}
+	
+	@Override
+	public ResourcesParser getResourcesParser() {
+		return parser;
 	}
 	
 	@Override

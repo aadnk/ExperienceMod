@@ -4,8 +4,10 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
+import com.comphenix.xp.rewards.ResourcesParser;
 import com.comphenix.xp.rewards.RewardTypes;
 import com.comphenix.xp.rewards.RewardService;
+import com.comphenix.xp.rewards.xp.ExperienceParser;
 
 public class MockRewardable implements RewardService {
 
@@ -45,5 +47,10 @@ public class MockRewardable implements RewardService {
 	@Override
 	public RewardService clone(Configuration config) {
 		return new MockRewardable(type);
+	}
+
+	@Override
+	public ResourcesParser getResourcesParser() {
+		return new ExperienceParser();
 	}
 }

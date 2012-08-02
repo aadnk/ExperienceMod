@@ -67,7 +67,12 @@ public interface RewardService extends Service {
 	 * @return Reward type of this class.
 	 */
 	public RewardTypes getRewardType();
-
+	
+	/**
+	 * Retrieves the standard or custom resource parser associated with this reward.
+	 * @return Resource parser.
+	 */
+	public ResourcesParser getResourcesParser();
 	
 	/**
 	 * Clones this object with the settings from the given configuration.
