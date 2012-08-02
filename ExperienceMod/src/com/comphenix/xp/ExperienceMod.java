@@ -166,6 +166,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			configLoader = new ConfigurationLoader(getDataFolder(), this, rewardProvider, channelProvider);
 		
 			// Initialize error reporter
+			report.setErrorCount(0);
 			report.clearGlobalParameters();
 			report.addGlobalParameter("rewardProvider", rewardProvider);
 			report.addGlobalParameter("historyProvider", historyProviders);
@@ -449,9 +450,14 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	 */
 	public void onServerTick() {
 	
-		// Send messages
-		if (presets != null)
-			presets.onTick();
+		try {
+			// Send messages
+			if (presets != null)
+				presets.onTick();
+			
+		} catch (Exception e) {
+			report.reportError(this, this, e, presets);
+		}
 	}
 	
 	// Check for illegal presets

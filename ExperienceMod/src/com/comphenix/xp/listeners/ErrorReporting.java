@@ -18,6 +18,9 @@ public class ErrorReporting {
 	public static final String DEFAULT_PREFIX = "  ";
 	public static final String DEFAULT_SUPPORT_URL = "http://dev.bukkit.org/server-mods/experiencemod/";
 	
+	// We don't want to spam the server
+	public static final int DEFAULT_MAX_ERROR_COUNT = 10;
+	
 	/**
 	 * The default error reporting mechanism in ExperienceMod.  
 	 */
@@ -26,12 +29,20 @@ public class ErrorReporting {
 	protected String prefix;
 	protected String supportURL;
 	
+	protected int errorCount;
+	protected int maxErrorCount;
+	
 	// Map of global objects
 	protected Map<String, Object> globalParameters = new HashMap<String, Object>();
 	
 	public ErrorReporting(String prefix, String supportURL) {
+		this(prefix, supportURL, DEFAULT_MAX_ERROR_COUNT);
+	}
+
+	public ErrorReporting(String prefix, String supportURL, int maxErrorCount) {
 		this.prefix = prefix;
 		this.supportURL = supportURL;
+		this.maxErrorCount = maxErrorCount;
 	}
 
 	/**
@@ -42,6 +53,17 @@ public class ErrorReporting {
 	 * @param parameters - parameters from the caller method.
 	 */
 	public void reportError(Debugger debugger, Object sender, Throwable error, Object... parameters) {
+		
+		// Do not overtly spam the server!
+		if (++errorCount > maxErrorCount) {
+			String maxReached = String.format("Reached maxmimum error count. Cannot pass error %s from %s.", error, sender);
+			
+			// Print debug and to the log
+			if (debugger != null)
+				debugger.printDebug(sender, maxReached);
+			System.err.println(maxReached);
+			return;
+		}
 		
 		StringWriter text = new StringWriter();
 		PrintWriter writer = new PrintWriter(text);
@@ -127,6 +149,22 @@ public class ErrorReporting {
 	 */
 	protected boolean isSimpleType(Object test) {
 		return test instanceof String || Primitives.isWrapperType(test.getClass());
+	}
+	
+	public int getErrorCount() {
+		return errorCount;
+	}
+
+	public void setErrorCount(int errorCount) {
+		this.errorCount = errorCount;
+	}
+
+	public int getMaxErrorCount() {
+		return maxErrorCount;
+	}
+
+	public void setMaxErrorCount(int maxErrorCount) {
+		this.maxErrorCount = maxErrorCount;
 	}
 	
 	/**
