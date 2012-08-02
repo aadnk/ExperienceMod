@@ -15,7 +15,7 @@
  *  02111-1307 USA
  */
 
-package com.comphenix.xp.rewards;
+package com.comphenix.xp.rewards.xp;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;

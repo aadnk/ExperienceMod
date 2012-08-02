@@ -15,9 +15,7 @@
  *  02111-1307 USA
  */
 
-package com.comphenix.xp.rewards;
-
-import java.util.List;
+package com.comphenix.xp.rewards.xp;
 
 import org.apache.commons.lang.NullArgumentException;
 import org.bukkit.Location;
@@ -26,55 +24,43 @@ import org.bukkit.entity.Player;
 
 import com.comphenix.xp.Configuration;
 import com.comphenix.xp.Server;
-import com.comphenix.xp.rewards.xp.ExperienceParser;
+import com.comphenix.xp.rewards.ResourcesParser;
+import com.comphenix.xp.rewards.RewardService;
+import com.comphenix.xp.rewards.RewardTypes;
 
 /**
- * Rewards players with experience directly by simply adding the experience to their experience bar.
+ * Rewards players with experience orbs.
  * 
  * @author Kristian
  */
-public class RewardVirtual implements RewardService {
+public class RewardExperience implements RewardService {
 
-	private double searchRadius = 20;
-	
 	private ResourcesParser parser = new ExperienceParser();
+	
+	@Override
+	public boolean canReward(Player player, int amount) {
+		// Accept anything. We've already warned about negative amounts.
+		return true;
+	}
 	
 	@Override
 	public void reward(Player player, int amount) {
 		if (player == null)
 			throw new NullArgumentException("player");
-
-		reward(player, null, amount);
-	}
-
-	@Override
-	public boolean canReward(Player player, int amount) {
-
-		if (player == null)
-			throw new NullArgumentException("player");
-
-		ExperienceManager manager = new ExperienceManager(player);
 		
-		// See if we'd end up with negative experience
-		if (amount < 0) {
-			return manager.hasExp(-amount);
-		} else {
-			return true;
-		}
+		// Delegate to more specific method
+		reward(player, player.getLocation(), amount);
 	}
 	
-	// Note: We ignore the location.
 	@Override
 	public void reward(Player player, Location point, int amount) {
 		if (player == null)
 			throw new NullArgumentException("player");
-
-		ExperienceManager manager = new ExperienceManager(player);
+		if (point == null)
+			throw new NullArgumentException("point");
 		
-		// Rely on the brilliance of others
-		if (amount != 0) {
-			manager.changeExp(amount);
-		}
+		// Create the experience at this location
+		Server.spawnExperience(player.getWorld(), point, amount);
 	}
 
 	@Override
@@ -84,32 +70,18 @@ public class RewardVirtual implements RewardService {
 		if (point == null)
 			throw new NullArgumentException("point");
 		
-		List<Player> closest = Server.getNearbyPlayers(world, point, searchRadius);
-		
-		// Give experience directly
-		if (closest.size() == 1)
-			reward(closest.get(0), null, amount);
-		else
-			// Spawn experience
-			Server.spawnExperience(world, point, amount);
+		// And here
+		Server.spawnExperience(world, point, amount);
 	}
 	
 	@Override
 	public ResourcesParser getResourcesParser() {
 		return parser;
 	}
-
-	public double getSearchRadius() {
-		return searchRadius;
-	}
-
-	public void setSearchRadius(double searchRadius) {
-		this.searchRadius = searchRadius;
-	}
 	
 	@Override
 	public RewardTypes getRewardType() {
-		return RewardTypes.VIRTUAL;
+		return RewardTypes.EXPERIENCE;
 	}
 
 	@Override
@@ -119,9 +91,6 @@ public class RewardVirtual implements RewardService {
 
 	@Override
 	public RewardService clone(Configuration config) {
-		RewardVirtual copy = new RewardVirtual();
-		
-		copy.setSearchRadius(searchRadius);
-		return copy;
+		return new RewardExperience();
 	}
 }

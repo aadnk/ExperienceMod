@@ -15,7 +15,7 @@
  *  02111-1307 USA
  */
 
-package com.comphenix.xp.rewards;
+package com.comphenix.xp.rewards.xp;
 
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
@@ -30,7 +30,10 @@ import org.bukkit.inventory.ItemStack;
 
 import com.comphenix.xp.Configuration;
 import com.comphenix.xp.Debugger;
-import com.comphenix.xp.rewards.xp.ExperienceParser;
+import com.comphenix.xp.rewards.ItemRewardListener;
+import com.comphenix.xp.rewards.ResourcesParser;
+import com.comphenix.xp.rewards.RewardService;
+import com.comphenix.xp.rewards.RewardTypes;
 
 /**
  * Rewards players with currency.

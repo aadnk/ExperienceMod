@@ -66,6 +66,9 @@ import com.comphenix.xp.mods.StandardBlockService;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.parser.Utility;
 import com.comphenix.xp.rewards.*;
+import com.comphenix.xp.rewards.xp.RewardEconomy;
+import com.comphenix.xp.rewards.xp.RewardExperience;
+import com.comphenix.xp.rewards.xp.RewardVirtual;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 
