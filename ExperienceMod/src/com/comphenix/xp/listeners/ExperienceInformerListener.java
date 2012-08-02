@@ -83,8 +83,12 @@ public class ExperienceInformerListener implements Listener {
 	 */
 	public void broadcastWarning(String message) {
 		
-		// Use the built in broadcast mechanism
-		server.broadcast(formatMessage(message), Permissions.INFO);
+		// Send the warning to every player (console will be informed differently)
+		for (Player player : server.getOnlinePlayers()) {
+			if (player.hasPermission(Permissions.INFO)) {
+				player.sendMessage(formatMessage(message));
+			}
+		}
 	}
 
 	/**

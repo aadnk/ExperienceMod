@@ -453,6 +453,14 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 		scheduler.scheduleSync(player, TASK_TAG, new Runnable() {
 			@Override
 			public void run() {
+				try {
+					compareState();
+				} catch (Exception e) {
+					report.reportError(debugger, this, e, player, tree, rewardAction, compareItem);
+				}
+			}
+			
+			private void compareState() {
 				final ItemStack[] postInv = player.getInventory().getContents();
 				int newItemsCount = 0;
 				

@@ -35,7 +35,7 @@ public class RewardProvider extends ServiceProvider<RewardService> {
 	private static String ERROR_CUSTOM_UNSUPPORTED = "rewardType cannot be CUSTOM.";
 	
 	// Enum type lookup
-	private HashMap<RewardTypes, RewardService> enumLookup;
+	private transient HashMap<RewardTypes, RewardService> enumLookup;
 	private Configuration configuration;
 	
 	public RewardProvider() {

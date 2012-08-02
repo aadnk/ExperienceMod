@@ -5,9 +5,11 @@ import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
+import org.bukkit.Bukkit;
 
 import com.comphenix.xp.Debugger;
 import com.google.common.primitives.Primitives;
@@ -31,18 +33,20 @@ public class ErrorReporting {
 	
 	protected int errorCount;
 	protected int maxErrorCount;
-	
+	protected Logger logger;
+
 	// Map of global objects
 	protected Map<String, Object> globalParameters = new HashMap<String, Object>();
 	
 	public ErrorReporting(String prefix, String supportURL) {
-		this(prefix, supportURL, DEFAULT_MAX_ERROR_COUNT);
+		this(prefix, supportURL, DEFAULT_MAX_ERROR_COUNT, Bukkit.getLogger());
 	}
 
-	public ErrorReporting(String prefix, String supportURL, int maxErrorCount) {
+	public ErrorReporting(String prefix, String supportURL, int maxErrorCount, Logger logger) {
 		this.prefix = prefix;
 		this.supportURL = supportURL;
 		this.maxErrorCount = maxErrorCount;
+		this.logger = logger;
 	}
 
 	/**
@@ -67,10 +71,9 @@ public class ErrorReporting {
 		
 		StringWriter text = new StringWriter();
 		PrintWriter writer = new PrintWriter(text);
-		String report = "";
-		
+
 		// Helpful message
-		writer.println("INTERNAL ERROR!");
+		writer.println("[ExperienceMod] INTERNAL ERROR!");
 	    writer.println("If this problem has't already been reported, please open a ticket");
 	    writer.println("at " + supportURL + " with the following data:");
 	    
@@ -95,28 +98,22 @@ public class ErrorReporting {
 		
 		// Global parameters
 		for (String param : globalParameters()) {
-			writer.println(param + ":");
-			writer.println(addPrefix(getStringDescription(getGlobalParameter(param)), SECOND_LEVEL_PREFIX));
+			writer.println(SECOND_LEVEL_PREFIX + param + ":");
+			writer.println(addPrefix(getStringDescription(getGlobalParameter(param)), 
+					SECOND_LEVEL_PREFIX + SECOND_LEVEL_PREFIX));
 		}
 		
 		// Now, for the sender itself
-		if (sender != null) {
-			writer.println("Sender:");
-			writer.println(addPrefix(getStringDescription(sender), SECOND_LEVEL_PREFIX));
-			
-		} else {
-			writer.println("Sender: null");
-		}
+		writer.println("Sender:");
+		writer.println(addPrefix(getStringDescription(sender), SECOND_LEVEL_PREFIX));
 		
-		// Construct our report
-		report = addPrefix(text.toString(), prefix);
-		
-		// Make sure it is reported somehow
-		if (debugger == null) {
-			System.err.println(report);
-		} else {
-			debugger.printWarning(sender, report);
+		// Inform of this occurrence
+		if (debugger != null) {	
+			debugger.printWarning(this, "Error %s occured in %s.", error, sender);
 		}
+				
+		// Make sure it is reported
+		logger.severe(addPrefix(text.toString(), prefix));
 	}
 	
 	/**
@@ -138,7 +135,7 @@ public class ErrorReporting {
 		} if (isSimpleType(value)) {
 			return value.toString();
 		} else {
-			return (ToStringBuilder.reflectionToString(value, ToStringStyle.MULTI_LINE_STYLE));
+			return (ToStringBuilder.reflectionToString(value, ToStringStyle.MULTI_LINE_STYLE, false, null));
 		}
 	}
 	
@@ -202,5 +199,13 @@ public class ErrorReporting {
 
 	public void setPrefix(String prefix) {
 		this.prefix = prefix;
+	}
+	
+	public Logger getLogger() {
+		return logger;
+	}
+
+	public void setLogger(Logger logger) {
+		this.logger = logger;
 	}
 }
