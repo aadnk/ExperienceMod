@@ -29,25 +29,35 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
+import com.comphenix.xp.Debugger;
 import com.comphenix.xp.extra.Permissions;
 
 public class ExperienceInformerListener implements Listener {
 
 	private AbstractQueue<String> warningMessages = new ConcurrentLinkedQueue<String>();
 	private Server server;
+	private Debugger debugger;
 	
-	public ExperienceInformerListener(Server server) {
+	private ErrorReporting report = ErrorReporting.DEFAULT;
+	
+	public ExperienceInformerListener(Debugger debugger, Server server) {
 		this.server = server;
 	}
 	
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void onPlayerJoinEvent(PlayerJoinEvent event) {
 		
-		Player player = event.getPlayer();
+		try {
 		
-		// Automatically display warning messages
-		if (player != null) {
-			displayWarnings(player, false);
+			Player player = event.getPlayer();
+			
+			// Automatically display warning messages
+			if (player != null) {
+				displayWarnings(player, false);
+			}
+		
+		} catch (Exception e) {
+			report.reportError(debugger, this, e, event);
 		}
 	}
 	

@@ -60,6 +60,9 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 	// Random source
 	private Random random = new Random();
 	
+	// Error reporting
+	private ErrorReporting report = ErrorReporting.DEFAULT;
+	
 	public ExperienceItemListener(Debugger debugger, PlayerScheduler scheduler,
 							      CustomBlockProviders blockProvider, Presets presets) {
 		
@@ -71,85 +74,101 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onPlayerFishEvent(PlayerFishEvent event) {
-		
-		Player player = event.getPlayer();
+
+		try {
+			Player player = event.getPlayer();
+	
+			if (player != null && Permissions.hasRewardFishing(player)) {
+				handlePlayerFishing(event, player);
+			}
+			
+		} catch (Exception e) {
+			report.reportError(debugger, this, e, event);
+		}
+	}
+	
+	private void handlePlayerFishing(PlayerFishEvent event, Player player) {
 		
 		String message = null;
 		Action action = null;
+		Configuration config = getConfiguration(player);
+		
+		// No configuration or default configuration found
+		if (config == null) {
+			if (debugger != null)
+				debugger.printDebug(this, "Cannot find config for player %s in fishing.", player.getName());
+			return;
+		}
+			
+		PlayerRewards playerReward = config.getPlayerRewards();
+		ChannelProvider channels = config.getChannelProvider();
+		
+		// Reward type
+		switch (event.getState()) {
+		case CAUGHT_FISH:
+			action = playerReward.getFishingSuccess();
+			message = "Fish caught by %s: Spawned %d xp.";
+			break;
 
-		if (player != null && Permissions.hasRewardFishing(player)) {
+		case FAILED_ATTEMPT:
+			action = playerReward.getFishingFailure();
+			message = "Fishing failed for %s: Spawned %d xp.";
+			break;
+		}
+		
+		// Has an action been set?
+		if (action != null) {
 			
-			Configuration config = getConfiguration(player);
-			
-			// No configuration or default configuration found
-			if (config == null) {
+			// Check and see if the player is broke
+			if (!action.canRewardPlayer(config.getRewardProvider(), player, 1)) {
 				if (debugger != null)
-					debugger.printDebug(this, "Cannot find config for player %s in fishing.", player.getName());
+					debugger.printDebug(this, "Unable to penalize fishing for %s. Not enough funds.", player.getName());
+				
+				// Don't catch the fish
+				if (!Permissions.hasUntouchable(player))
+					event.setCancelled(true);
 				return;
 			}
-				
-			PlayerRewards playerReward = config.getPlayerRewards();
-			ChannelProvider channels = config.getChannelProvider();
 			
-			// Reward type
-			switch (event.getState()) {
-			case CAUGHT_FISH:
-				action = playerReward.getFishingSuccess();
-				message = "Fish caught by %s: Spawned %d xp.";
-				break;
-
-			case FAILED_ATTEMPT:
-				action = playerReward.getFishingFailure();
-				message = "Fishing failed for %s: Spawned %d xp.";
-				break;
-			}
+			int exp = action.rewardPlayer(config.getRewardProvider(), random, player);
+			config.getMessageQueue().enqueue(player, action, channels.getFormatter(player, exp));
 			
-			// Has an action been set?
-			if (action != null) {
-				
-				// Check and see if the player is broke
-				if (!action.canRewardPlayer(config.getRewardProvider(), player, 1)) {
-					if (debugger != null)
-						debugger.printDebug(this, "Unable to penalize fishing for %s. Not enough funds.", player.getName());
-					
-					// Don't catch the fish
-					if (!Permissions.hasUntouchable(player))
-						event.setCancelled(true);
-					return;
-				}
-				
-				int exp = action.rewardPlayer(config.getRewardProvider(), random, player);
-				config.getMessageQueue().enqueue(player, action, channels.getFormatter(player, exp));
-				
-				if (debugger != null)
-					debugger.printDebug(this, message, player.getName(), exp);
-			}
+			if (debugger != null)
+				debugger.printDebug(this, message, player.getName(), exp);
 		}
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBrewEvent(BrewEvent event) {
-		
-		// Reset the potion markers
-		if (event != null &&
-			event.getContents() != null) {
-			
-			for (ItemStack stack : event.getContents().getContents()) {
-			
-				// Find all potions in the brewing stand
-				if (ItemQuery.hasItems(stack) && stack.getType() == Material.POTION) {
-					
-					PotionMarker marker = new PotionMarker(stack.getDurability());
-					
-					// Reset potion markers
-					marker.reset();
-					stack.setDurability(marker.toDurability());
-				}
+				
+		try {
+			// Reset the potion markers
+			if (event != null && event.getContents() != null) {
+				handleBrewing(event);
 			}
 			
-			if (debugger != null)
-				debugger.printDebug(this, "Reset potion markers in brewing stand %s", getLocationString(event.getBlock()) );
+		} catch (Exception e) {
+			report.reportError(debugger, this, e, event);
 		}
+	}
+	
+	private void handleBrewing(BrewEvent event) {
+	
+		for (ItemStack stack : event.getContents().getContents()) {
+			
+			// Find all potions in the brewing stand
+			if (ItemQuery.hasItems(stack) && stack.getType() == Material.POTION) {
+				
+				PotionMarker marker = new PotionMarker(stack.getDurability());
+				
+				// Reset potion markers
+				marker.reset();
+				stack.setDurability(marker.toDurability());
+			}
+		}
+		
+		if (debugger != null)
+			debugger.printDebug(this, "Reset potion markers in brewing stand %s", getLocationString(event.getBlock()) );
 	}
 	
 	// Convert a block to a more readable format
@@ -160,19 +179,28 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onInventoryClickEvent(InventoryClickEvent event) {
 
-		// Clicked item and player
-		Player player = (Player) event.getWhoClicked();
+		// Should be included in the debug report
+		ItemQuery lastBlock = null;
+		BlockResponse response = null;
+		
+		try {
+			// Clicked item and player
+			Player player = (Player) event.getWhoClicked();
 
-		// Make sure we have a player, inventory and item
-		if (player != null && event.getInventory() != null) {
-
-			ItemQuery lastBlock = blockProvider.getLastInteraction().getLastRightClick(player, null);
-			BlockResponse response = blockProvider.processInventoryClick(event, lastBlock);
-			
-			// See if we should handle the inventory click ourself
-			if (BlockResponse.isSuccessful(response) && response.hasDefaultBehavior()) {
-				processInventory(event, response);
+			// Make sure we have a player, inventory and item
+			if (player != null && event.getInventory() != null) {
+				
+				lastBlock = blockProvider.getLastInteraction().getLastRightClick(player, null);
+				response = blockProvider.processInventoryClick(event, lastBlock);
+				
+				// See if we should handle the inventory click ourself
+				if (BlockResponse.isSuccessful(response) && response.hasDefaultBehavior()) {
+					processInventory(event, response);
+				}
 			}
+			
+		} catch (Exception e) {
+			report.reportError(debugger, this, e, event, lastBlock, response);
 		}
 	}
 	

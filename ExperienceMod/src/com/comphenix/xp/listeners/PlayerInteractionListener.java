@@ -12,6 +12,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 
+import com.comphenix.xp.Debugger;
 import com.comphenix.xp.lookup.ItemQuery;
 
 /**
@@ -24,6 +25,14 @@ public class PlayerInteractionListener implements PlayerCleanupListener, Listene
 	// Last clicked block
 	private Map<String, ClickEvent> lastRightClicked = new ConcurrentHashMap<String, ClickEvent>();
 	
+	// For debugging purposes
+	private ErrorReporting report = ErrorReporting.DEFAULT;
+	private Debugger debugger;
+	
+	public PlayerInteractionListener(Debugger debugger) {
+		this.debugger = debugger;
+	}
+
 	// Last clicked event
 	private class ClickEvent {
 		// public org.bukkit.event.block.Action ...
@@ -34,32 +43,44 @@ public class PlayerInteractionListener implements PlayerCleanupListener, Listene
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onPlayerInteractEvent(PlayerInteractEvent event) {
 		
-		Player player = event.getPlayer();
-		
-		// Make sure this is a valid block right-click event
-		if (player != null && event.hasBlock() && 
-				event.getAction() == org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK) {
-		
-			// Store relevant information
-			ClickEvent click = new ClickEvent();
-			click.block = ItemQuery.fromExact(event.getClickedBlock());
-			click.time = System.currentTimeMillis();
+		try {
+			// Reset the potion markers
+			Player player = event.getPlayer();
 			
-			// Store this block (by copy, so we don't keep chunks in memory)
-			lastRightClicked.put(player.getName(), click);
+			// Make sure this is a valid block right-click event
+			if (player != null && event.hasBlock() && 
+					event.getAction() == org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK) {
+			
+				// Store relevant information
+				ClickEvent click = new ClickEvent();
+				click.block = ItemQuery.fromExact(event.getClickedBlock());
+				click.time = System.currentTimeMillis();
+				
+				// Store this block (by copy, so we don't keep chunks in memory)
+				lastRightClicked.put(player.getName(), click);
+			}
+			
+		} catch (Exception e) {
+			report.reportError(debugger, this, e, event);
 		}
 	}
 	
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onInventoryCloseEvent(InventoryCloseEvent event) {
 	
-		HumanEntity player = event.getPlayer();
+		try {
 		
-		// Make sure this is a valid inventory open event
-		if (player != null && player instanceof Player) {
-			// This information is now outdated
-			lastRightClicked.remove(player.getName());
-		}	
+			HumanEntity player = event.getPlayer();
+			
+			// Make sure this is a valid inventory open event
+			if (player != null && player instanceof Player) {
+				// This information is now outdated
+				lastRightClicked.remove(player.getName());
+			}
+		
+		} catch (Exception e) {
+			report.reportError(debugger, this, e, event);
+		}
 	}
 	
 	/**

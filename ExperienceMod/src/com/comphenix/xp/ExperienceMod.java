@@ -124,7 +124,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		manager = getServer().getPluginManager();
 		
 		// Informs about negative events
-		informer = new ExperienceInformerListener(getServer());
+		informer = new ExperienceInformerListener(this, getServer());
 		
 		// Initialize rewards
 		currentLogger = this.getLogger();
@@ -165,7 +165,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	@Override
 	public void onEnable() {
 		
-		interactionListener = new PlayerInteractionListener();
+		interactionListener = new PlayerInteractionListener(this);
 		
 		// Commands
 		commandExperienceMod = new CommandExperienceMod(this);

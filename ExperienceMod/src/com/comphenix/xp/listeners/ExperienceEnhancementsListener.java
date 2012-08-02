@@ -31,6 +31,7 @@ import com.comphenix.xp.extra.Permissions;
 public class ExperienceEnhancementsListener implements Listener {
 		
 	private Debugger debugger;
+	private ErrorReporting report = ErrorReporting.DEFAULT;
 	
 	public ExperienceEnhancementsListener(Debugger debugger) {
 		this.debugger = debugger;
@@ -39,48 +40,68 @@ public class ExperienceEnhancementsListener implements Listener {
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onPlayerDeathEvent(PlayerDeathEvent event) {
 		
-		Player player = event.getEntity();
-		
-		if (player != null) {
-			// Permission check
-	        if(Permissions.hasKeepExp(player)) {
-
-	            event.setDroppedExp(0);
-	            event.setKeepLevel(true);
-	            
-	            if (debugger != null)
-	        		debugger.printDebug(this, "Prevented experience loss for %s.", player.getName());
-	            
-	        } else {
-	        	event.setKeepLevel(false);
-	        }
+		// Handle exceptions too
+		try {
+			Player player = event.getEntity();
+			
+			if (player != null) {
+				handlePlayerDeath(event, player);
+			}
+		} catch (Exception e) {
+			report.reportError(debugger, this, e, event);
 		}
+	}
+	
+	private void handlePlayerDeath(PlayerDeathEvent event, Player player) {
+
+		// Permission check
+        if(Permissions.hasKeepExp(player)) {
+
+            event.setDroppedExp(0);
+            event.setKeepLevel(true);
+            
+            if (debugger != null)
+        		debugger.printDebug(this, "Prevented experience loss for %s.", player.getName());
+            
+        } else {
+        	event.setKeepLevel(false);
+        }
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onPrepareItemEnchantEvent(PrepareItemEnchantEvent event) {
-	
-		Player player = event.getEnchanter();
-		
-		if (player != null) {
-			// Permission check
-	        if(Permissions.hasMaxEnchant(player)) {
-	        	
-	        	int[] costs = event.getExpLevelCostsOffered();
-	        	int index = costs.length - 1;
-	        	
-	        	if (index >= 0) {
-	        		costs[index] = getMaxBonus(event.getEnchantmentBonus(), index);
 
-		            if (debugger != null)
-		        		debugger.printDebug(this, "Changed experience level costs for %s.", player.getName());
-	        		
-	        	} else if (debugger != null)
-	        		debugger.printDebug(this, "Got empty list of experience costs.");
-	        }
+		// Like above
+		try {
+			Player player = event.getEnchanter();
+			
+			if (player != null) {
+				handleItemEnchanting(event, player);
+			}
+		} catch (Exception e) {
+			report.reportError(debugger, this, e, event);
 		}
 	}
 
+	private void handleItemEnchanting(PrepareItemEnchantEvent event, Player player) {
+		
+		// Permission check
+        if(Permissions.hasMaxEnchant(player)) {
+        	
+        	int[] costs = event.getExpLevelCostsOffered();
+        	int index = costs.length - 1;
+        	
+        	if (index >= 0) {
+        		costs[index] = getMaxBonus(event.getEnchantmentBonus(), index);
+
+	            if (debugger != null)
+	        		debugger.printDebug(this, "Changed experience level costs for %s.", player.getName());
+        		
+        	} else if (debugger != null)
+        		debugger.printDebug(this, "Got empty list of experience costs.");
+        }
+	}
+	
 	public static int getMinBonus(int bookshelves, int slot) {
 		
 		final double[] slotFactor = { 0.5, 0.66, 1 };  

@@ -51,6 +51,7 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 
 	// Random source
 	private Random random = new Random();
+	private ErrorReporting report = ErrorReporting.DEFAULT;
 	
 	public ExperienceBlockListener(Debugger debugger, Presets presets, HistoryProviders historyProviders) {
 		this.debugger = debugger;
@@ -62,78 +63,87 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockBreakEvent(BlockBreakEvent event) {
 		
-		Block block = event.getBlock();
-		Player player = event.getPlayer();
-		
-		// See if this deserves more experience
-		if (block != null && player != null) { 
+		try {
+			Block block = event.getBlock();
+			Player player = event.getPlayer();
 			
-			ItemStack toolItem = player.getItemInHand();
-			ItemQuery retrieveKey = ItemQuery.fromAny(block);
-			
-			boolean allowBlockReward = Permissions.hasRewardBlock(player) && !hasSilkTouch(toolItem);
-			boolean allowBonusReward = Permissions.hasRewardBonus(player);
-
-			// Only without silk touch
-			if (allowBlockReward) {
-				Configuration config = getConfiguration(player);
-			
-				// No configuration or default configuration found
-				if (config == null) {
-					if (debugger != null)
-						debugger.printDebug(this, "Cannot find config for player %s in mining %s.", 
-							player.getName(), block);
-					
-				} else if (config.getSimpleBlockReward().containsKey(retrieveKey)) {
-
-					Action action = getBlockBonusAction(config.getSimpleBlockReward(), retrieveKey, block);
-					RewardProvider rewards = config.getRewardProvider();
-					ChannelProvider channels = config.getChannelProvider();
-					
-					// Guard
-					if (action == null)
-						return;
-					
-					Integer exp = action.rewardPlayer(rewards, random, player, block.getLocation());
-					config.getMessageQueue().enqueue(player, action, channels.getFormatter(player, exp));
-					
-					if (debugger != null)
-						debugger.printDebug(this, "Block mined by %s: Spawned %d xp for item %s.", 
-							player.getName(), exp, block.getType());
-				}
+			// See if this deserves more experience
+			if (block != null && player != null) { 
+				handleBlockBreakEvent(block, player);
 			}
 			
-			if (allowBonusReward) {
-				Configuration config = getConfiguration(player);
-
-				// No configuration or default configuration found
-				if (config == null) {
-					if (debugger != null)
-						debugger.printDebug(this, "Cannot find config for player %s in mining %s.", 
-							player.getName(), block);
-					
-				} else if (config.getSimpleBonusReward().containsKey(retrieveKey)) {
-					
-					Action action = getBlockBonusAction(config.getSimpleBonusReward(), retrieveKey, block);
-					RewardProvider rewards = config.getRewardProvider();
-					ChannelProvider channels = config.getChannelProvider();
-					
-					// Guard
-					if (action == null)
-						return;
-					
-					Integer exp = action.rewardPlayer(rewards, random, player, block.getLocation());
-					config.getMessageQueue().enqueue(player, action, channels.getFormatter(player, exp));
-					
-					if (debugger != null)
-						debugger.printDebug(this, "Block destroyed by %s: Spawned %d xp for item %s.", 
-							player.getName(), exp, block.getType());
-
-				}
-			}
-			
-			// Done
+		} catch (Exception e) {
+			report.reportError(debugger, this, e, event);
 		}
+	}
+	
+	private void handleBlockBreakEvent(Block block, Player player) {
+		
+		ItemStack toolItem = player.getItemInHand();
+		ItemQuery retrieveKey = ItemQuery.fromAny(block);
+		
+		boolean allowBlockReward = Permissions.hasRewardBlock(player) && !hasSilkTouch(toolItem);
+		boolean allowBonusReward = Permissions.hasRewardBonus(player);
+
+		// Only without silk touch
+		if (allowBlockReward) {
+			Configuration config = getConfiguration(player);
+		
+			// No configuration or default configuration found
+			if (config == null) {
+				if (debugger != null)
+					debugger.printDebug(this, "Cannot find config for player %s in mining %s.", 
+						player.getName(), block);
+				
+			} else if (config.getSimpleBlockReward().containsKey(retrieveKey)) {
+
+				Action action = getBlockBonusAction(config.getSimpleBlockReward(), retrieveKey, block);
+				RewardProvider rewards = config.getRewardProvider();
+				ChannelProvider channels = config.getChannelProvider();
+				
+				// Guard
+				if (action == null)
+					return;
+				
+				Integer exp = action.rewardPlayer(rewards, random, player, block.getLocation());
+				config.getMessageQueue().enqueue(player, action, channels.getFormatter(player, exp));
+				
+				if (debugger != null)
+					debugger.printDebug(this, "Block mined by %s: Spawned %d xp for item %s.", 
+						player.getName(), exp, block.getType());
+			}
+		}
+		
+		if (allowBonusReward) {
+			Configuration config = getConfiguration(player);
+
+			// No configuration or default configuration found
+			if (config == null) {
+				if (debugger != null)
+					debugger.printDebug(this, "Cannot find config for player %s in mining %s.", 
+						player.getName(), block);
+				
+			} else if (config.getSimpleBonusReward().containsKey(retrieveKey)) {
+				
+				Action action = getBlockBonusAction(config.getSimpleBonusReward(), retrieveKey, block);
+				RewardProvider rewards = config.getRewardProvider();
+				ChannelProvider channels = config.getChannelProvider();
+				
+				// Guard
+				if (action == null)
+					return;
+				
+				Integer exp = action.rewardPlayer(rewards, random, player, block.getLocation());
+				config.getMessageQueue().enqueue(player, action, channels.getFormatter(player, exp));
+				
+				if (debugger != null)
+					debugger.printDebug(this, "Block destroyed by %s: Spawned %d xp for item %s.", 
+						player.getName(), exp, block.getType());
+
+			}
+		}
+		
+		// Done
 	}
 	
 	private Action getBlockBonusAction(ItemTree tree, ItemQuery key, Block block) {
@@ -166,56 +176,65 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockPlaceEvent(BlockPlaceEvent event) {
 		
-		Block block = event.getBlock();
-		Player player = event.getPlayer();
-		
-		// See if this deserves experience
-		if (block != null && player != null) { 
+		try {
+			Block block = event.getBlock();
+			Player player = event.getPlayer();
 			
-			boolean allowPlacingReward = Permissions.hasRewardPlacing(player);
-			
-			// Inform other listeners too
-			if (historyProviders != null && historyProviders.getMemoryService() != null) {
-				historyProviders.getMemoryService().onBlockPlaceEvent(event);
+			// See if this deserves experience
+			if (block != null && player != null) { 
+				handleBlockPlaceEvent(event, block, player);
 			}
 			
-			if (allowPlacingReward) {
-				Configuration config = getConfiguration(player);
+		} catch (Exception e) {
+			report.reportError(debugger, this, e, event);
+		}
+	}
+	
+	public void handleBlockPlaceEvent(BlockPlaceEvent event, Block block, Player player) {
+		
+		boolean allowPlacingReward = Permissions.hasRewardPlacing(player);
+		
+		// Inform other listeners too
+		if (historyProviders != null && historyProviders.getMemoryService() != null) {
+			historyProviders.getMemoryService().onBlockPlaceEvent(event);
+		}
+		
+		if (allowPlacingReward) {
+			Configuration config = getConfiguration(player);
+			
+			if (config == null) {
+				if (debugger != null)
+					debugger.printDebug(this, "No config found for block %s.", block);
+				return;
+			}
 				
-				if (config == null) {
+			ItemQuery retrieveKey = ItemQuery.fromExact(block);
+			ItemTree placeReward = config.getSimplePlacingReward();
+			
+			if (placeReward.containsKey(retrieveKey)) {
+				Action action = placeReward.get(retrieveKey);
+				RewardProvider rewards = config.getRewardProvider();
+				ChannelProvider channels = config.getChannelProvider();
+				
+				// Make sure the action is legal
+				if (!action.canRewardPlayer(rewards, player, 1)) {
 					if (debugger != null)
-						debugger.printDebug(this, "No config found for block %s.", block);
+						debugger.printDebug(this, "Block place by %s cancelled: Not enough resources for item %s",
+							player.getName(), block.getType());
+					
+					// Events will not be cancelled for untouchables
+					if (!Permissions.hasUntouchable(player))
+						event.setCancelled(true);
 					return;
 				}
-					
-				ItemQuery retrieveKey = ItemQuery.fromExact(block);
-				ItemTree placeReward = config.getSimplePlacingReward();
 				
-				if (placeReward.containsKey(retrieveKey)) {
-					Action action = placeReward.get(retrieveKey);
-					RewardProvider rewards = config.getRewardProvider();
-					ChannelProvider channels = config.getChannelProvider();
-					
-					// Make sure the action is legal
-					if (!action.canRewardPlayer(rewards, player, 1)) {
-						if (debugger != null)
-							debugger.printDebug(this, "Block place by %s cancelled: Not enough resources for item %s",
-								player.getName(), block.getType());
-						
-						// Events will not be cancelled for untouchables
-						if (!Permissions.hasUntouchable(player))
-							event.setCancelled(true);
-						return;
-					}
-					
-					// Reward and print messages
-					Integer exp = action.rewardPlayer(rewards, random, player);
-					config.getMessageQueue().enqueue(player, action, channels.getFormatter(player, exp));
-					
-					if (debugger != null)
-						debugger.printDebug(this, "Block placed by %s: Spawned %d xp for item %s.", 
-							player.getName(), exp, block.getType());
-				}
+				// Reward and print messages
+				Integer exp = action.rewardPlayer(rewards, random, player);
+				config.getMessageQueue().enqueue(player, action, channels.getFormatter(player, exp));
+				
+				if (debugger != null)
+					debugger.printDebug(this, "Block placed by %s: Spawned %d xp for item %s.", 
+						player.getName(), exp, block.getType());
 			}
 		}
 	}

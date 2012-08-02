@@ -29,6 +29,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 public class ExperienceCleanupListener implements Listener {
 	
 	private List<PlayerCleanupListener> listeners = new ArrayList<PlayerCleanupListener>();
+	private ErrorReporting report = ErrorReporting.DEFAULT;
 	
 	public ExperienceCleanupListener(PlayerCleanupListener... newListeners) {
 		setPlayerCleanupListeners(newListeners);
@@ -64,13 +65,19 @@ public class ExperienceCleanupListener implements Listener {
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onPlayerQuitEvent(PlayerQuitEvent event) {
 		
-		Player player = event.getPlayer();
-		
-		if (player != null) {
-			// Cleanup after the player is removed
-			for (PlayerCleanupListener listen : listeners) {
-				listen.removePlayerCache(player);
+		try {
+			Player player = event.getPlayer();
+			
+			if (player != null) {
+				// Cleanup after the player is removed
+				for (PlayerCleanupListener listen : listeners) {
+					listen.removePlayerCache(player);
+				}
 			}
+		
+		} catch (Exception e) {
+			// This probably won't happen anyway, but we'll handle it.
+			report.reportError(null, this, e, event);
 		}
 	}
 }

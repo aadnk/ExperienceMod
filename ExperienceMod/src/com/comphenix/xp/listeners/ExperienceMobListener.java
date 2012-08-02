@@ -49,6 +49,9 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 	// Random source
 	private Random random = new Random();
 	
+	// Error report creator
+	private ErrorReporting report = ErrorReporting.DEFAULT;
+	
 	public ExperienceMobListener(Debugger debugger, Presets presets) {
 		this.debugger = debugger;
 		setPresets(presets);
@@ -56,101 +59,118 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 	
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true) 
 	public void onCreatureSpawnEvent(CreatureSpawnEvent event) {
-		if (event.getSpawnReason() != null) {
-			spawnReasonLookup.put(event.getEntity().getEntityId(), 
-								  event.getSpawnReason());
+		
+		try {
+			if (event.getSpawnReason() != null) {
+				spawnReasonLookup.put(event.getEntity().getEntityId(), 
+									  event.getSpawnReason());
+			}
+		
+		// Every entry method must have a generic catcher
+		} catch (Exception e) {
+			report.reportError(debugger, this, e, event);
 		}
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onEntityDeathEvent(EntityDeathEvent event) {
 		
-		Configuration config;
 		LivingEntity entity = event.getEntity();
-		
 		Player killer = entity.getKiller();
-		boolean hasKiller = (killer != null);
 		
-		// Only drop experience from mobs
-		if (entity != null && isMob(entity)) {
-			
-			Integer id = entity.getEntityId();
-			MobQuery query = MobQuery.fromExact(entity, spawnReasonLookup.get(id), hasKiller);
+		try {
+			// Only drop experience from mobs
+			if (entity != null && isMob(entity)) {
+				handleEntityDeath(event, entity, killer);
+			}
+		
+		// Every entry method must have a generic catcher
+		} catch (Exception e) {
+			report.reportError(debugger, this, e, event);
+		}
+	}
+	
+	private void handleEntityDeath(EntityDeathEvent event, LivingEntity entity, Player killer) {
+		
+		boolean hasKiller = (killer != null);
+		Configuration config = null;
+		
+		Integer id = entity.getEntityId();
+		MobQuery query = MobQuery.fromExact(entity, spawnReasonLookup.get(id), hasKiller);
 
-			if (hasKiller)
-				config = getConfiguration(killer);
-			else
-				config = getConfiguration(entity.getWorld());
+		if (hasKiller)
+			config = getConfiguration(killer);
+		else
+			config = getConfiguration(entity.getWorld());
+		
+		// Guard
+		if (config == null) {
+			if (debugger != null)
+				debugger.printDebug(this, "No config found for mob %d, query: %s", id, query);
+			return;
+		}
+		
+		Action action = config.getExperienceDrop().get(query);
+
+		// Make sure the reward has been changed
+		if (action != null) {
 			
-			// Guard
-			if (config == null) {
+			RewardProvider rewards = config.getRewardProvider();
+			ChannelProvider channels = config.getChannelProvider();
+			
+			// Spawn the experience ourself
+			event.setDroppedExp(0);
+			
+			// Make sure the action is legal
+			if (hasKiller && !action.canRewardPlayer(rewards, killer, 1)) {
 				if (debugger != null)
-					debugger.printDebug(this, "No config found for mob %d, query: %s", id, query);
+					debugger.printDebug(this, "Entity %d kill cancelled: Player %s hasn't got enough resources.",
+							id, killer.getName());
+				
+				// Events will not be directly cancelled for untouchables
+				if (!Permissions.hasUntouchable(killer)) {
+					// To cancel this event, spawn a new mob at the exact same location.
+					LivingEntity spawned = entity.getWorld().spawnCreature(entity.getLocation(), entity.getType());
+					spawned.addPotionEffects(entity.getActivePotionEffects());
+					
+					// Prevent drops
+					event.getDrops().clear();
+				}
 				return;
 			}
 			
-			Action action = config.getExperienceDrop().get(query);
+			Integer xp = action.rewardAnyone(rewards, random, entity.getWorld(), entity.getLocation());
+			config.getMessageQueue().enqueue(null, action, channels.getFormatter(null, xp));
+			
+			if (debugger != null)
+				debugger.printDebug(this, "Entity %d: Changed experience drop to %d", id, xp);
+		
+		} else if (config.isDefaultRewardsDisabled() && hasKiller) {
+			
+			// Disable all mob XP
+			event.setDroppedExp(0);
+			
+			if (debugger != null)
+				debugger.printDebug(this, "Entity %d: Default mob experience disabled.", id);
 
-			// Make sure the reward has been changed
-			if (action != null) {
-				
-				RewardProvider rewards = config.getRewardProvider();
-				ChannelProvider channels = config.getChannelProvider();
-				
-				// Spawn the experience ourself
-				event.setDroppedExp(0);
-				
-				// Make sure the action is legal
-				if (hasKiller && !action.canRewardPlayer(rewards, killer, 1)) {
-					if (debugger != null)
-						debugger.printDebug(this, "Entity %d kill cancelled: Player %s hasn't got enough resources.",
-								id, killer.getName());
-					
-					// Events will not be directly cancelled for untouchables
-					if (!Permissions.hasUntouchable(killer)) {
-						// To cancel this event, spawn a new mob at the exact same location.
-						LivingEntity spawned = entity.getWorld().spawnCreature(entity.getLocation(), entity.getType());
-						spawned.addPotionEffects(entity.getActivePotionEffects());
-						
-						// Prevent drops
-						event.getDrops().clear();
-					}
-					return;
-				}
-				
-				Integer xp = action.rewardAnyone(rewards, random, entity.getWorld(), entity.getLocation());
-				config.getMessageQueue().enqueue(null, action, channels.getFormatter(null, xp));
-				
-				if (debugger != null)
-					debugger.printDebug(this, "Entity %d: Changed experience drop to %d", id, xp);
+		} else if (!config.isDefaultRewardsDisabled() && hasKiller) {
 			
-			} else if (config.isDefaultRewardsDisabled() && hasKiller) {
+			int expDropped = event.getDroppedExp();
+			
+			// Alter the default experience drop too
+			if (config.getMultiplier() != 1) {
+				Range increase = new Range(expDropped * config.getMultiplier());
+				int expChanged = increase.sampleInt(random);
 				
-				// Disable all mob XP
-				event.setDroppedExp(0);
+				event.setDroppedExp(expChanged);
 				
 				if (debugger != null)
-					debugger.printDebug(this, "Entity %d: Default mob experience disabled.", id);
-	
-			} else if (!config.isDefaultRewardsDisabled() && hasKiller) {
-				
-				int expDropped = event.getDroppedExp();
-				
-				// Alter the default experience drop too
-				if (config.getMultiplier() != 1) {
-					Range increase = new Range(expDropped * config.getMultiplier());
-					int expChanged = increase.sampleInt(random);
-					
-					event.setDroppedExp(expChanged);
-					
-					if (debugger != null)
-						debugger.printDebug(this, "Entity %d: Changed experience drop to %d", id, expChanged);
-				}
+					debugger.printDebug(this, "Entity %d: Changed experience drop to %d", id, expChanged);
 			}
-			
-			// Remove it from the lookup
-			spawnReasonLookup.remove(id);
 		}
+		
+		// Remove it from the lookup
+		spawnReasonLookup.remove(id);
 	}
 	
 	private boolean isMob(LivingEntity entity) {
