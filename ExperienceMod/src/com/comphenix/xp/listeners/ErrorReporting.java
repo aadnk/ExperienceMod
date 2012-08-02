@@ -2,6 +2,9 @@ package com.comphenix.xp.listeners;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
@@ -20,8 +23,11 @@ public class ErrorReporting {
 	 */
 	public static ErrorReporting DEFAULT = new ErrorReporting(DEFAULT_PREFIX, DEFAULT_SUPPORT_URL);
 	
-	private String prefix;
-	private String supportURL;
+	protected String prefix;
+	protected String supportURL;
+	
+	// Map of global objects
+	protected Map<String, Object> globalParameters = new HashMap<String, Object>();
 	
 	public ErrorReporting(String prefix, String supportURL) {
 		this.prefix = prefix;
@@ -63,6 +69,12 @@ public class ErrorReporting {
 			for (Object param : parameters) {
 				writer.println(addPrefix(getStringDescription(param), SECOND_LEVEL_PREFIX));
 			}
+		}
+		
+		// Global parameters
+		for (String param : globalParameters()) {
+			writer.println(param + ":");
+			writer.println(addPrefix(getStringDescription(getGlobalParameter(param)), SECOND_LEVEL_PREFIX));
 		}
 		
 		// Now, for the sender itself
@@ -115,6 +127,27 @@ public class ErrorReporting {
 	 */
 	protected boolean isSimpleType(Object test) {
 		return test instanceof String || Primitives.isWrapperType(test.getClass());
+	}
+	
+	/**
+	 * Adds the given global parameter. It will be included in every error report.
+	 * @param key - name of parameter.
+	 * @param value - the global parameter itself.
+	 */
+	public void addGlobalParameter(String key, Object value) {
+		globalParameters.put(key, value);
+	}
+	
+	public Object getGlobalParameter(String key) {
+		return globalParameters.get(key);
+	}
+	
+	public void clearGlobalParameters() {
+		globalParameters.clear();
+	}
+	
+	public Set<String> globalParameters() {
+		return globalParameters.keySet();
 	}
 	
 	public String getSupportURL() {

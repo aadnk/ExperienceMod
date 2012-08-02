@@ -20,7 +20,7 @@ public class HistoryProviders extends ServiceProvider<HistoryService> {
 	/**
 	 * Services sorted by lookup speed.
 	 */
-	protected SortedSet<HistoryService> speedOrder = new TreeSet<HistoryService>(new Comparator<HistoryService>() {
+	protected transient SortedSet<HistoryService> speedOrder = new TreeSet<HistoryService>(new Comparator<HistoryService>() {
 		public int compare(HistoryService o1, HistoryService o2) {
 			return o1.getLookupSpeed().compareTo(o2.getLookupSpeed());
 		}

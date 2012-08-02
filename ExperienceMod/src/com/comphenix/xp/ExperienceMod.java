@@ -110,6 +110,9 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	private static final int TICK_DELAY = 4; // 50 ms * 4 = 200 ms
 	private int serverTickTask;
 
+	// Error reporter
+	private ErrorReporting report = ErrorReporting.DEFAULT;
+	
 	// Commands
 	private CommandExperienceMod commandExperienceMod;
 	private CommandSpawnExp commandSpawn;
@@ -118,149 +121,170 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	
 	@Override
 	public void onLoad() {
-
-		// Initialize scheduler
-		playerScheduler = new PlayerScheduler(Bukkit.getScheduler(), this);
-		manager = getServer().getPluginManager();
-		
-		// Informs about negative events
-		informer = new ExperienceInformerListener(this, getServer());
-		
-		// Initialize rewards
-		currentLogger = this.getLogger();
-		rewardProvider = new RewardProvider();
-				
-		// Load history
-		historyProviders = new HistoryProviders();
-		
-		// Load reward types
-		rewardProvider.register(new RewardExperience());
-		rewardProvider.register(new RewardVirtual());
-		rewardProvider.setDefaultReward(RewardTypes.EXPERIENCE);
-		
-		// Initialize channel providers
-		channelProvider = new ChannelProvider();
-		channelProvider.setMessageFormatter(new MessageFormatter());
-		
-		// Load channel providers if we can
-		if (HeroService.exists()) {
-			channelProvider.register(new HeroService());
-			channelProvider.setDefaultName(HeroService.NAME);
-			currentLogger.info("Using HeroChat for channels.");
+		try {
+			currentLogger = this.getLogger();
 			
-		} else {
-			channelProvider.register(new StandardService( getServer() ));
-			channelProvider.setDefaultName(StandardService.NAME);
-			currentLogger.info("Using standard chat.");
+			// Initialize scheduler
+			playerScheduler = new PlayerScheduler(Bukkit.getScheduler(), this);
+			manager = getServer().getPluginManager();
+			
+			// Informs about negative events
+			informer = new ExperienceInformerListener(this, getServer());
+			
+			// Initialize rewards
+			rewardProvider = new RewardProvider();
+					
+			// Load history
+			historyProviders = new HistoryProviders();
+			
+			// Load reward types
+			rewardProvider.register(new RewardExperience());
+			rewardProvider.register(new RewardVirtual());
+			rewardProvider.setDefaultReward(RewardTypes.EXPERIENCE);
+			
+			// Initialize channel providers
+			channelProvider = new ChannelProvider();
+			channelProvider.setMessageFormatter(new MessageFormatter());
+			
+			// Load channel providers if we can
+			if (HeroService.exists()) {
+				channelProvider.register(new HeroService());
+				channelProvider.setDefaultName(HeroService.NAME);
+				currentLogger.info("Using HeroChat for channels.");
+				
+			} else {
+				channelProvider.register(new StandardService( getServer() ));
+				channelProvider.setDefaultName(StandardService.NAME);
+				currentLogger.info("Using standard chat.");
+			}
+			
+			// Initialize block providers
+			customProvider = new CustomBlockProviders();
+			customProvider.register(new StandardBlockService());
+			
+			// Initialize configuration loader
+			configLoader = new ConfigurationLoader(getDataFolder(), this, rewardProvider, channelProvider);
+		
+			// Initialize error reporter
+			report.clearGlobalParameters();
+			report.addGlobalParameter("rewardProvider", rewardProvider);
+			report.addGlobalParameter("historyProvider", historyProviders);
+			report.addGlobalParameter("channelProvider", channelProvider);
+			report.addGlobalParameter("customProvider", customProvider);
+			
+		} catch (Exception e) {
+			// Well, this is bad.
+			report.reportError(this, this, e);
+			throw new IllegalStateException("An exception occored.", e);
 		}
-		
-		// Initialize block providers
-		customProvider = new CustomBlockProviders();
-		customProvider.register(new StandardBlockService());
-		
-		// Initialize configuration loader
-		configLoader = new ConfigurationLoader(getDataFolder(), this, rewardProvider, channelProvider);
 	}
 
 	@Override
 	public void onEnable() {
-		
-		interactionListener = new PlayerInteractionListener(this);
-		
-		// Commands
-		commandExperienceMod = new CommandExperienceMod(this);
-		commandSpawn = new CommandSpawnExp(this);
-		
-		// Block provider
-		customProvider.setLastInteraction(interactionListener);
-		
-		// Load economy, if it exists
 		try {
-			if (!hasEconomy())
-				economy = getRegistration(Economy.class, null);
-			if (!hasChat())
-				chat = getRegistration(Chat.class, new Function<Chat, Boolean>() {
-					public Boolean apply(Chat element) {
-						// Try not to use mChatSuite if we don't have to
-						return element.getName().equalsIgnoreCase("mChatSuite");
-					}
-				});
-		
-		} catch (NoClassDefFoundError e) {
-		} catch (NullPointerException e) {
-			e.printStackTrace();
-		}
-		
-		// Don't register economy rewards unless we can
-		if (hasEconomy()) {
-			itemListener = new ItemRewardListener(this);
-			RewardEconomy rewardEconomy = new RewardEconomy(economy, this, itemListener);
+			interactionListener = new PlayerInteractionListener(this);
 			
-			// Associate everything
-			rewardProvider.register(rewardEconomy);
-			itemListener.setReward(rewardEconomy);
+			// Commands
+			commandExperienceMod = new CommandExperienceMod(this);
+			commandSpawn = new CommandSpawnExp(this);
 			
-			// Inform the player
-			currentLogger.info("Economy enabled. Using " + economy.getName() + ".");
+			// Block provider
+			customProvider.setLastInteraction(interactionListener);
 			
-			// Register listener
-			manager.registerEvents(itemListener, this);
+			// Load economy, if it exists
+			try {
+				if (!hasEconomy())
+					economy = getRegistration(Economy.class, null);
+				if (!hasChat())
+					chat = getRegistration(Chat.class, new Function<Chat, Boolean>() {
+						public Boolean apply(Chat element) {
+							// Try not to use mChatSuite if we don't have to
+							return element.getName().equalsIgnoreCase("mChatSuite");
+						}
+					});
 			
-		} else {
-			
-			// Damn it
-			currentLogger.info("Economy not registered.");
-		}
-		
-		// Display chat hook
-		if (hasChat()) {
-			currentLogger.info("Hooked " + chat.getName() + " for chat options.");
-		}
-		
-		try {
-			// Initialize configuration
-			loadDefaults(false);
-			
-			// Register listeners
-			manager.registerEvents(interactionListener, this);
-			manager.registerEvents(xpBlockListener, this);
-			manager.registerEvents(xpItemListener, this);
-			manager.registerEvents(xpMobListener, this);
-			manager.registerEvents(xpEnchancer, this);
-			manager.registerEvents(xpCleanup, this);
-			manager.registerEvents(informer, this);
-		
-		} catch (IOException e) {
-			currentLogger.severe("IO error when loading configurations: " + e.getMessage());
-		}
-		
-		// Create memory history
-		historyProviders.register(new MemoryService(
-				globalSettings.getMaxBlocksInHistory(), 
-				globalSettings.getMaxAgeInHistory()
-		));
-	
-		registerHistoryServices();
-		
-		// Collect data, if enabled
-		if (globalSettings.isUseMetrics()) {
-			dataCollector = new DataCollector(this);
-		}
-		
-		// Register commands
-		getCommand(CommandExperienceMod.COMMAND_RELOAD).setExecutor(commandExperienceMod);
-		getCommand(CommandSpawnExp.COMMAND_SPAWN_XP).setExecutor(commandSpawn);
-		
-		// Begin server tick
-		serverTickTask = getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
-			public void run() {
-				onServerTick();
+			} catch (NoClassDefFoundError e) {
+			} catch (NullPointerException e) {
+				e.printStackTrace();
 			}
-		}, TICK_DELAY, TICK_DELAY); 
+			
+			// Don't register economy rewards unless we can
+			if (hasEconomy()) {
+				itemListener = new ItemRewardListener(this);
+				RewardEconomy rewardEconomy = new RewardEconomy(economy, this, itemListener);
+				
+				// Associate everything
+				rewardProvider.register(rewardEconomy);
+				itemListener.setReward(rewardEconomy);
+				
+				// Inform the player
+				currentLogger.info("Economy enabled. Using " + economy.getName() + ".");
+				
+				// Register listener
+				manager.registerEvents(itemListener, this);
+				
+			} else {
+				
+				// Damn it
+				currentLogger.info("Economy not registered.");
+			}
+			
+			// Display chat hook
+			if (hasChat()) {
+				currentLogger.info("Hooked " + chat.getName() + " for chat options.");
+			}
+			
+			try {
+				// Initialize configuration
+				loadDefaults(false);
+				
+				// Register listeners
+				manager.registerEvents(interactionListener, this);
+				manager.registerEvents(xpBlockListener, this);
+				manager.registerEvents(xpItemListener, this);
+				manager.registerEvents(xpMobListener, this);
+				manager.registerEvents(xpEnchancer, this);
+				manager.registerEvents(xpCleanup, this);
+				manager.registerEvents(informer, this);
+			
+			} catch (IOException e) {
+				currentLogger.severe("IO error when loading configurations: " + e.getMessage());
+			}
+			
+			// Create memory history
+			historyProviders.register(new MemoryService(
+					globalSettings.getMaxBlocksInHistory(), 
+					globalSettings.getMaxAgeInHistory()
+			));
 		
-		// Inform of this problem
-		if (serverTickTask < 0)
-			printWarning(this, "Could not start repeating task for sending messages.");
+			registerHistoryServices();
+			
+			// Collect data, if enabled
+			if (globalSettings.isUseMetrics()) {
+				dataCollector = new DataCollector(this);
+			}
+			
+			// Register commands
+			getCommand(CommandExperienceMod.COMMAND_RELOAD).setExecutor(commandExperienceMod);
+			getCommand(CommandSpawnExp.COMMAND_SPAWN_XP).setExecutor(commandSpawn);
+			
+			// Begin server tick
+			serverTickTask = getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
+				public void run() {
+					onServerTick();
+				}
+			}, TICK_DELAY, TICK_DELAY); 
+			
+			// Inform of this problem
+			if (serverTickTask < 0)
+				printWarning(this, "Could not start repeating task for sending messages.");
+			
+		} catch (Exception e) {
+			report.reportError(this, this, e);
+			
+			// Let Bukkit know about this too.
+			throw new IllegalStateException("An exception occored.", e);
+		}
 	}
 	
 	private void registerHistoryServices() {
@@ -740,13 +764,18 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		}
 		
 		// Print immediately
-		currentLogger.warning(warningMessage);
+		if (currentLogger == null)
+			System.err.println(warningMessage);
+		else
+			currentLogger.warning(warningMessage);
 		
 		// Add to list of warnings
-	    informer.addWarningMessage(formatted);
-	    informer.broadcastWarning(formatted);
+		if (informer != null) {
+		    informer.addWarningMessage(formatted);
+		    informer.broadcastWarning(formatted);
+		}
 	}
-
+	
 	// Taken from Apache Commons-IO
 	private static long copyLarge(InputStream input, OutputStream output) throws IOException {
 		byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
