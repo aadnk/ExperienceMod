@@ -28,7 +28,7 @@ public class ItemsFactory implements ResourceFactory {
 		this(new ArrayList<Entry>(), multiplier);
 	}
 	
-	public ItemsFactory(List<Entry> entries, double multiplier) {
+	private ItemsFactory(List<Entry> entries, double multiplier) {
 		this.entries = entries;
 		this.multiplier = multiplier;
 	}

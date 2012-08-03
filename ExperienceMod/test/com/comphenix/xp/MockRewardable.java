@@ -13,9 +13,15 @@ import com.comphenix.xp.rewards.xp.ExperienceParser;
 public class MockRewardable implements RewardService {
 
 	private RewardTypes type;
+	private ResourcesParser parser;
 	
 	public MockRewardable(RewardTypes type) {
+		this(type, new ExperienceParser());
+	}
+	
+	public MockRewardable(RewardTypes type, ResourcesParser parser) {
 		this.type = type;
+		this.parser = parser;
 	}
 
 	@Override
@@ -52,6 +58,6 @@ public class MockRewardable implements RewardService {
 
 	@Override
 	public ResourcesParser getResourcesParser() {
-		return new ExperienceParser();
+		return parser;
 	}
 }

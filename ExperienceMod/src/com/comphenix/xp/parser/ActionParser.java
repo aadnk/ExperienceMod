@@ -96,7 +96,7 @@ public class ActionParser extends ConfigurationParser<Action> {
 				ResourcesParser parser = provider.getByName(enumed).getResourcesParser();
 				
 				if (parser != null) {
-					ResourceFactory factory = parser.parse(input, key);
+					ResourceFactory factory = parser.parse(values, sub);
 				
 					if (factory != null) 
 						result.addReward(sub, factory);

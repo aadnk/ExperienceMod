@@ -20,6 +20,7 @@ import com.comphenix.xp.parser.text.MobMatcher;
 import com.comphenix.xp.parser.text.MobParser;
 import com.comphenix.xp.rewards.RewardProvider;
 import com.comphenix.xp.rewards.RewardTypes;
+import com.comphenix.xp.rewards.items.ItemsParser;
 import com.comphenix.xp.rewards.xp.ExperienceFactory;
 import com.google.common.collect.Lists;
 
@@ -30,10 +31,12 @@ public class ConfigurationTest {
 		
 		Debugger debugger = new MockDebugger();
 		
+		ItemNameParser nameParser = new ItemNameParser();
 		RewardProvider provider = new RewardProvider();
 		provider.register(new MockRewardable(RewardTypes.EXPERIENCE));
 		provider.register(new MockRewardable(RewardTypes.VIRTUAL));
 		provider.register(new MockRewardable(RewardTypes.ECONOMY));
+		provider.register(new MockRewardable(RewardTypes.DROPS, new ItemsParser(nameParser)));
 		provider.setDefaultReward(RewardTypes.EXPERIENCE);
 		String def = "EXPERIENCE";
 		
@@ -86,14 +89,14 @@ public class ConfigurationTest {
 		
 		MobQuery queryBlace = MobQuery.fromAny(EntityType.BLAZE, DamageCause.ENTITY_ATTACK);
 		MobQuery queryZombie = MobQuery.fromAny(EntityType.ZOMBIE, DamageCause.ENTITY_ATTACK);
-		
+
 		Action blaceAction = new Action();
 		blaceAction.addReward(def, new ExperienceFactory(20));
 		blaceAction.setId(1);
 		
 		Action zombieAction = new Action(def, new ExperienceFactory(15));
 		zombieAction.setId(24);
-		
+
 		assertEquals(blaceAction, result.getExperienceDrop().get(queryBlace));
 		assertEquals(zombieAction, result.getExperienceDrop().get(queryZombie));
 	}

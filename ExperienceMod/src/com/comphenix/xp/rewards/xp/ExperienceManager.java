@@ -124,7 +124,7 @@ public class ExperienceManager {
 	}
 
 	private static int getExpToLevel(final int level) {
-		return 7 + (level * 7 >> 1);
+		return 17 + Math.min(3 * (level - 16), 0);
 	}
 
 	/**
