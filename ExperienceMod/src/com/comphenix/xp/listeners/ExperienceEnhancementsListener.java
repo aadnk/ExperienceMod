@@ -107,6 +107,9 @@ public class ExperienceEnhancementsListener implements Listener {
 		Validate.isTrue(slot > 0, "Slot # cannot be less than zero.");
 		Validate.isTrue(slot < 3, "Slot # cannot be greater than 3.");
 
+		if (bookshelves > 15)
+			bookshelves = 15;
+		
 		return getBonus(1 + bookshelves / 2, slot, bookshelves);
 	}
 	
@@ -115,6 +118,9 @@ public class ExperienceEnhancementsListener implements Listener {
 		Validate.isTrue(slot > 0, "Slot # cannot be less than zero.");
 		Validate.isTrue(slot < 3, "Slot # cannot be greater than 3.");
 
+		if (bookshelves > 15)
+			bookshelves = 15;
+		
 		return getBonus(8 + bookshelves + bookshelves / 2, slot, bookshelves);
 	}
 	
