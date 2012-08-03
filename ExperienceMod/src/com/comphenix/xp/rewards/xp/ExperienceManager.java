@@ -76,7 +76,7 @@ public class ExperienceManager {
 		Player player = getPlayer();
 		int exp = (int) Math.round(getExpToLevel(player) * player.getExp());
 		int currentLevel = player.getLevel();
-
+		
 		// Slow, but should work
 		while (currentLevel > 0) {
 			currentLevel--;
@@ -124,7 +124,7 @@ public class ExperienceManager {
 	}
 
 	private static int getExpToLevel(final int level) {
-		return 17 + Math.max(3 * (level - 16), 0);
+		return 17 + Math.max(3 * (level - 15), 0);
 	}
 
 	/**
