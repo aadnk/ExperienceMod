@@ -75,7 +75,11 @@ public class ConfigurationTest {
 				"  Squid|ENTITY_ATTACK: 7\n" +
 				"  Villager|ENTITY_ATTACK: 10\n" +
 				"  Wolf|ENTITY_ATTACK: 10\n" +
-				"  Zombie|ENTITY_ATTACK: 15\n", debugger, provider);
+				"  Zombie|ENTITY_ATTACK: 15\n\n" +
+				"items:\n" +
+				"  diamond ore:\n" +
+				"    block source:" + 
+				"      items:\n", debugger, provider);
 		
 		Configuration result = Configuration.fromMultiple(Lists.newArrayList(first, second), debugger);
 		

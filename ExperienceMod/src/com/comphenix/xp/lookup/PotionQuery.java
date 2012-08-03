@@ -28,6 +28,7 @@ import org.bukkit.potion.Potion;
 import org.bukkit.potion.PotionType;
 
 import com.comphenix.xp.parser.Utility;
+import com.comphenix.xp.rewards.items.RandomSampling;
 import com.google.common.collect.Lists;
 
 public class PotionQuery implements Query {
@@ -156,6 +157,43 @@ public class PotionQuery implements Query {
 	
 	public boolean hasSplash() {
 		return splash != null && !splash.isEmpty();
+	}
+	
+	/**
+	 * Converts this potion query to an item query.
+	 * <p>
+	 * If this query contains multiple conflicting parameters, a value will be picked at random if <i>pickRandom</i>
+	 * is set to TRUE. If it is FALSE, an exception will be thrown.
+	 * 
+	 * @param pickRandom - TRUE to solve conflicts by picking values at random.
+	 * @return Item query equivalent of this query.
+	 * @throws IllegalArgumentException - if pickRandom is FALSE and there are conflicting parameters,
+	 */
+	public ItemQuery toItemQuery(boolean pickRandom) {
+		
+		// Handle 
+		if (!pickRandom) {
+			if (hasType() && type.size() == 1 && hasLevel() && level.size() == 1 &&
+				hasExtended() && extended.size() == 1 && hasSplash() && splash.size() == 1) {
+				// Acceptible
+			} else {
+				throw new IllegalArgumentException("Cannot create potion from conflicting parameters.");
+			}
+		}
+		
+		return ItemQuery.fromExact(Material.POTION.getId(), (int) createPotion().toDamageValue());
+	}
+	
+	private Potion createPotion() {
+		Potion current = new Potion(RandomSampling.getRandomElement(type, PotionType.WATER), 
+				                    RandomSampling.getRandomElement(level, 1));
+		
+		// Set extended or splash potion
+		if (RandomSampling.getRandomElement(extended, false))
+			current.extend();
+		if (RandomSampling.getRandomElement(splash, false))
+			current.splash();
+		return current;
 	}
 	
 	@Override

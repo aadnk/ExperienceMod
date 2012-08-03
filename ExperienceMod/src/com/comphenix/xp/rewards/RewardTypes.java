@@ -44,6 +44,11 @@ public enum RewardTypes {
 	ECONOMY(false),
 	
 	/**
+	 * Rewards players with item drops.
+	 */
+	ITEMS(false),
+	
+	/**
 	 * A custom reward manager. 
 	 */
 	CUSTOM(true);

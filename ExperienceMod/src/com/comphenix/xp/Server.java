@@ -25,6 +25,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.ExperienceOrb;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 public class Server {
 	private static final int[] threshhold = { 2477, 1237, 617, 307, 149, 73, 37, 17, 7, 3, 1 };
@@ -48,6 +49,13 @@ public class Server {
 	        ExperienceOrb orb = world.spawn(corner, ExperienceOrb.class);
 	        orb.setExperience(Math.min(amount - current, xpSplit));
 		}
+	}
+	
+	public static void spawnItem(World world, Location corner, List<ItemStack> items) {
+		
+		// Just drop these items on the ground
+		for (ItemStack stack : items)
+			world.dropItemNaturally(corner, stack);
 	}
 
     public static int getXPSplit(int xp) {	
