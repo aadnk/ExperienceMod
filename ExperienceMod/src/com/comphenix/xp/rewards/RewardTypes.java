@@ -46,7 +46,7 @@ public enum RewardTypes {
 	/**
 	 * Rewards players with item drops.
 	 */
-	ITEMS(false),
+	DROPS(false),
 	
 	/**
 	 * A custom reward manager. 

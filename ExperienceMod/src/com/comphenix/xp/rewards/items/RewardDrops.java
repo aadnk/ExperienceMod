@@ -13,18 +13,22 @@ import com.comphenix.xp.rewards.ResourcesParser;
 import com.comphenix.xp.rewards.RewardService;
 import com.comphenix.xp.rewards.RewardTypes;
 
-public class RewardItems implements RewardService {
+public class RewardDrops implements RewardService {
 	
 	private ItemsParser itemsParser;
 	private ItemNameParser itemNameParser;
 	
-	public RewardItems(ItemNameParser parser) {
+	public RewardDrops(ItemNameParser parser) {
 		setItemNameParser(parser);
 	}
 	
+	public RewardDrops() {
+		// No parsers are loaded
+	}
+
 	@Override
 	public RewardTypes getRewardType() {
-		return RewardTypes.ITEMS;
+		return RewardTypes.DROPS;
 	}
 
 	@Override
@@ -90,6 +94,6 @@ public class RewardItems implements RewardService {
 
 	@Override
 	public RewardService clone(Configuration config) {
-		return new RewardItems(itemNameParser);
+		return new RewardDrops(itemNameParser);
 	}
 }

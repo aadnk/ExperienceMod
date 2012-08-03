@@ -66,6 +66,7 @@ import com.comphenix.xp.mods.StandardBlockService;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.parser.Utility;
 import com.comphenix.xp.rewards.*;
+import com.comphenix.xp.rewards.items.RewardDrops;
 import com.comphenix.xp.rewards.xp.RewardEconomy;
 import com.comphenix.xp.rewards.xp.RewardExperience;
 import com.comphenix.xp.rewards.xp.RewardVirtual;
@@ -143,6 +144,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			// Load reward types
 			rewardProvider.register(new RewardExperience());
 			rewardProvider.register(new RewardVirtual());
+			rewardProvider.register(new RewardDrops());
 			rewardProvider.setDefaultReward(RewardTypes.EXPERIENCE);
 			
 			// Initialize channel providers
@@ -404,6 +406,12 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 				
 			// Remove previously loaded files
 			configLoader.clearCache();
+			
+			// Initialize parser
+			if (rewardProvider.containsReward(RewardTypes.DROPS)) {
+				RewardDrops drops = (RewardDrops) rewardProvider.getByEnum(RewardTypes.DROPS);
+				drops.setItemNameParser(configLoader.getNameParser());
+			}
 			
 			// Load globals
 			YamlConfiguration globalConfig = loadConfig("global.yml", "Creating default global settings.");

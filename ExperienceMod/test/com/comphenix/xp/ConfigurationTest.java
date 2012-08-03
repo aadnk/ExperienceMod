@@ -78,8 +78,9 @@ public class ConfigurationTest {
 				"  Zombie|ENTITY_ATTACK: 15\n\n" +
 				"items:\n" +
 				"  diamond ore:\n" +
-				"    block source:" + 
-				"      items:\n", debugger, provider);
+				"    block source:\n" + 
+				"      drops:\n" +
+				"        gold ingot: 5", debugger, provider);
 		
 		Configuration result = Configuration.fromMultiple(Lists.newArrayList(first, second), debugger);
 		
