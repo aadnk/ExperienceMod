@@ -26,6 +26,7 @@ import org.bukkit.entity.Player;
 
 import com.comphenix.xp.Configuration;
 import com.comphenix.xp.Server;
+import com.comphenix.xp.rewards.ResourceHolder;
 import com.comphenix.xp.rewards.ResourcesParser;
 import com.comphenix.xp.rewards.RewardService;
 import com.comphenix.xp.rewards.RewardTypes;
@@ -42,24 +43,28 @@ public class RewardVirtual implements RewardService {
 	private ResourcesParser parser = new ExperienceParser();
 	
 	@Override
-	public void reward(Player player, int amount) {
+	public void reward(Player player, ResourceHolder resource) {
 		if (player == null)
 			throw new NullArgumentException("player");
-
-		reward(player, null, amount);
+		if (!isExperience(resource))
+			throw new IllegalArgumentException("Must be a experience resource.");
+		
+		reward(player, null, resource);
 	}
 
 	@Override
-	public boolean canReward(Player player, int amount) {
+	public boolean canReward(Player player, ResourceHolder resource) {
 
 		if (player == null)
 			throw new NullArgumentException("player");
+		if (!isExperience(resource))
+			throw new IllegalArgumentException("Must be a experience resource.");
 
 		ExperienceManager manager = new ExperienceManager(player);
 		
 		// See if we'd end up with negative experience
-		if (amount < 0) {
-			return manager.hasExp(-amount);
+		if (resource.getAmount() < 0) {
+			return manager.hasExp(-resource.getAmount());
 		} else {
 			return true;
 		}
@@ -67,33 +72,41 @@ public class RewardVirtual implements RewardService {
 	
 	// Note: We ignore the location.
 	@Override
-	public void reward(Player player, Location point, int amount) {
+	public void reward(Player player, Location point, ResourceHolder resource) {
 		if (player == null)
 			throw new NullArgumentException("player");
+		if (!isExperience(resource))
+			throw new IllegalArgumentException("Must be a experience resource.");
 
 		ExperienceManager manager = new ExperienceManager(player);
 		
 		// Rely on the brilliance of others
-		if (amount != 0) {
-			manager.changeExp(amount);
+		if (resource.getAmount() != 0) {
+			manager.changeExp(resource.getAmount());
 		}
 	}
 
 	@Override
-	public void reward(World world, Location point, int amount) {
+	public void reward(World world, Location point, ResourceHolder resource) {
 		if (world == null)
 			throw new NullArgumentException("world");
 		if (point == null)
 			throw new NullArgumentException("point");
-		
+		if (!isExperience(resource))
+			throw new IllegalArgumentException("Must be a experience resource.");
+
 		List<Player> closest = Server.getNearbyPlayers(world, point, searchRadius);
 		
 		// Give experience directly
 		if (closest.size() == 1)
-			reward(closest.get(0), null, amount);
+			reward(closest.get(0), null, resource);
 		else
 			// Spawn experience
-			Server.spawnExperience(world, point, amount);
+			Server.spawnExperience(world, point, resource.getAmount());
+	}
+	
+	private boolean isExperience(ResourceHolder resource) { 
+		return resource instanceof ExperienceHolder;
 	}
 	
 	@Override
@@ -124,6 +137,7 @@ public class RewardVirtual implements RewardService {
 		RewardVirtual copy = new RewardVirtual();
 		
 		copy.setSearchRadius(searchRadius);
+		copy.parser = parser;
 		return copy;
 	}
 }

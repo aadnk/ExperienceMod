@@ -17,11 +17,13 @@
 
 package com.comphenix.xp.listeners;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
@@ -42,6 +44,7 @@ import com.comphenix.xp.lookup.ItemQuery;
 import com.comphenix.xp.lookup.ItemTree;
 import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.parser.Utility;
+import com.comphenix.xp.rewards.ResourceHolder;
 import com.comphenix.xp.rewards.RewardProvider;
 
 public class ExperienceBlockListener extends AbstractExperienceListener {
@@ -91,7 +94,7 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 		
 			// No configuration or default configuration found
 			if (config == null) {
-				if (debugger != null)
+				if (hasDebugger())
 					debugger.printDebug(this, "Cannot find config for player %s in mining %s.", 
 						player.getName(), block);
 				
@@ -105,12 +108,12 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 				if (action == null)
 					return;
 				
-				Integer exp = action.rewardPlayer(rewards, random, player, block.getLocation());
-				config.getMessageQueue().enqueue(player, action, channels.getFormatter(player, exp));
+				Collection<ResourceHolder> result = action.rewardPlayer(rewards, random, player, block.getLocation());
+				config.getMessageQueue().enqueue(player, action, channels.getFormatter(player, result));
 				
-				if (debugger != null)
-					debugger.printDebug(this, "Block mined by %s: Spawned %d xp for item %s.", 
-						player.getName(), exp, block.getType());
+				if (hasDebugger())
+					debugger.printDebug(this, "Block mined by %s: Spawned %s for item %s.", 
+						player.getName(), StringUtils.join(result, ", "), block.getType());
 			}
 		}
 		
@@ -133,13 +136,12 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 				if (action == null)
 					return;
 				
-				Integer exp = action.rewardPlayer(rewards, random, player, block.getLocation());
-				config.getMessageQueue().enqueue(player, action, channels.getFormatter(player, exp));
+				Collection<ResourceHolder> result = action.rewardPlayer(rewards, random, player, block.getLocation());
+				config.getMessageQueue().enqueue(player, action, channels.getFormatter(player, result));
 				
-				if (debugger != null)
-					debugger.printDebug(this, "Block destroyed by %s: Spawned %d xp for item %s.", 
-						player.getName(), exp, block.getType());
-
+				if (hasDebugger())
+					debugger.printDebug(this, "Block destroyed by %s: Spawned %s for item %s.", 
+						player.getName(), StringUtils.join(result, ", "), block.getType());
 			}
 		}
 		
@@ -162,7 +164,8 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 				ItemQuery copy = new ItemQuery(
 						key.getItemID(), key.getDurability(), Utility.getElementList(placedBefore));
 				
-				debugger.printDebug(this, "New query: %s", copy);
+				if (hasDebugger())
+					debugger.printDebug(this, "New query: %s", copy);
 				
 				// Perform the search again with this additional information
 				return tree.get(copy);
@@ -203,7 +206,7 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 			Configuration config = getConfiguration(player);
 			
 			if (config == null) {
-				if (debugger != null)
+				if (hasDebugger())
 					debugger.printDebug(this, "No config found for block %s.", block);
 				return;
 			}
@@ -218,7 +221,7 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 				
 				// Make sure the action is legal
 				if (!action.canRewardPlayer(rewards, player, 1)) {
-					if (debugger != null)
+					if (hasDebugger())
 						debugger.printDebug(this, "Block place by %s cancelled: Not enough resources for item %s",
 							player.getName(), block.getType());
 					
@@ -229,12 +232,12 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 				}
 				
 				// Reward and print messages
-				Integer exp = action.rewardPlayer(rewards, random, player);
-				config.getMessageQueue().enqueue(player, action, channels.getFormatter(player, exp));
+				Collection<ResourceHolder> result = action.rewardPlayer(rewards, random, player);
+				config.getMessageQueue().enqueue(player, action, channels.getFormatter(player, result));
 				
-				if (debugger != null)
-					debugger.printDebug(this, "Block placed by %s: Spawned %d xp for item %s.", 
-						player.getName(), exp, block.getType());
+				if (hasDebugger())
+					debugger.printDebug(this, "Block placed by %s: Spawned %s for item %s.", 
+						player.getName(), StringUtils.join(result, ", "), block.getType());
 			}
 		}
 	}
@@ -253,8 +256,8 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 		if (before != null)
 			return before;
 		else {
-		
-			debugger.printDebug(this, "No block history found.");
+			if (hasDebugger())
+				debugger.printDebug(this, "No block history found.");
 			
 			// Assume it hasn't. More likely than not.
 			return false;
@@ -273,5 +276,9 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 		
 		// No enchantment detected
 		return false;
+	}
+	
+	private boolean hasDebugger() {
+		return debugger != null && debugger.isDebugEnabled();
 	}
 }

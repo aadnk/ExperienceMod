@@ -39,6 +39,7 @@ import com.comphenix.xp.parser.Utility;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.parser.text.ItemParser;
 import com.comphenix.xp.parser.text.MobParser;
+import com.comphenix.xp.rewards.ResourceFactory;
 import com.comphenix.xp.rewards.RewardProvider;
 import com.comphenix.xp.rewards.RewardTypes;
 
@@ -380,9 +381,9 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		// Check every range
 		for (Action action : values) {
 			
-			Range range = action.getReward("EXPERIENCE");
+			ResourceFactory factory = action.getReward("EXPERIENCE");
 				
-			if (range != null && (range.getStart() < 0 || range.getEnd() < 0))
+			if (factory != null && (factory.getMinimum(1).getAmount() < 0))
 				return true;
 		}
 		
@@ -465,7 +466,7 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 					
 				}
 
-			} catch (ParsingException ex) {
+			} catch (ParsingException ex) {	
 				logger.printWarning(this, "Cannot parse item %s - %s", key, ex.getMessage());
 			}
 		}

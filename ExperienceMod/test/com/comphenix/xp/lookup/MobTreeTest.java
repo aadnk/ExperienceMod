@@ -8,7 +8,7 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.junit.Test;
 
 import com.comphenix.xp.Action;
-import com.comphenix.xp.Range;
+import com.comphenix.xp.rewards.xp.ExperienceFactory;
 
 public class MobTreeTest {
 
@@ -24,11 +24,11 @@ public class MobTreeTest {
 		MobQuery noSpawnXP = MobQuery.fromAny((EntityType) null, null, SpawnReason.SPAWNER, null, null, null);
 		MobQuery smallSlime = MobQuery.fromAny(EntityType.SLIME, null,2, SpawnReason.NATURAL, null, null, null);
 		
-		Action zombieValue = new Action(def, new Range(5));
-		Action magicValue = new Action(def,  new Range(2));
-		Action noSpawnValue = new Action(def, new Range(0));
-		Action fallValue = new Action(def, new Range(15));
-		Action slimeValue = new Action(def, new Range(10));
+		Action zombieValue = new Action(def, new ExperienceFactory(5));
+		Action magicValue = new Action(def,  new ExperienceFactory(2));
+		Action noSpawnValue = new Action(def, new ExperienceFactory(0));
+		Action fallValue = new Action(def, new ExperienceFactory(15));
+		Action slimeValue = new Action(def, new ExperienceFactory(10));
 		
 		tree.put(zombieKill, zombieValue);
 		tree.put(magicGib, magicValue);

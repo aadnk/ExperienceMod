@@ -60,7 +60,7 @@ public class ExperienceEnhancementsListener implements Listener {
             event.setDroppedExp(0);
             event.setKeepLevel(true);
             
-            if (debugger != null)
+            if (hasDebugger())
         		debugger.printDebug(this, "Prevented experience loss for %s.", player.getName());
             
         } else {
@@ -94,10 +94,10 @@ public class ExperienceEnhancementsListener implements Listener {
         	if (index >= 0) {
         		costs[index] = getMaxBonus(event.getEnchantmentBonus(), index);
 
-	            if (debugger != null)
+	            if (hasDebugger())
 	        		debugger.printDebug(this, "Changed experience level costs for %s.", player.getName());
         		
-        	} else if (debugger != null)
+        	} else if (hasDebugger())
         		debugger.printDebug(this, "Got empty list of experience costs.");
         }
 	}
@@ -118,5 +118,9 @@ public class ExperienceEnhancementsListener implements Listener {
 		Validate.isTrue(slot < 3, "Slot # cannot be greater than 3.");
 		
 		return (int) ((5 + bookshelves * 1.5f) * slotFactor[slot]);
+	}
+	
+	private boolean hasDebugger() {
+		return debugger != null && debugger.isDebugEnabled();
 	}
 }

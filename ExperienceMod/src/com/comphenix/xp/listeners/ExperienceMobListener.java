@@ -17,9 +17,11 @@
 
 package com.comphenix.xp.listeners;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Random;
 
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -37,6 +39,7 @@ import com.comphenix.xp.Range;
 import com.comphenix.xp.extra.Permissions;
 import com.comphenix.xp.lookup.MobQuery;
 import com.comphenix.xp.messages.ChannelProvider;
+import com.comphenix.xp.rewards.ResourceHolder;
 import com.comphenix.xp.rewards.RewardProvider;
 
 public class ExperienceMobListener extends AbstractExperienceListener {
@@ -105,7 +108,7 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 		
 		// Guard
 		if (config == null) {
-			if (debugger != null)
+			if (hasDebugger())
 				debugger.printDebug(this, "No config found for mob %d, query: %s", id, query);
 			return;
 		}
@@ -123,7 +126,7 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 			
 			// Make sure the action is legal
 			if (hasKiller && !action.canRewardPlayer(rewards, killer, 1)) {
-				if (debugger != null)
+				if (hasDebugger())
 					debugger.printDebug(this, "Entity %d kill cancelled: Player %s hasn't got enough resources.",
 							id, killer.getName());
 				
@@ -139,18 +142,19 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 				return;
 			}
 			
-			Integer xp = action.rewardAnyone(rewards, random, entity.getWorld(), entity.getLocation());
-			config.getMessageQueue().enqueue(null, action, channels.getFormatter(null, xp));
+			Collection<ResourceHolder> result = action.rewardAnyone(rewards, random, entity.getWorld(), entity.getLocation());
+			config.getMessageQueue().enqueue(null, action, channels.getFormatter(null, result));
 			
-			if (debugger != null)
-				debugger.printDebug(this, "Entity %d: Changed experience drop to %d", id, xp);
+			if (hasDebugger())
+				debugger.printDebug(this, "Entity %d: Changed experience drop to %s.", 
+						id, StringUtils.join(result, ", "));
 		
 		} else if (config.isDefaultRewardsDisabled() && hasKiller) {
 			
 			// Disable all mob XP
 			event.setDroppedExp(0);
 			
-			if (debugger != null)
+			if (hasDebugger())
 				debugger.printDebug(this, "Entity %d: Default mob experience disabled.", id);
 
 		} else if (!config.isDefaultRewardsDisabled() && hasKiller) {
@@ -164,13 +168,18 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 				
 				event.setDroppedExp(expChanged);
 				
-				if (debugger != null)
-					debugger.printDebug(this, "Entity %d: Changed experience drop to %d", id, expChanged);
+				if (hasDebugger())
+					debugger.printDebug(this, "Entity %d: Changed experience drop to %d exp.", id, expChanged);
 			}
 		}
 		
 		// Remove it from the lookup
 		spawnReasonLookup.remove(id);
+	}
+	
+	// Determine if a debugger is attached and is listening
+	private boolean hasDebugger() {
+		return debugger != null && debugger.isDebugEnabled();
 	}
 	
 	private boolean isMob(LivingEntity entity) {

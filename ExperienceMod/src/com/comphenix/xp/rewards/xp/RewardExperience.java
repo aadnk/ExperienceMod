@@ -24,6 +24,7 @@ import org.bukkit.entity.Player;
 
 import com.comphenix.xp.Configuration;
 import com.comphenix.xp.Server;
+import com.comphenix.xp.rewards.ResourceHolder;
 import com.comphenix.xp.rewards.ResourcesParser;
 import com.comphenix.xp.rewards.RewardService;
 import com.comphenix.xp.rewards.RewardTypes;
@@ -38,40 +39,53 @@ public class RewardExperience implements RewardService {
 	private ResourcesParser parser = new ExperienceParser();
 	
 	@Override
-	public boolean canReward(Player player, int amount) {
+	public boolean canReward(Player player, ResourceHolder resource) {
+		if (!isExperience(resource))
+			throw new IllegalArgumentException("Must be a experience resource.");
+		
 		// Accept anything. We've already warned about negative amounts.
 		return true;
 	}
 	
 	@Override
-	public void reward(Player player, int amount) {
+	public void reward(Player player, ResourceHolder resource) {
 		if (player == null)
 			throw new NullArgumentException("player");
+		if (!isExperience(resource))
+			throw new IllegalArgumentException("Must be a experience resource.");
 		
 		// Delegate to more specific method
-		reward(player, player.getLocation(), amount);
+		reward(player, player.getLocation(), resource);
 	}
 	
 	@Override
-	public void reward(Player player, Location point, int amount) {
+	public void reward(Player player, Location point, ResourceHolder resource) {
 		if (player == null)
 			throw new NullArgumentException("player");
 		if (point == null)
 			throw new NullArgumentException("point");
+		if (!isExperience(resource))
+			throw new IllegalArgumentException("Must be a experience resource.");
 		
 		// Create the experience at this location
-		Server.spawnExperience(player.getWorld(), point, amount);
+		Server.spawnExperience(player.getWorld(), point, resource.getAmount());
 	}
 
 	@Override
-	public void reward(World world, Location point, int amount) {
+	public void reward(World world, Location point, ResourceHolder resource) {
 		if (world == null)
 			throw new NullArgumentException("world");
 		if (point == null)
 			throw new NullArgumentException("point");
+		if (!isExperience(resource))
+			throw new IllegalArgumentException("Must be a experience resource.");
 		
 		// And here
-		Server.spawnExperience(world, point, amount);
+		Server.spawnExperience(world, point, resource.getAmount());
+	}
+	
+	private boolean isExperience(ResourceHolder resource) { 
+		return resource instanceof ExperienceHolder;
 	}
 	
 	@Override
@@ -91,6 +105,9 @@ public class RewardExperience implements RewardService {
 
 	@Override
 	public RewardService clone(Configuration config) {
-		return new RewardExperience();
+		RewardExperience copy = new RewardExperience();
+		
+		copy.parser = parser;
+		return copy;
 	}
 }

@@ -18,11 +18,13 @@
 package com.comphenix.xp.messages;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.bukkit.entity.Player;
 
 import com.comphenix.xp.extra.ServiceProvider;
+import com.comphenix.xp.rewards.ResourceHolder;
 
 /**
  * Contains every channel messaging channel plugins known and enabled on the server. The default plugin will
@@ -49,12 +51,12 @@ public class ChannelProvider extends ServiceProvider<ChannelService> {
 		super(defaultService);
 	}
 	
-	public MessageFormatter getFormatter(Player player, Integer experience) {
-		return messageFormatter.createView(player, experience);
+	public MessageFormatter getFormatter(Player player, Collection<ResourceHolder> result) {
+		return messageFormatter.createView(player, result);
 	}
 	
-	public MessageFormatter getFormatter(Player player, Integer experience, Integer count) {
-		return messageFormatter.createView(player, experience, count);
+	public MessageFormatter getFormatter(Player player, Collection<ResourceHolder> result, Integer count) {
+		return messageFormatter.createView(player, result, count);
 	}
 	
 	public MessageFormatter getMessageFormatter() {

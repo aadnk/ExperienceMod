@@ -4,6 +4,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
+import com.comphenix.xp.rewards.ResourceHolder;
 import com.comphenix.xp.rewards.ResourcesParser;
 import com.comphenix.xp.rewards.RewardTypes;
 import com.comphenix.xp.rewards.RewardService;
@@ -18,20 +19,20 @@ public class MockRewardable implements RewardService {
 	}
 
 	@Override
-	public boolean canReward(Player player, int amount) {
+	public boolean canReward(Player player, ResourceHolder resource) {
 		return true;
 	}
 	
 	@Override
-	public void reward(Player player, int amount) {
+	public void reward(Player player, ResourceHolder resource) {
 	}
 
 	@Override
-	public void reward(Player player, Location point, int amount) {
+	public void reward(Player player, Location point, ResourceHolder resource) {
 	}
 
 	@Override
-	public void reward(World world, Location point, int amount) {
+	public void reward(World world, Location point, ResourceHolder resource) {
 	}
 
 	@Override

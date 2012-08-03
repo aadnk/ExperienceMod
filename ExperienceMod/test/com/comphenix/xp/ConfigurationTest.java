@@ -20,6 +20,7 @@ import com.comphenix.xp.parser.text.MobMatcher;
 import com.comphenix.xp.parser.text.MobParser;
 import com.comphenix.xp.rewards.RewardProvider;
 import com.comphenix.xp.rewards.RewardTypes;
+import com.comphenix.xp.rewards.xp.ExperienceFactory;
 import com.google.common.collect.Lists;
 
 public class ConfigurationTest {
@@ -82,10 +83,10 @@ public class ConfigurationTest {
 		MobQuery queryZombie = MobQuery.fromAny(EntityType.ZOMBIE, DamageCause.ENTITY_ATTACK);
 		
 		Action blaceAction = new Action();
-		blaceAction.addReward(def, new Range(20));
+		blaceAction.addReward(def, new ExperienceFactory(20));
 		blaceAction.setId(1);
 		
-		Action zombieAction = new Action(def, new Range(15));
+		Action zombieAction = new Action(def, new ExperienceFactory(15));
 		zombieAction.setId(24);
 		
 		assertEquals(blaceAction, result.getExperienceDrop().get(queryBlace));

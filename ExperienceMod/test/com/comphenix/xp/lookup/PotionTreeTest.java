@@ -6,7 +6,7 @@ import org.bukkit.potion.PotionType;
 import org.junit.Test;
 
 import com.comphenix.xp.Action;
-import com.comphenix.xp.Range;
+import com.comphenix.xp.rewards.xp.ExperienceFactory;
 
 public class PotionTreeTest {
 
@@ -22,9 +22,9 @@ public class PotionTreeTest {
 		// Match just level 2 splash potions
 		PotionQuery regenSplashLvl2 = PotionQuery.fromAny(null, 2, null, true);
 		
-		Action regenSplashValue = new Action(def, new Range(2));
-		Action regenValue = new Action(def, new Range(1));
-		Action universalValue = new Action(def, new Range(0));
+		Action regenSplashValue = new Action(def, new ExperienceFactory(2));
+		Action regenValue = new Action(def, new ExperienceFactory(1));
+		Action universalValue = new Action(def, new ExperienceFactory(0));
 		
 		// Add both to the tree
 		tree.put(universal, universalValue);

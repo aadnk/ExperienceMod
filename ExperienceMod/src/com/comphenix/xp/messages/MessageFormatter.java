@@ -17,29 +17,40 @@
 
 package com.comphenix.xp.messages;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.apache.commons.lang.NullArgumentException;
 import org.apache.commons.lang.ObjectUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
+import com.comphenix.xp.parser.Utility;
+import com.comphenix.xp.rewards.ResourceHolder;
+
 public class MessageFormatter {
 
 	private Player source;
-	private Integer experience;
 	private Integer count;
+	private Collection<ResourceHolder> result;
+	
+	private static Pattern parameterPattern = Pattern.compile("\\{\\w+\\}");
 	
 	// Default
 	public MessageFormatter() {
 		setCount(1);
 	}
 
-	public MessageFormatter(Player player, Integer experience) {
-		this(player, experience, 1);
+	public MessageFormatter(Player player, Collection<ResourceHolder> result) {
+		this(player, result, 1);
 	}
 	
-	public MessageFormatter(Player player, Integer experience, Integer count) {
+	public MessageFormatter(Player player, Collection<ResourceHolder> result, Integer count) {
 		setSource(player);
-		setExperience(experience);
+		setResult(result);
 		setCount(count);
 	}
 	
@@ -53,15 +64,54 @@ public class MessageFormatter {
 		if (message == null)
 			return null;
 		
-		// A simple system for now. 
-		// TODO: Add more variables.
-		return message.
-				replace("{player}", source != null ? source.getDisplayName() : "Unknown").
-				replace("{experience}", experience != null ? experience.toString() : "N/A").
-				replace("{count}", count != null ? count.toString() : "N/A").
-				replaceAll("&(?=[0-9a-fxA-FX])", Character.toString(ChatColor.COLOR_CHAR));
+		Map<String, ResourceHolder> lookup = getResultMapping();
+		
+		StringBuffer output = new StringBuffer();
+	    Matcher matcher = parameterPattern.matcher(message);
+	    
+	    // Simple variables
+	    // TODO: Add more variables.
+	    String sourceText = source != null ? source.getDisplayName() : "Unknown";
+	    String countText = count != null ? count.toString() : "N/A";
+	    
+	    while (matcher.find()) {
+
+	    	String enumed = Utility.getEnumName(matcher.group());
+	    	
+	    	// Replace parameters
+	    	if (enumed.equals("PLAYER"))
+	    		matcher.appendReplacement(output, sourceText);
+	    	else if (enumed.equals("COUNT"))
+	    		matcher.appendReplacement(output, countText);
+	    	else if (lookup.containsKey(enumed)) 
+	    		matcher.appendReplacement(output, lookup.get(enumed).toString());
+	    	else 
+	    		matcher.appendReplacement(output, "{CANNOT FIND " + matcher.group() + "}");
+	    }
+	    
+	    // Remember color
+	    matcher.appendTail(output);
+	    return formatColor(output);
+	}
+	
+	private String formatColor(StringBuffer output) {
+		
+		// Use the color character instead of ampersand
+		return output.toString().replaceAll("&(?=[0-9a-fxA-FX])", 
+				Character.toString(ChatColor.COLOR_CHAR));
 	}
 
+	// Convert a list of resources into a Hash Table
+	private Map<String, ResourceHolder> getResultMapping() {
+		 Map<String, ResourceHolder> lookup = new HashMap<String, ResourceHolder>();
+		 
+		 for (ResourceHolder resource : getResult()) {
+			 lookup.put(resource.getName(), resource);
+		 }
+		 
+		 return lookup;
+	}
+	
 	public Integer getCount() {
 		return count;
 	}
@@ -77,15 +127,23 @@ public class MessageFormatter {
 	public void setSource(Player source) {
 		this.source = source;
 	}
+	
+	/**
+	 * Retrieves the list of resources awarded.
+	 * @return List of resources.
+	 */
+	public Collection<ResourceHolder> getResult() {
+		return result;
+	}
 
-	public Integer getExperience() {
-		return experience;
+	/**
+	 * Sets the list of resources awarded.
+	 * @param result - the new list of resources awarded.
+	 */
+	public void setResult(Collection<ResourceHolder> result) {
+		this.result = result;
 	}
-	
-	public void setExperience(Integer experience) {
-		this.experience = experience;
-	}
-	
+
 	/**
 	 * Adds every parameter in both message formatters. Note that a and b
 	 * must be non-null and have the same player source.
@@ -117,9 +175,27 @@ public class MessageFormatter {
 		// Add values
 		return new MessageFormatter(
 				getSource(), 
-				getInt(getExperience()) + getInt(other.getExperience()),
+				addResults(other),
 				getInt(getCount()) + getInt(other.getCount())
 		);
+	}
+	
+	// Merge resources
+	private Collection<ResourceHolder> addResults(MessageFormatter other) {
+		
+		Map<String, ResourceHolder> current = getResultMapping();
+
+		// Add every resource from other
+		for (ResourceHolder resource : other.getResult()) {
+			String name = resource.getName();
+			
+			if (current.containsKey(name))
+				current.put(name, current.get(name).add(resource));
+			else
+				current.put(name, resource);
+		}
+		
+		return current.values();
 	}
 	
 	private static int getInt(Integer value) {
@@ -127,17 +203,17 @@ public class MessageFormatter {
 	}
 	
 	// Create a copy of the message formatter with the given parameters
-	public MessageFormatter createView(Player player, Integer experience) {
-		return new MessageFormatter(player, experience);
+	public MessageFormatter createView(Player player, Collection<ResourceHolder> result) {
+		return new MessageFormatter(player, result);
 	}
 	
 	// Create a copy of the message formatter with the given parameters
-	public MessageFormatter createView(Player player, Integer experience, Integer count) {
-		return new MessageFormatter(player, experience, count);
+	public MessageFormatter createView(Player player, Collection<ResourceHolder> result, Integer count) {
+		return new MessageFormatter(player, result, count);
 	}
 	
 	// Create a copy of the message formatter with the given parameters
-	public MessageFormatter createView(Integer experience) {
-		return createView(null, experience);
+	public MessageFormatter createView(Collection<ResourceHolder> result) {
+		return createView(null, result);
 	}
 }

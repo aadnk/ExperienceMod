@@ -17,8 +17,10 @@
 
 package com.comphenix.xp.listeners;
 
+import java.util.Collection;
 import java.util.Random;
 
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -45,6 +47,7 @@ import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.messages.MessagePlayerQueue;
 import com.comphenix.xp.mods.BlockResponse;
 import com.comphenix.xp.mods.CustomBlockProviders;
+import com.comphenix.xp.rewards.ResourceHolder;
 import com.comphenix.xp.rewards.RewardProvider;
 import com.google.common.base.Objects;
 
@@ -121,7 +124,7 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 			
 			// Check and see if the player is broke
 			if (!action.canRewardPlayer(config.getRewardProvider(), player, 1)) {
-				if (debugger != null)
+				if (hasDebugger())
 					debugger.printDebug(this, "Unable to penalize fishing for %s. Not enough funds.", player.getName());
 				
 				// Don't catch the fish
@@ -130,11 +133,11 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 				return;
 			}
 			
-			int exp = action.rewardPlayer(config.getRewardProvider(), random, player);
-			config.getMessageQueue().enqueue(player, action, channels.getFormatter(player, exp));
+			Collection<ResourceHolder> result = action.rewardPlayer(config.getRewardProvider(), random, player);
+			config.getMessageQueue().enqueue(player, action, channels.getFormatter(player, result));
 			
-			if (debugger != null)
-				debugger.printDebug(this, message, player.getName(), exp);
+			if (hasDebugger())
+				debugger.printDebug(this, message, player.getName(), result);
 		}
 	}
 	
@@ -167,7 +170,7 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 			}
 		}
 		
-		if (debugger != null)
+		if (hasDebugger())
 			debugger.printDebug(this, "Reset potion markers in brewing stand %s", getLocationString(event.getBlock()) );
 	}
 	
@@ -223,7 +226,8 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 		
 		// Do not proceed if the user isn't permitted
 		if (!player.hasPermission(response.getPermission())) {
-			debugger.printDebug(this, "%s doesn't have permission to be awarded for %s.", 
+			if (hasDebugger())
+				debugger.printDebug(this, "%s doesn't have permission to be awarded for %s.", 
 					response.getPermission(), response.getActionType());
 			return;
 		}
@@ -235,7 +239,7 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 			
 			// Guard again
 			if (config == null) {
-				if (debugger != null)
+				if (hasDebugger())
 					debugger.printDebug(this, "No config found for %s with brewing %s.", player.getName(), toCraft);
 				return;
 			}
@@ -252,13 +256,13 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 			// Rewards for items alone
 			if (simpleTree != null)
 				handleInventory(event, response, simpleTree, potionFuture, true);
-			else
+			else if (hasDebugger())
 				debugger.printDebug(this, "Could not find simple reward for action %s.", response.getActionType());
 			
 			// Rewards for special potions
 			if (complexTree != null)
 				handleInventory(event, response, complexTree.getItemQueryAdaptor(), potionFuture, true);
-			else
+			else if (hasDebugger())
 				debugger.printDebug(this, "Could not find complex reward for action %s.", response.getActionType());
 		
 			
@@ -274,7 +278,7 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 				
 				handleInventory(event, response, craftingTree, itemFuture, partial);
 				
-			} else if (debugger != null) {
+			} else if (hasDebugger()) {
 				debugger.printDebug(this, "No config found for %s with crafting/smelting %s.", player.getName(), toCraft);
 			}
 		}
@@ -309,10 +313,11 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 			
 			// Don't waste resources if we're already waiting
 			if (scheduler.getTasks(player, TASK_TAG).size() > 0) {
-				debugger.printDebug(this, "Duplicated scheduled task aborted.");
+				if (hasDebugger())
+					debugger.printDebug(this, "Duplicated scheduled task aborted.");
 				return;
 				
-			} else {
+			} else if (hasDebugger()) {
 				debugger.printDebug(this, "Spawned scheduled task for %s.", player);
 			}
 			
@@ -399,7 +404,7 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 					marker.setBeenRewarded(true);
 					stack.setDurability(marker.toDurability());
 					
-					if (debugger != null)
+					if (hasDebugger())
 						debugger.printDebug(this, "Added potion marker. New durability: %s", marker.toDurability());
 				}
 			}
@@ -423,13 +428,13 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 			public void performAction(Player player, ItemStack stack, Action action, int count) {
 
 				// Give the experience straight to the user
-				Integer exp = action.rewardPlayer(rewardsProvider, random, player, count);
-				messageQueue.enqueue(player, action, channelsProvider.getFormatter(player, exp, count));
+				Collection<ResourceHolder> result = action.rewardPlayer(rewardsProvider, random, player, count);
+				messageQueue.enqueue(player, action, channelsProvider.getFormatter(player, result, count));
 				
 				// Like above
-				if (debugger != null)
-					debugger.printDebug(this, "User %s - spawned %d xp for item %s.", 
-						player.getName(), exp, stack.getType());
+				if (hasDebugger())
+					debugger.printDebug(this, "User %s - spawned %s for item %s.", 
+						player.getName(), StringUtils.join(result, ", "), stack.getType());
 			}
 
 			@Override
@@ -515,6 +520,10 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 					} else {
 						rewardAction.performAction(player, last, action, newItemsCount);
 					}
+					
+				} else {
+					if (hasDebugger())
+						debugger.printDebug(this, "No changes detected.");
 				}
 			}
 		});
@@ -539,7 +548,7 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 
 		} catch (NullPointerException e) {
 			// Lazy mod authors!
-			if (debugger != null)
+			if (hasDebugger())
 				debugger.printDebug(this, "Unable to get inventory content. Cannot fully cancel reward.");
 
 			return null;
@@ -568,6 +577,11 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 	private boolean hasExperienceReward(ItemTree rewards, ItemQuery key) {
 		// Make sure there is any experience
 		return rewards.containsKey(key) && !rewards.get(key).equals(Action.Default);
+	}
+	
+	// Determine if a debugger is attached and is listening
+	private boolean hasDebugger() {
+		return debugger != null && debugger.isDebugEnabled();
 	}
 	
 	// Recipes are cancelled if there's isn't exactly enough space. 

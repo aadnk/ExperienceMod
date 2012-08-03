@@ -9,5 +9,5 @@ import com.comphenix.xp.parser.ConfigurationParser;
  * @author Kristian
  */
 public abstract class ResourcesParser extends ConfigurationParser<ResourceFactory> {
-
+	
 }

@@ -35,32 +35,32 @@ public interface RewardService extends Service {
 	 * Whether or not the player actually can be rewarded (or penalized, if negative) 
 	 * with the given amount of resources.
 	 * @param player - player to test.
-	 * @param amount - amount of resources to given or take away.
+	 * @param resource - the resource to give or take away.
 	 */
-	public boolean canReward(Player player, int amount);
+	public boolean canReward(Player player, ResourceHolder resource);
 	
 	/**
 	 * Rewards a player directly. 
 	 * @param player - player to award.
-	 * @param amount - amount of resources to give or take away.
+	 * @param resource - the resource to give or take away.
 	 */
-	public void reward(Player player, int amount);
+	public void reward(Player player, ResourceHolder resource);
 	
 	/**
 	 * Rewards a player with the given amount of resources.
 	 * @param player - player to award.
 	 * @param point - if possible, the location the award will be placed.
-	 * @param amount - amount of resources to give or take away.
+	 * @param resource - the resource to give or take away.
 	 */
-	public void reward(Player player, Location point, int amount);
+	public void reward(Player player, Location point, ResourceHolder resource);
 	
 	/**
 	 * Creates a reward at a given location through any means necessary.
 	 * @param world - the world to create this reward.
 	 * @param point - where to put this reward.
-	 * @param amount - the amount of experience to award.
+	 * @param resource - the resource to give or take away.
 	 */
-	public void reward(World world, Location point, int amount);
+	public void reward(World world, Location point, ResourceHolder resource);
 	
 	/**
 	 * Retrieves the reward type.

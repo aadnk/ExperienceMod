@@ -52,7 +52,7 @@ public class ExperienceInformerListener implements Listener {
 			Player player = event.getPlayer();
 			
 			// Automatically display warning messages
-			if (player != null) {
+			if (debugger != null) {
 				displayWarnings(player, false);
 			}
 		

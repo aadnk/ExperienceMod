@@ -16,7 +16,7 @@ import com.comphenix.xp.Action;
 import com.comphenix.xp.ActionTypes;
 import com.comphenix.xp.Configuration;
 import com.comphenix.xp.Debugger;
-import com.comphenix.xp.Range;
+import com.comphenix.xp.MockRewardable;
 import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.parser.text.ItemNameParser;
@@ -25,6 +25,7 @@ import com.comphenix.xp.parser.text.MobMatcher;
 import com.comphenix.xp.parser.text.MobParser;
 import com.comphenix.xp.rewards.RewardProvider;
 import com.comphenix.xp.rewards.RewardTypes;
+import com.comphenix.xp.rewards.xp.ExperienceFactory;
 
 public class ItemTreeTest {
 
@@ -39,6 +40,7 @@ public class ItemTreeTest {
 		RewardProvider rewards = new RewardProvider();
 		ChannelProvider channels = new ChannelProvider();
 		rewards.setDefaultReward(RewardTypes.EXPERIENCE);
+		rewards.register(new MockRewardable(RewardTypes.EXPERIENCE));
 		
 		Debugger injected = new Debugger() {
 			public void printWarning(Object sender, String message, Object... params) {
@@ -77,9 +79,9 @@ public class ItemTreeTest {
 		ItemTree tree3 = new ItemTree(3);
 		ItemTree result = new ItemTree(1);
 		
-		Action universalValue = new Action(def, new Range(0));
-		Action stoneValue = new Action(def,new Range(1));
-		Action redValue = new Action(def,new Range(5));
+		Action universalValue = new Action(def, new ExperienceFactory(0));
+		Action stoneValue = new Action(def, new ExperienceFactory(1));
+		Action redValue = new Action(def, new ExperienceFactory(5));
 		
 		tree1.put(stoneQuery, stoneValue);
 		tree2.put(universal, universalValue);
@@ -109,9 +111,9 @@ public class ItemTreeTest {
 				Arrays.asList(Material.WOOL.getId()), 
 				Arrays.asList(redColor, blueColor));
 		
-		Action universalValue = new Action(def, new Range(0));
-		Action stoneValue = new Action(def, new Range(1));
-		Action redValue = new Action(def, new Range(5));
+		Action universalValue = new Action(def, new ExperienceFactory(0));
+		Action stoneValue = new Action(def, new ExperienceFactory(1));
+		Action redValue = new Action(def, new ExperienceFactory(5));
 		
 		tree.put(universal, universalValue);
 		tree.put(stone, stoneValue);

@@ -22,8 +22,9 @@ import java.util.List;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.comphenix.xp.Action;
-import com.comphenix.xp.Range;
 import com.comphenix.xp.messages.Message;
+import com.comphenix.xp.rewards.ResourceFactory;
+import com.comphenix.xp.rewards.ResourcesParser;
 import com.comphenix.xp.rewards.RewardProvider;
 
 /**
@@ -40,10 +41,8 @@ public class ActionParser extends ConfigurationParser<Action> {
 	private static final String messageChannelSetting = "channels";
 
 	private StringListParser listParser = new StringListParser();
-	private RangeParser rangeParser = new RangeParser();
-	
 	private RewardProvider provider;
-
+	
 	public ActionParser(RewardProvider provider) {
 		this.provider = provider;
 	}
@@ -54,16 +53,26 @@ public class ActionParser extends ConfigurationParser<Action> {
 			return null;
 
 		Action result = new Action();
-		Range topLevel = rangeParser.parse(input, key, null);
+		String defaultName = provider.getDefaultName();
 		
 		String text = null;
 		List<String> channels = null;
 		
-		// This is a default range value
-		if (topLevel != null) {
-			result.addReward(provider.getDefaultName(), topLevel);
-			result.setId(currentID++);
-			return result;
+		// See if this is a top level reward
+		if (provider.containsService(defaultName)) {
+			
+			ResourcesParser parser = provider.getDefaultService().getResourcesParser();
+			
+			if (parser != null) {
+				ResourceFactory factory = parser.parse(input, key);
+				
+				// This is indeed a top level reward
+				if (factory != null) {
+					result.addReward(defaultName, factory);
+					result.setId(currentID++);
+					return result;
+				}
+			}
 		}
 		
 		ConfigurationSection values = input.getConfigurationSection(key);
@@ -75,18 +84,30 @@ public class ActionParser extends ConfigurationParser<Action> {
 		// If not, get sub-rewards
 		for (String sub : values.getKeys(false)) {
 			
+			String enumed = Utility.getEnumName(sub);
+			
 			if (sub.equalsIgnoreCase(messageTextSetting)) {
 				text = values.getString(sub);
+				
 			} else if (sub.equalsIgnoreCase(messageChannelSetting)) {
 				channels = listParser.parseSafe(values, sub);
-			} else {
-				Range range = rangeParser.parse(values, sub, null);
 				
-				if (range != null) {
-					result.addReward(sub, range);
+			} else if (provider.containsService(enumed)) {
+				ResourcesParser parser = provider.getByName(enumed).getResourcesParser();
+				
+				if (parser != null) {
+					ResourceFactory factory = parser.parse(input, key);
+				
+					if (factory != null) 
+						result.addReward(sub, factory);
+				} else {
+					// This is bad
+					throw ParsingException.fromFormat("Parser in %s cannot be NULL.", sub);
 				}
+				
+			} else {
+				throw ParsingException.fromFormat("Unrecognized reward %s.", sub);
 			}
-			
 		}
 		
 		// Add message
@@ -100,7 +121,7 @@ public class ActionParser extends ConfigurationParser<Action> {
 		result.setId(currentID++);
 		return result;
 	}
-		
+	
 	/**
 	 * Creates a shallow copy of this parser with the given reward provider.
 	 * @param provider - new reward provider.

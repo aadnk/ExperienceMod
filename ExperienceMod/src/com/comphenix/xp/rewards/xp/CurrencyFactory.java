@@ -10,16 +10,15 @@ import com.comphenix.xp.Range;
 import com.comphenix.xp.rewards.ResourceFactory;
 import com.comphenix.xp.rewards.ResourceHolder;
 
-public class ExperienceFactory implements ResourceFactory {
-	
+public class CurrencyFactory implements ResourceFactory {
 	private Range range;
 	private double multiplier;
-		
-	public ExperienceFactory(Range range) {
+	
+	public CurrencyFactory(Range range) {
 		this(range, 1);
 	}
 	
-	private ExperienceFactory(Range range, double multiplier) {
+	private CurrencyFactory(Range range, double multiplier) {
 		if (range == null)
 			throw new NullArgumentException("range");
 		
@@ -27,7 +26,7 @@ public class ExperienceFactory implements ResourceFactory {
 		this.multiplier = multiplier;
 	}
 	
-	public ExperienceFactory(double value) {
+	public CurrencyFactory(double value) {
 		this(new Range(value));
 	}
 	
@@ -51,17 +50,17 @@ public class ExperienceFactory implements ResourceFactory {
 
 	@Override
 	public ResourceHolder getMinimum(int count) {
-		return new ExperienceHolder(getRange().getMinimum() * count);
+		return new CurrencyHolder(getRange().getMinimum() * count);
 	}
 
 	@Override
 	public ResourceHolder getMaximum(int count) {
-		return new ExperienceHolder(getRange().getMaximum() * count);
+		return new CurrencyHolder(getRange().getMinimum() * count);
 	}
 
 	@Override
 	public ResourceFactory withMultiplier(double newMultiplier) {
-		return new ExperienceFactory(range, newMultiplier);
+		return new CurrencyFactory(range, newMultiplier);
 	}
 
 	@Override
@@ -86,7 +85,7 @@ public class ExperienceFactory implements ResourceFactory {
         if (obj.getClass() != getClass())
             return false;
 
-        ExperienceFactory other = (ExperienceFactory) obj;
+        CurrencyFactory other = (CurrencyFactory) obj;
         return new EqualsBuilder().
             append(range, other.range).
             append(multiplier, other.multiplier).
@@ -95,6 +94,6 @@ public class ExperienceFactory implements ResourceFactory {
 	
 	@Override
 	public String toString() {
-		return range.toString() + " experience";
+		return range.toString() + " currency";
 	}
 }

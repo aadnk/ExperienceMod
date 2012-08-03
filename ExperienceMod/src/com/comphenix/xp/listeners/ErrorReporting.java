@@ -39,7 +39,7 @@ public class ErrorReporting {
 	protected Map<String, Object> globalParameters = new HashMap<String, Object>();
 	
 	public ErrorReporting(String prefix, String supportURL) {
-		this(prefix, supportURL, DEFAULT_MAX_ERROR_COUNT, Bukkit.getLogger());
+		this(prefix, supportURL, DEFAULT_MAX_ERROR_COUNT, getBukkitLogger());
 	}
 
 	public ErrorReporting(String prefix, String supportURL, int maxErrorCount, Logger logger) {
@@ -49,6 +49,15 @@ public class ErrorReporting {
 		this.logger = logger;
 	}
 
+	// Attempt to get the logger.
+	private static Logger getBukkitLogger() {
+		try {
+			return Bukkit.getLogger();
+		} catch (NullPointerException e) {
+			return null;
+		}
+	}
+	
 	/**
 	 * Prints a detailed error report about an unhandled exception.
 	 * @param debugger - the listening debugger.

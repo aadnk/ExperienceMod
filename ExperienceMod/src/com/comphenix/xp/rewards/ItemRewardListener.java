@@ -30,6 +30,7 @@ import org.bukkit.event.entity.ItemDespawnEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 
 import com.comphenix.xp.Debugger;
+import com.comphenix.xp.rewards.xp.CurrencyHolder;
 
 public class ItemRewardListener implements Listener {
 
@@ -55,16 +56,17 @@ public class ItemRewardListener implements Listener {
 			Integer amount = queue.get(id);
 			
 			if (amount != null) {
+				CurrencyHolder currency = new CurrencyHolder(amount);
 				
 				event.setCancelled(true);
-				reward.reward(player, amount);
+				reward.reward(player, currency);
 				
 				queue.remove(id);
 				item.remove();
 				
 				if (logger != null) {
 					// See if we in fact rewarded the player
-					if (reward.canReward(player, amount)) {
+					if (reward.canReward(player, currency)) {
 						// Replaced content
 						logger.printDebug(this, "Gave player %s currency instead of item %s (%s).", 
 								player.getName(), item.getItemStack(), id);

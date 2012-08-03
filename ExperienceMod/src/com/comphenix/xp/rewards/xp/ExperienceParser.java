@@ -15,7 +15,7 @@ public class ExperienceParser extends ResourcesParser {
 	@Override
 	public ResourceFactory parse(ConfigurationSection input, String key) throws ParsingException {
 
-		Range range = rangeParser.parse(input, key);
+		Range range = rangeParser.parse(input, key, null);
 		
 		// Handle the NULL case too
 		if (range != null) {

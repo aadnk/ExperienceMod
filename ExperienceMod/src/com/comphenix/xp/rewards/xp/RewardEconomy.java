@@ -31,6 +31,7 @@ import org.bukkit.inventory.ItemStack;
 import com.comphenix.xp.Configuration;
 import com.comphenix.xp.Debugger;
 import com.comphenix.xp.rewards.ItemRewardListener;
+import com.comphenix.xp.rewards.ResourceHolder;
 import com.comphenix.xp.rewards.ResourcesParser;
 import com.comphenix.xp.rewards.RewardService;
 import com.comphenix.xp.rewards.RewardTypes;
@@ -71,18 +72,20 @@ public class RewardEconomy implements RewardService {
 
 	// Yes, this is a bit of a hack. But it's only a constant overhead.
 	@Override
-	public boolean canReward(Player player, int amount) {
+	public boolean canReward(Player player, ResourceHolder resource) {
 		if (player == null)
 			throw new NullArgumentException("player");
+		if (!(resource instanceof CurrencyHolder))
+			throw new IllegalArgumentException("Can only award currency.");
 		
 		// Dry run
-		if (!economyReward(player, amount, null)) {
+		if (!economyReward(player, resource.getAmount(), null)) {
 			// Oh, no. It didn't work. 
 			return false;
 		}
 		
 		// We'll revert the changes
-		if (!economyReward(player, -amount, null)) {
+		if (!economyReward(player, -resource.getAmount(), null)) {
 			if (debugger != null)
 				debugger.printDebug(this, "Unable to revert economy reward/penalty.");
 			
@@ -95,8 +98,11 @@ public class RewardEconomy implements RewardService {
 	}
 	
 	@Override
-	public void reward(Player player, int amount) {
-		economyReward(player, amount, debugger);
+	public void reward(Player player, ResourceHolder resource) {
+		if (!(resource instanceof CurrencyHolder))
+			throw new IllegalArgumentException("Can only award currency.");
+		
+		economyReward(player, resource.getAmount(), debugger);
 	}
 	
 	// Internal method
@@ -105,9 +111,9 @@ public class RewardEconomy implements RewardService {
 			throw new NullArgumentException("player");
 		
 		String name = player.getName();
-
+				
 		if (amount < 0) {
-			
+		
 			// Make sure amount is positive
 			amount = Math.abs(amount);
 			
@@ -152,28 +158,34 @@ public class RewardEconomy implements RewardService {
 	
 	// Location is ignored.
 	@Override
-	public void reward(Player player, Location point, int amount) {
+	public void reward(Player player, Location point, ResourceHolder resource) {
 
 		// See if we have to reward the player directly
 		if (economyItem == null || economyWorth == null || economyWorth < 1) {
 			if (debugger != null)
 				debugger.printDebug(this, "Cannot find economy settings. Reverting to direct currency.");
 			
-			reward(player, amount);
+			reward(player, resource);
 		} else {
-			reward(player.getWorld(), point, amount);
+			reward(player.getWorld(), point, resource);
 		}
 	}
 	
 	@Override
-	public void reward(World world, Location point, int amount) {
+	public void reward(World world, Location point, ResourceHolder resource) {
 		if (world == null)
 			throw new NullArgumentException("world");
 		if (point == null)
 			throw new NullArgumentException("point");
+		if (!(resource instanceof CurrencyHolder))
+			throw new IllegalArgumentException("Can only award currency.");
 		
 		ItemStack stack = economyItem != null ? economyItem : defaultItem;
 		Integer worth = economyWorth != null ? economyWorth : defaultWorth;
+		
+		// Support negative rewards
+		int amount = Math.abs(resource.getAmount());
+		int sign = resource.getAmount() < 0 ? -1 : 1;
 		
 		// Make sure it's valid too
 		if (worth < 1)
@@ -182,7 +194,7 @@ public class RewardEconomy implements RewardService {
 		// Create the proper amount of items
 		for (; amount > 0; amount -= worth) {
 			Item spawned = world.dropItemNaturally(point, stack);
-			listener.pinReward(spawned, Math.min(amount, worth));
+			listener.pinReward(spawned, sign * Math.min(amount, worth));
 		}
 	}
 	
@@ -233,6 +245,7 @@ public class RewardEconomy implements RewardService {
 		
 		copy.setEconomyItem(config.getEconomyDropItem());
 		copy.setEconomyWorth(config.getEconomyItemWorth());
+		copy.parser = parser;
 		return copy;
 	}
 }

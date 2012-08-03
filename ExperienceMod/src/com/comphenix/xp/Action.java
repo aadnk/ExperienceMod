@@ -35,6 +35,8 @@ import com.comphenix.xp.messages.ChannelService;
 import com.comphenix.xp.messages.Message;
 import com.comphenix.xp.messages.MessageFormatter;
 import com.comphenix.xp.parser.Utility;
+import com.comphenix.xp.rewards.ResourceFactory;
+import com.comphenix.xp.rewards.ResourceHolder;
 import com.comphenix.xp.rewards.RewardProvider;
 import com.comphenix.xp.rewards.RewardTypes;
 import com.comphenix.xp.rewards.RewardService;
@@ -45,40 +47,40 @@ public class Action {
 
 	private int id;
 	private Message message;
-	private Map<String, Range> rewards;
+	private Map<String, ResourceFactory> rewards;
 
 	private Debugger debugger;
 	
 	public Action() {
 		// Default constructor
-		rewards = new HashMap<String, Range>();;
+		rewards = new HashMap<String, ResourceFactory>();;
 	}
 	
-	public Action(String rewardType, Range reward) {
+	public Action(String rewardType, ResourceFactory reward) {
 		this();
 		addReward(rewardType, reward);
 	}
 	
-	private Action(Message message, Map<String, Range> rewards, Debugger debugger, int id) {
+	private Action(Message message, Map<String, ResourceFactory> rewards, Debugger debugger, int id) {
 		this.message = message;
 		this.rewards = rewards;
 		this.debugger = debugger;
 		this.id = id;
 	}
 	
-	public void addReward(String rewardType, Range range) {
-		rewards.put(Utility.getEnumName(rewardType), range);
+	public void addReward(String rewardType, ResourceFactory factory) {
+		rewards.put(Utility.getEnumName(rewardType), factory);
 	}
 	
 	public void removeReward(String rewardType) {
 		rewards.remove(Utility.getEnumName(rewardType));
 	}
 	
-	public Range getReward(String name) {
+	public ResourceFactory getReward(String name) {
 		return rewards.get(Utility.getEnumName(name));
 	}
 	
-	public Range getReward(RewardTypes type) {
+	public ResourceFactory getReward(RewardTypes type) {
 		return rewards.get(type.name());
 	}
 	
@@ -104,18 +106,21 @@ public class Action {
 	public boolean canRewardPlayer(RewardProvider provider, Player player, int count) {
 		
 		// Give every reward
-		for (Map.Entry<String, Range> entry : rewards.entrySet()) {
+		for (Map.Entry<String, ResourceFactory> entry : rewards.entrySet()) {
 			
 			String key = Utility.getEnumName(entry.getKey());
 			RewardService manager = provider.getByName(key);
 			
 			// That is, the highest penalty we can give
-			int minimum = entry.getValue().getMinimum() * count;
+			ResourceHolder minimum = entry.getValue().getMinimum(count);
+			ResourceHolder maximum = entry.getValue().getMaximum(count);
 			
 			// See if the manager allows this extreme
 			if (manager != null) {
-				if (!manager.canReward(player, minimum))
+				if (!(manager.canReward(player, minimum) &&
+					  manager.canReward(player, maximum))) {
 					return false;
+				}
 			}
 		}
 		
@@ -130,7 +135,7 @@ public class Action {
 	 * @param player - the player to reward.
 	 * @return The amount of total resources that were given.
 	 */
-	public int rewardPlayer(RewardProvider provider, Random rnd, Player player) {
+	public Collection<ResourceHolder> rewardPlayer(RewardProvider provider, Random rnd, Player player) {
 		
 		// Give the reward once
 		return rewardPlayer(provider, rnd, player, 1);
@@ -138,35 +143,38 @@ public class Action {
 	
 	/**
 	 * Rewards or penalizes a player with the given amount of resources.
+	 * <p>
+	 * The returned collection may be either null or empty when no rewards has been given.
+	 * 
 	 * @param provider - reward provider that determines specifically how to reward players.
 	 * @param rnd - random number generator.
 	 * @param player - the player to reward.
 	 * @param count - the number of times to give this resource.
 	 * @return The amount of total resources that were given.
 	 */
-	public int rewardPlayer(RewardProvider provider, Random rnd, Player player, int count) {
+	public Collection<ResourceHolder> rewardPlayer(RewardProvider provider, Random rnd, Player player, int count) {
 		
-		int sum = 0;
+		Map<String, ResourceHolder> result = new HashMap<String, ResourceHolder>();
 		
 		// No need to do anything
 		if (count == 0)
-			return 0;
+			return null;
 		
 		// Give every reward
-		for (Map.Entry<String, Range> entry : rewards.entrySet()) {
+		for (Map.Entry<String, ResourceFactory> entry : rewards.entrySet()) {
 			
 			String key = Utility.getEnumName(entry.getKey());
 			RewardService manager = provider.getByName(key);
 			
-			int exp = entry.getValue().sampleInt(rnd) * count;
+			ResourceHolder resource = entry.getValue().getResource(rnd, count);
 			
 			if (manager != null) {
-				manager.reward(player, exp);
-				sum += exp;
+				manager.reward(player, resource);
+				addResource(result, resource);
 			}
 		}
 		
-		return sum;
+		return result.values();
 	}
 	
 	/**
@@ -177,25 +185,25 @@ public class Action {
 	 * @param point - the location to place the reward, if relevant.
 	 * @return The amount of total resources that were given.
 	 */
-	public int rewardPlayer(RewardProvider provider, Random rnd, Player player, Location point) {
+	public Collection<ResourceHolder> rewardPlayer(RewardProvider provider, Random rnd, Player player, Location point) {
 		
-		int sum = 0;
+		Map<String, ResourceHolder> result = new HashMap<String, ResourceHolder>();
 		
 		// As the above
-		for (Map.Entry<String, Range> entry : rewards.entrySet()) {
+		for (Map.Entry<String, ResourceFactory> entry : rewards.entrySet()) {
 			
 			String key = Utility.getEnumName(entry.getKey());
 			RewardService manager = provider.getByName(key);
 			
-			int exp = entry.getValue().sampleInt(rnd);
+			ResourceHolder resource = entry.getValue().getResource(rnd);
 			
 			if (manager != null) {
-				manager.reward(player, point, exp);
-				sum += exp;
+				manager.reward(player, point, resource);
+				addResource(result, resource);
 			}
 		}
 		
-		return sum;
+		return result.values();
 	}
 	
 	/**
@@ -206,25 +214,36 @@ public class Action {
 	 * @param point - the location to place the reward.
 	 * @return The amount of total resources that were given.
 	 */
-	public int rewardAnyone(RewardProvider provider, Random rnd, World world, Location point) {
+	public Collection<ResourceHolder> rewardAnyone(RewardProvider provider, Random rnd, World world, Location point) {
 		
-		int sum = 0;
+		Map<String, ResourceHolder> result = new HashMap<String, ResourceHolder>();
 		
 		// As the above
-		for (Map.Entry<String, Range> entry : rewards.entrySet()) {
+		for (Map.Entry<String, ResourceFactory> entry : rewards.entrySet()) {
 			
 			String key = Utility.getEnumName(entry.getKey());
 			RewardService manager = provider.getByName(key);
 			
-			int exp = entry.getValue().sampleInt(rnd);
+			ResourceHolder resource = entry.getValue().getResource(rnd);
 			
 			if (manager != null) {
-				manager.reward(world, point, exp);
-				sum += exp;
+				manager.reward(world, point, resource);
+				addResource(result, resource);
 			}
 		}
 		
-		return sum;
+		return result.values();
+	}
+	
+	private void addResource(Map<String, ResourceHolder> result, ResourceHolder resource) {
+		
+		if (result.containsKey(resource.getName())) {
+			// Add the previous value
+			resource = result.get(resource.getName()).add(resource);
+		}
+		
+		// Save value
+		result.put(resource.getName(), resource);
 	}
 	
 	public void emoteMessages(ChannelProvider provider, MessageFormatter formatter, Player player) {
@@ -320,10 +339,12 @@ public class Action {
 	
 	public Action multiply(double multiply) {
 
-		Map<String, Range> copy = new HashMap<String, Range>();
+		Map<String, ResourceFactory> copy = new HashMap<String, ResourceFactory>();
 		
-		for (Map.Entry<String, Range> entry : rewards.entrySet()) {
-			copy.put(entry.getKey(), entry.getValue().multiply(multiply));
+		// Multiply everything
+		for (Map.Entry<String, ResourceFactory> entry : rewards.entrySet()) {
+			ResourceFactory old = entry.getValue();	
+			copy.put(entry.getKey(), old.withMultiplier(old.getMultiplier() * multiply));
 		}
 		
 		return new Action(message, copy, debugger, id);
@@ -357,9 +378,9 @@ public class Action {
 		List<String> textRewards = new ArrayList<String>();
 		
 		// Build list of rewards
-		for (Map.Entry<String, Range> entry : rewards.entrySet()) {
+		for (Map.Entry<String, ResourceFactory> entry : rewards.entrySet()) {
 			String key = entry.getKey();
-			Range value = entry.getValue();
+			ResourceFactory value = entry.getValue();
 			
 			textRewards.add(String.format("%s: %s", key, value));
 		}
