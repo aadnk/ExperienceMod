@@ -363,26 +363,41 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		// Reload the saved configuration
 		if (!savedFile.exists()) {
 
-			// Get the default file
-			InputStream input = ExperienceMod.class.getResourceAsStream("/" + name);
+			InputStream input = null;
+			OutputStream output = null;
 			
-			// Make sure the directory exists 
-			if (!directory.exists()) {
-				directory.mkdirs();
+			try {
+			
+				// Get the default file
+				input = ExperienceMod.class.getResourceAsStream("/" + name);
 				
-				if (!directory.exists())
-					throw new IOException("Could not create the directory " + directory.getAbsolutePath());
-			}
+				// See if we found it
+				if (input == null) {
+					throw new MissingResourceException(
+							"Cannot find built in resource file.", "ExperienceMod", name);
+				}
+				
+				// Make sure the directory exists 
+				if (!directory.exists()) {
+					directory.mkdirs();
+					
+					if (!directory.exists())
+						throw new IOException("Could not create the directory " + directory.getAbsolutePath());
+				}
+	
+				// Copy content
+				output = new FileOutputStream(savedFile);
+				copyLarge(input, output);
 			
-			OutputStream output = new FileOutputStream(savedFile);
-			
-			// Check just in case
-			if (input == null) {
-				throw new MissingResourceException(
-						"Cannot find built in resource file.", "ExperienceMod", name);
+			} catch (IOException e) {
+				throw e;
+			} finally {
+				// Clean up
+				if (input != null)
+					input.close();
+				if (output != null)
+					output.close();
 			}
-
-			copyLarge(input, output);
 		}
 		
 		// Retrieve the saved file
