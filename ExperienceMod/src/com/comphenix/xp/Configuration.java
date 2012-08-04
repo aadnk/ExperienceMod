@@ -462,6 +462,9 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 					case Potions:
 						loadActionOnItem(itemSection, action, item, getComplexReward(type), queryType);
 						break;
+						
+					default:
+						logger.printWarning(this, "The query type %s cannot be used on items.", queryType);
 					}
 					
 				}

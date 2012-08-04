@@ -117,6 +117,9 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 			action = playerReward.getFishingFailure();
 			message = "Fishing failed for %s: Spawned %d xp.";
 			break;
+			
+		default:
+			return;
 		}
 		
 		// Has an action been set?
