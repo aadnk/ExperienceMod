@@ -1,0 +1,15 @@
+com.comphenix.xp
+com.comphenix.xp.commands
+com.comphenix.xp.extra
+com.comphenix.xp.history
+com.comphenix.xp.listeners
+com.comphenix.xp.lookup
+com.comphenix.xp.messages
+com.comphenix.xp.metrics
+com.comphenix.xp.mods
+com.comphenix.xp.parser
+com.comphenix.xp.parser.primitives
+com.comphenix.xp.parser.text
+com.comphenix.xp.rewards
+com.comphenix.xp.rewards.items
+com.comphenix.xp.rewards.xp
