@@ -124,7 +124,15 @@ public class ExperienceManager {
 	}
 
 	private static int getExpToLevel(final int level) {
-		return 17 + Math.max(3 * (level - 15), 0);
+		
+		// Calculate the amount of experience the experience bar can hold
+        if (level >= 30) {
+            return 62 + (level - 30) * 7;
+        } else if (level > 15) {
+            return 17 + (level - 15) * 3;
+        } else {
+            return 17;
+        }
 	}
 
 	/**
