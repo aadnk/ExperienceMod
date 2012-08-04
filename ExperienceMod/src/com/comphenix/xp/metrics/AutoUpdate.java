@@ -36,11 +36,12 @@ import org.json.simple.parser.ParseException;
 import com.google.common.collect.Lists;
 
 /**
- * @author V10lator
- * @version 1.0-Comphenix
- * @see Mod: <a href=
+ * Mod: <a href=
  *      "http://dev.bukkit.org/server-mods/experiencemod/"
  *      >ExperienceMod</a>
+ * 
+ * @author V10lator
+ * @version 1.0-Comphenix
  */
 public class AutoUpdate implements Runnable, Listener {
 	

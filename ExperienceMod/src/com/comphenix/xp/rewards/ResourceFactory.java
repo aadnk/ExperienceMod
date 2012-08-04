@@ -23,14 +23,14 @@ public interface ResourceFactory extends Multipliable<ResourceFactory> {
 	/**
 	 * Calculates the minimum amount of resources that may be awarded.
 	 * @param count - resource amount multiplier.
-	 * @return
+	 * @return A resource holder.
 	 */
 	public ResourceHolder getMinimum(int count);
 	
 	/**
 	 * Calculates the maximum amount of resources that may be awarded.
 	 * @param count - resource amount multiplier.
-	 * @return
+	 * @return A resource holder.
 	 */
 	public ResourceHolder getMaximum(int count);
 	

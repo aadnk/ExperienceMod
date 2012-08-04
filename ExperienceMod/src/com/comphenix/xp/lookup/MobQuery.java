@@ -73,7 +73,7 @@ public class MobQuery implements Query {
 	/**
 	 * Creates a query where NULL values match any possible value in that category. 
 	 * @param type - the unique type to search for, or NULL for all mob types.
-	 * @param deathCause - the damage type that killed the mob, or NULL for all damage types.
+	 * @param cause - the damage type that killed the mob, or NULL for all damage types.
 	 * @return The new mob query.
 	 */
 	public static MobQuery fromAny(EntityType type, DamageCause cause) {

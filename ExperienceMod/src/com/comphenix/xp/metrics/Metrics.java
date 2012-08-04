@@ -270,7 +270,7 @@ public class Metrics {
     /**
      * Has the server owner denied plugin metrics?
      *
-     * @return
+     * @return TRUE if the server owner disabled metrics, FALSE otherwise.
      */
     public boolean isOptOut() {
         synchronized(optOutLock) {
@@ -506,7 +506,7 @@ public class Metrics {
         /**
          * Gets the graph's name
          *
-         * @return
+         * @return Name of this graph.
          */
         public String getName() {
             return name;
@@ -533,7 +533,7 @@ public class Metrics {
         /**
          * Gets an <b>unmodifiable</b> set of the plotter objects in the graph
          *
-         * @return
+         * @return A immutable set of the plotter objects in the graph.
          */
         public Set<Plotter> getPlotters() {
             return Collections.unmodifiableSet(plotters);
@@ -590,7 +590,7 @@ public class Metrics {
         /**
          * Get the current value for the plotted point
          *
-         * @return
+         * @return The current value.
          */
         public abstract int getValue();
 
