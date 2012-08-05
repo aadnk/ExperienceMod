@@ -104,38 +104,26 @@ public class ExperienceEnhancementsListener implements Listener {
 	
 	public static int getMinBonus(int bookshelves, int slot) {
 		
+		final double[] slotFactor = { 0.5, 0.66, 1 };  
 		Validate.isTrue(slot > 0, "Slot # cannot be less than zero.");
 		Validate.isTrue(slot < 3, "Slot # cannot be greater than 3.");
 
-		if (bookshelves > 15)
-			bookshelves = 15;
+		if (bookshelves > 30)
+			bookshelves = 30;
 		
-		return getBonus(1 + bookshelves / 2, slot, bookshelves);
+		return (int) ((1 + bookshelves / 2) * slotFactor[slot]);
 	}
 	
 	public static int getMaxBonus(int bookshelves, int slot) {
 		
+		final double[] slotFactor = { 0.5, 0.66, 1 }; 
 		Validate.isTrue(slot > 0, "Slot # cannot be less than zero.");
 		Validate.isTrue(slot < 3, "Slot # cannot be greater than 3.");
 
-		if (bookshelves > 15)
-			bookshelves = 15;
+		if (bookshelves > 30)
+			bookshelves = 30;
 		
-		return getBonus(8 + bookshelves + bookshelves / 2, slot, bookshelves);
-	}
-	
-	private static int getBonus(int input, int slot, int bookshelves) {
-		// Helper function
-		switch (slot) {
-		case 0: 
-			return Math.max(input / 3, 1); 
-		case 1:
-			return (input * 2) / 3 + 1;
-		case 2:
-			return Math.max(input, bookshelves * 2);
-		default:
-			throw new IllegalArgumentException("Unknown slot number " + slot);
-		}
+		return (int) ((5 + bookshelves * 1.5f) * slotFactor[slot]);
 	}
 
 	private boolean hasDebugger() {
