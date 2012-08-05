@@ -29,91 +29,91 @@ mobs:
     last: 10
   # Matches all mobs that have spawned from a monster spawner
   ?|spawner: 0
-  # Disable XP from mobs that are killed by splash potions
+  # Disable XP from mobs that are killed with splash potions
   #?|magic: 0
 
 # Generic rewards
 player:
-  fishing success: [3, 5]
+  fishing success: [2, 5]
   fishing failure: 0
 
  # Select items using name|durability
  # Select potions with potion|potion type|level|[extended]|[splash]
  #
  #  Trigger/action     Description
- #   block source       Block mined without silk touch. 
- #   bonus                 Block mined.
- #   smelting result    Smelted items.
- #   crafting result      Crafted items.
+ #   block source        Block mined without silk touch. 
+ #   bonus               Block mined.
+ #   smelting result     Smelted items.
+ #   crafting result     Crafted items.
  #   brewing result      Brewed potions.
- #   placing result       Placed blocks.
+ #   placing result      Placed blocks.
 items:
   coal ore:
-    block source: 5
+    block source: [1, 3]
   lapis ore:
-    block source: 15
+    block source: [3, 10]
   glowing redstone ore, redstone ore:
-    block source: 20
+    block source: [3, 10]
   diamond ore:
     block source: 
-      default: 150 # Give the default reward type
-      message: '{player} got {count} DIAMOND and {experience} exp!'
+      default: [15, 25] # Give the default reward type
+      message: '{player} got one DIAMOND and {experience} exp!'
       channels: [global]
   mob spawner:
     bonus:
-      first: 250
-      last: 1000
+      first: 30
+      last: 50
   coal|0:
-    smelting result: 5
+    smelting result: [1, 3]
   coal|1:
     smelting result: 1
   wool dye|4:
-    smelting result: 15
+    smelting result: [3, 10]
   redstone:
-    smelting result: 20
+    smelting result: [3, 10]
   diamond:
-    smelting result: 150
+    smelting result: [15, 25]
   iron ingot:
-    smelting result: 10
+    smelting result: [5, 12]
   gold ingot:
-    smelting result: 40
+    smelting result: [7, 15]
   stone:
     smelting result: 1
   diamond axe:
-    crafting result: 150
+    crafting result: 30
   diamond boots:
-    crafting result: 200
+    crafting result: 40
   diamond chestplate:
-    crafting result: 400
+    crafting result: 80
   diamond helmet:
-    crafting result: 250
+    crafting result: 50
   diamond hoe:
-    crafting result: 100
+    crafting result: 20
   diamond leggings:
-    crafting result: 350
+    crafting result: 70
   diamond pickaxe:
-    crafting result: 150
+    crafting result: 30
   diamond spade:
-    crafting result: 50
+    crafting result: 10
   diamond sword:
-    crafting result: 100
+    crafting result: 20
   enchantment table:
-    crafting result: 100
+    crafting result: 20
   jukebox:
-    crafting result: 50
+    crafting result: 10
   potion|regen|1:
-    brewing result: 50
+    brewing result: 10
   potion|fire resistance|1:
-    brewing result: 60
+    brewing result: 12
   potion|instant damage|1:
-    brewing result: 75
+    brewing result: 15
   potion|instant heal|1:
-    brewing result: 75
+    brewing result: 15
   potion|poison|1:
-    brewing result: 20
+    brewing result: 4
   potion|speed|1:
-    brewing result: 20
+    brewing result: 4
   potion|weakness|1:
-    brewing result: 20
+    brewing result: 4
   potion|strength|1:
-    brewing result: 50
+    brewing result: 10
