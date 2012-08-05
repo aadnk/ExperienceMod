@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Random;
 
 import org.apache.commons.lang.NullArgumentException;
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.inventory.ItemStack;
 
 import com.comphenix.xp.Range;
@@ -146,6 +147,11 @@ public class ItemsFactory implements ResourceFactory {
 		return new ItemsHolder(fromEntry(maximumValue));
 	}
 	
+	@Override
+	public String toString() {
+		return StringUtils.join(entries, ", ");
+	}
+	
 	// An item and the amount to award
 	private class Entry {
 		private ItemQuery item;
@@ -166,6 +172,11 @@ public class ItemsFactory implements ResourceFactory {
 		
 		public List<Integer> getDurability() {
 			return item.getDurability();
+		}
+		
+		@Override
+		public String toString() {
+			return String.format("%s %s", range, item);
 		}
 	}
 }

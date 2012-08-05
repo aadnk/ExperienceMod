@@ -167,6 +167,6 @@ public class Range {
 		if (start == end)
 			return "{" + start + "}";
 		else
-			return "{start: " + start + ", end: " + end + "]";
+			return "{start: " + start + ", end: " + end + "}";
 	}
 }
