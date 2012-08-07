@@ -1,4 +1,4 @@
-package com.comphenix.xp.listeners;
+package com.comphenix.xp.extra;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
