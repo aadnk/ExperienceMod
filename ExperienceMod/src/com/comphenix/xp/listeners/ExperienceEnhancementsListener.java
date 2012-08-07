@@ -157,15 +157,13 @@ public class ExperienceEnhancementsListener implements Listener {
 					overrideEnchant.put(name, oldCost);
 					
 					// Run the method again
-					if (enchantItemMethod == null)
-						enchantItemMethod = MethodUtils.getMatchingAccessibleMethod(
-								containerEnchantTable, "a", new Class[] { entity.getClass(), int.class });
-
+					if (enchantItemMethod == null) {
+						enchantItemMethod = getEnchantMethod(result, entity, "a");
+					}
+						
 					// Attempt to call this method
 					if (enchantItemMethod != null) {
 						enchantItemMethod.invoke(result, entity, slot);
-					} else {
-						debugger.printWarning(this, "Could not find method 'a' in ContainerEnchantTable.");
 					}
 					
 					// OK, it's over
@@ -185,6 +183,52 @@ public class ExperienceEnhancementsListener implements Listener {
 			e.printStackTrace();
 		}
 	}
+	
+	private Method getEnchantMethod(Object container, Object entity, String methodName) {
+		
+		Method guess = MethodUtils.getMatchingAccessibleMethod(
+						container.getClass(), methodName, new Class[] { entity.getClass(), int.class });
+		
+		if (guess != null) {
+			// Great, got it on the first try
+			return guess;
+		} else {
+			// Damn, something's wrong. The method name must have changed. Try again.
+			methodName = lastMinecraftMethod();
+			guess = MethodUtils.getMatchingAccessibleMethod(
+						container.getClass(), methodName, new Class[] { entity.getClass(), int.class });
+			
+			if (guess != null)
+				return guess;
+			else
+				debugger.printWarning(this, "Could not find method '%s' in ContainerEnchantTable.", methodName);
+			return null;
+		}
+	}
+	
+	/**
+	 * Determine the name of the last calling Minecraft method in the call stack.
+	 * <p>
+	 * A Minecraft method is any method in a class found in net.minecraft.* and below.
+	 * @return The name of this method, or NULL if not found.
+	 */
+    private static String lastMinecraftMethod() {
+        try {
+            throw new Exception();
+        } catch (Exception e) {
+            // Determine who called us
+            StackTraceElement[] elements = e.getStackTrace();
+            
+            for (StackTraceElement element : elements) {
+            	if (element.getClassName().startsWith("net.minecraft")) {
+            		return element.getMethodName();
+            	}
+            }
+            
+            // If none is found (very unlikely though)
+            return null;
+        }
+    }
 	
 	private void handleItemEnchanting(PrepareItemEnchantEvent event, Player player) {
 		
