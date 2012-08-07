@@ -74,7 +74,7 @@ public class ExperienceEnhancementsListener implements Listener {
 		// Like above
 		try {
 			Player player = event.getEnchanter();
-			
+
 			if (player != null) {
 				handleItemEnchanting(event, player);
 			}
