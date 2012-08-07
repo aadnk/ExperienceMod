@@ -17,21 +17,39 @@
 
 package com.comphenix.xp.listeners;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.apache.commons.lang.Validate;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.enchantment.EnchantItemEvent;
 import org.bukkit.event.enchantment.PrepareItemEnchantEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.inventory.InventoryView;
 
 import com.comphenix.xp.Debugger;
 import com.comphenix.xp.extra.Permissions;
+import com.comphenix.xp.reflect.FieldUtils;
 
 public class ExperienceEnhancementsListener implements Listener {
 		
 	private Debugger debugger;
 	private ErrorReporting report = ErrorReporting.DEFAULT;
+	
+	// Used by item enchant to swallow events
+	private Set<String> ignoreEnchant = new HashSet<String>();
+	
+	// Reflection helpers
+	private Field containerField;
+	private Field costsField;
+	private Field entityField;
+	private Method enchantItemMethod;
 	
 	public ExperienceEnhancementsListener(Debugger debugger) {
 		this.debugger = debugger;
@@ -73,16 +91,90 @@ public class ExperienceEnhancementsListener implements Listener {
 
 		// Like above
 		try {
-			Player player = event.getEnchanter();
+			final Player player = event.getEnchanter();
 
 			if (player != null) {
 				handleItemEnchanting(event, player);
+
+				// Just in case this hasn't already been done
+				ignoreEnchant.remove(player.getName());
 			}
+			
 		} catch (Exception e) {
 			report.reportError(debugger, this, e, event);
 		}
 	}
 
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+	public void onEnchantItemEvent(EnchantItemEvent event) {
+		
+		InventoryView view = event.getView();
+		Player player = event.getEnchanter();
+		
+		// Prevent infinite recursion
+		if (ignoreEnchant.contains(player.getName())) {
+			return;
+		}
+		
+		try {
+			// Read the container-field in CraftInventoryView
+			if (containerField == null)
+				containerField = FieldUtils.getField(view.getClass(), "container", true);
+			Object result = FieldUtils.readField(containerField, view, true);
+			
+			// Container should be of type net.minecraft.server.ContainerEnchantTable
+			if (result != null) {
+				// Cancel the original event
+				event.setCancelled(true);
+				
+				Class<? extends Object> containerEnchantTable = result.getClass();
+				
+				// Read the cost-table
+				if (costsField == null)
+					costsField = FieldUtils.getField(containerEnchantTable, "costs");
+				Object cost = FieldUtils.readField(costsField, result);
+				
+				// Get the real Minecraft player entity
+				if (entityField == null)
+					entityField = FieldUtils.getField(player.getClass(), "entity", true);
+				Object entity = FieldUtils.readField(entityField, player, true);
+				
+				if (cost instanceof int[]) {
+					int[] ref = (int[]) cost;
+				
+					// Set the second slot
+					ref[1] = 1;
+					
+					// We have to ignore the next enchant event
+					ignoreEnchant.add(player.getName());
+					
+					// Run the method again
+					if (enchantItemMethod == null)
+						enchantItemMethod = containerEnchantTable.getMethod("a", entity.getClass(), int.class);
+					enchantItemMethod.invoke(result, entity, event.whichButton());
+					
+					
+					// OK, it's over
+					ignoreEnchant.remove(player.getName());
+				}
+			}
+			
+			// A bunch or problems could occur
+		} catch (NoSuchMethodException e) {
+			debugger.printWarning(this, "Cannot modify enchanting table: %s", e.toString());
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			debugger.printWarning(this, "Cannot modify enchanting table: %s", e.toString());
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			debugger.printWarning(this, "Cannot modify enchanting table: %s", e.toString());
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
+			debugger.printWarning(this, "Cannot modify enchanting table: %s", e.toString());
+			e.printStackTrace();
+		}
+	}
+	
 	private void handleItemEnchanting(PrepareItemEnchantEvent event, Player player) {
 		
 		// Permission check
