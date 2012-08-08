@@ -10,12 +10,12 @@ import java.util.Random;
 public class ConstantRandom extends Random {
 
 	/**
-	 * A random number generator that always returns the maximum possible value.
+	 * A random number generator that always returns the largest possible value.
 	 */
 	public static ConstantRandom MAXIMUM = new ConstantRandom((byte) 255);
 	
 	/**
-	 * A random number generator that always returns the mimimum possible value.
+	 * A random number generator that always returns the lowest possible value.
 	 */
 	public static ConstantRandom MINIMUM = new ConstantRandom((byte) 0);
 	

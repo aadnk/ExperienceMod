@@ -35,6 +35,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.InventoryView;
 
 import com.comphenix.xp.Debugger;
+import com.comphenix.xp.extra.ConstantRandom;
 import com.comphenix.xp.extra.Permissions;
 import com.comphenix.xp.reflect.FieldUtils;
 import com.comphenix.xp.reflect.MethodUtils;
@@ -249,43 +250,43 @@ public class ExperienceEnhancementsListener extends AbstractExperienceListener {
         }
 	}
 	
-	public static int getMinBonus(int bookshelves, int slot) {
+	/**
+	 * Determines the minimum level cost in a particular enchanting table slot.
+	 * @param bookshelves - the number of bookshelves around the enchanting table.
+	 * @param slot - the slot number.
+	 * @return The minimum level cost for this slot.
+	 */
+	public int getMinBonus(int bookshelves, int slot) {
 		
 		Validate.isTrue(slot > 0, "Slot # cannot be less than zero.");
 		Validate.isTrue(slot < 3, "Slot # cannot be greater than 3.");
 
-		if (bookshelves > 15)
-			bookshelves = 15;
-		
-		return getBonus(1 + bookshelves / 2, slot, bookshelves);
+		return getBonus(ConstantRandom.MINIMUM, bookshelves, slot);
 	}
 	
-	public static int getMaxBonus(int bookshelves, int slot) {
+	/**
+	 * Determines the maximum level cost in a particular enchanting table slot.
+	 * @param bookshelves - the number of bookshelves around the enchanting table.
+	 * @param slot - the slot number.
+	 * @return The maximum level cost for this slot.
+	 */
+	public int getMaxBonus(int bookshelves, int slot) {
 		
 		Validate.isTrue(slot > 0, "Slot # cannot be less than zero.");
 		Validate.isTrue(slot < 3, "Slot # cannot be greater than 3.");
 
-		if (bookshelves > 15)
-			bookshelves = 15;
-		
-		return getBonus(8 + bookshelves + bookshelves / 2, slot, bookshelves);
+		return getBonus(ConstantRandom.MAXIMUM, bookshelves, slot);
 	}
 	
-	private static int getBonus(int input, int slot, int bookshelves) {
-		// Helper function
-		switch (slot) {
-		case 0: 
-			return Math.max(input / 3, 1); 
-		case 1:
-			return (input * 2) / 3 + 1;
-		case 2:
-			return Math.max(input, bookshelves * 2);
-		default:
-			throw new IllegalArgumentException("Unknown slot number " + slot);
-		}
-	}
-	
-	public static int a(Random rnd, int slot, int bookshelves) {
+	/**
+	 * Samples a level cost for a particular enchanting table, given the slot and number
+	 * of bookshelves surrounding it.
+	 * @param rnd - a random number generator.
+	 * @param bookshelves - the number of bookshelves around the enchanting table.
+	 * @param slot - the slot number.
+	 * @return The level cost in this slot.
+	 */
+	public int getBonus(Random rnd, int bookshelves, int slot) {
 		// Clamp bookshelves
 		if (bookshelves > 15) {
 			bookshelves = 15;
