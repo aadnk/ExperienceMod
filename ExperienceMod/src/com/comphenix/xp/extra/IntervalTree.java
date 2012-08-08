@@ -14,7 +14,7 @@ import java.util.TreeMap;
  * @param <TValue> - type of the value to associate.
  */
 public abstract class IntervalTree<TKey extends Comparable<TKey>, TValue> {
-
+	
 	protected enum State {
 		OPEN,
 		CLOSE,
@@ -86,7 +86,7 @@ public abstract class IntervalTree<TKey extends Comparable<TKey>, TValue> {
 	 * 
 	 * @param lowerBound - the minimum key (inclusive).
 	 * @param upperBound - the maximum key (inclusive).
-	 * @param experience - the amount of experience.
+	 * @param value - the value, or NULL to reset this range.
 	 */
 	public void put(TKey lowerBound, TKey upperBound, TValue value) {
 		
@@ -109,8 +109,10 @@ public abstract class IntervalTree<TKey extends Comparable<TKey>, TValue> {
 		}
 		
 		// OK. Add the end points now
-		addEndPoint(lowerBound, value, State.OPEN);
-		addEndPoint(upperBound, value, State.CLOSE);
+		if (value != null) {
+			addEndPoint(lowerBound, value, State.OPEN);
+			addEndPoint(upperBound, value, State.CLOSE);
+		}
 	}
 	
 	/**
