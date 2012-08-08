@@ -22,13 +22,13 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 import org.apache.commons.lang.Validate;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
 import org.bukkit.event.enchantment.EnchantItemEvent;
 import org.bukkit.event.enchantment.PrepareItemEnchantEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -39,7 +39,7 @@ import com.comphenix.xp.extra.Permissions;
 import com.comphenix.xp.reflect.FieldUtils;
 import com.comphenix.xp.reflect.MethodUtils;
 
-public class ExperienceEnhancementsListener implements Listener {
+public class ExperienceEnhancementsListener extends AbstractExperienceListener {
 		
 	private Debugger debugger;
 	private ErrorReporting report = ErrorReporting.DEFAULT;
@@ -280,6 +280,27 @@ public class ExperienceEnhancementsListener implements Listener {
 			return (input * 2) / 3 + 1;
 		case 2:
 			return Math.max(input, bookshelves * 2);
+		default:
+			throw new IllegalArgumentException("Unknown slot number " + slot);
+		}
+	}
+	
+	public static int a(Random rnd, int slot, int bookshelves) {
+		// Clamp bookshelves
+		if (bookshelves > 15) {
+			bookshelves = 15;
+		}
+
+		int j = rnd.nextInt(8) + 1 + (bookshelves >> 1) + rnd.nextInt(bookshelves + 1);
+
+		// Handle different slot factors
+		switch (slot) {
+		case 0: 
+			return Math.max(j / 3, 1);
+		case 1:
+			return j * 2 / 3 + 1;
+		case 2:
+			return Math.max(j, bookshelves * 2);
 		default:
 			throw new IllegalArgumentException("Unknown slot number " + slot);
 		}
