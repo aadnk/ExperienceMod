@@ -8,7 +8,7 @@ import org.apache.commons.lang.NullArgumentException;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.inventory.ItemStack;
 
-import com.comphenix.xp.Range;
+import com.comphenix.xp.SampleRange;
 import com.comphenix.xp.lookup.ItemQuery;
 import com.comphenix.xp.rewards.ResourceFactory;
 import com.comphenix.xp.rewards.ResourceHolder;
@@ -34,7 +34,7 @@ public class ItemsFactory implements ResourceFactory {
 		this.multiplier = multiplier;
 	}
 	
-	public void addItems(ItemQuery item, Range range) {
+	public void addItems(ItemQuery item, SampleRange range) {
 		if (range == null)
 			throw new NullArgumentException("range");
 		if (item == null)
@@ -155,14 +155,14 @@ public class ItemsFactory implements ResourceFactory {
 	// An item and the amount to award
 	private class Entry {
 		private ItemQuery item;
-		private Range range;
+		private SampleRange range;
 		
-		public Entry(ItemQuery item, Range range) {
+		public Entry(ItemQuery item, SampleRange range) {
 			this.item = item;
 			this.range = range;
 		}
 
-		public Range getRange() {
+		public SampleRange getRange() {
 			return range;
 		}
 		

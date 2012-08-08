@@ -22,22 +22,22 @@ import java.util.Random;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 
-public class Range {
+public class SampleRange {
 	private double start;
 	private double end;
 	
-	public static Range DEFAULT = new Range(0);
+	public static SampleRange DEFAULT = new SampleRange(0);
 	
 	/**
 	 * Constructs a range of the form [value, value].
 	 * @param value The end value.
 	 */
-	public Range(double value) {
+	public SampleRange(double value) {
 		this.start = value;
 		this.end = value;
 	}
 	
-	public Range(double start, double end) {
+	public SampleRange(double start, double end) {
 		if (end < start)
 			throw new IllegalArgumentException("Illegal range. The first value must be less than the last.");
 		
@@ -53,9 +53,9 @@ public class Range {
 		return end;
 	}
 	
-	public Range multiply(double multiply) {
+	public SampleRange multiply(double multiply) {
 		// Consider the average value of a uniform distribution
-		return new Range(start * multiply, end * multiply);
+		return new SampleRange(start * multiply, end * multiply);
 	}
 	
 	public double sampleDouble(Random rnd) {
@@ -155,7 +155,7 @@ public class Range {
         if (obj.getClass() != getClass())
             return false;
 
-        Range other = (Range) obj;
+        SampleRange other = (SampleRange) obj;
         return new EqualsBuilder().
             append(start, other.start).
             append(end, other.end).

@@ -35,7 +35,7 @@ import com.comphenix.xp.Action;
 import com.comphenix.xp.Configuration;
 import com.comphenix.xp.Debugger;
 import com.comphenix.xp.Presets;
-import com.comphenix.xp.Range;
+import com.comphenix.xp.SampleRange;
 import com.comphenix.xp.extra.Permissions;
 import com.comphenix.xp.lookup.MobQuery;
 import com.comphenix.xp.messages.ChannelProvider;
@@ -163,7 +163,7 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 			
 			// Alter the default experience drop too
 			if (config.getMultiplier() != 1) {
-				Range increase = new Range(expDropped * config.getMultiplier());
+				SampleRange increase = new SampleRange(expDropped * config.getMultiplier());
 				int expChanged = increase.sampleInt(random);
 				
 				event.setDroppedExp(expChanged);

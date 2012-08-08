@@ -25,7 +25,7 @@ public class RangeTest {
 		// Generate a random range
 		int start = rnd.nextInt(10);
 		int stop = start + 1 + rnd.nextInt(20);
-		Range range = new Range(start, stop);
+		SampleRange range = new SampleRange(start, stop);
 		
 		int[] results = SampleValues(range, REPEAT_COUNT);
 		
@@ -40,7 +40,7 @@ public class RangeTest {
 	@Test
 	public void testSpecific() {
 	
-		Range range = new Range(0.1, 0.1);
+		SampleRange range = new SampleRange(0.1, 0.1);
 		int[] results = SampleValues(range, REPEAT_COUNT);
 		
 		// "0" should occur approximately 90%.
@@ -53,7 +53,7 @@ public class RangeTest {
 	@Test
 	public void testUnbiased() {
 
-		Range range = new Range(0.1, 0.5);
+		SampleRange range = new SampleRange(0.1, 0.5);
 		int[] counts = SampleValues(range, REPEAT_COUNT);
 		
 		// The expected value (average)
@@ -68,7 +68,7 @@ public class RangeTest {
 	@Test
 	public void testSmallRange() {
 
-		Range range = new Range(0.9, 3.1);
+		SampleRange range = new SampleRange(0.9, 3.1);
 		int[] counts = SampleValues(range, REPEAT_COUNT);
 		
 		double expected = 0.1 / (3.1 - 0.9);
@@ -79,7 +79,7 @@ public class RangeTest {
 		}
 	}
 	
-	private int[] SampleValues(Range range, int count) {
+	private int[] SampleValues(SampleRange range, int count) {
 		
 		int start = range.getMinimum();
 		int stop = range.getMaximum();

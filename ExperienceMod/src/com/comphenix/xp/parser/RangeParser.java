@@ -4,19 +4,19 @@ import java.util.List;
 
 import org.bukkit.configuration.ConfigurationSection;
 
-import com.comphenix.xp.Range;
+import com.comphenix.xp.SampleRange;
 
 /**
  * Responsible for reading ranges. 
  * 
  * @author Kristian
  */
-public class RangeParser extends ConfigurationParser<Range> {
+public class RangeParser extends ConfigurationParser<SampleRange> {
 	
 	@Override
-	public Range parse(ConfigurationSection input, String key) throws ParsingException {
+	public SampleRange parse(ConfigurationSection input, String key) throws ParsingException {
 
-		Range result = parse(input, key, null);
+		SampleRange result = parse(input, key, null);
 		
 		// Turn default value into an exception
 		if (result != null)
@@ -32,28 +32,28 @@ public class RangeParser extends ConfigurationParser<Range> {
 	 * @param defaultValue - value to return if parsing failed.
 	 * @return A range from the given configuration object, or defaultValue if failed.
 	 */
-	public Range parse(ConfigurationSection input, String key, Range defaultValue) {
+	public SampleRange parse(ConfigurationSection input, String key, SampleRange defaultValue) {
 		
 		String start = key + ".first";
 		String end = key + ".last";
 		
 		if (input.isDouble(key)) {
-			return new Range(input.getDouble(key));
+			return new SampleRange(input.getDouble(key));
 			
 		} else if (input.isInt(key)) {
-			return new Range((double) input.getInt(key));
+			return new SampleRange((double) input.getInt(key));
 			
 		} else if (input.contains(start) && input.contains(end)) {
-			return new Range(input.getDouble(start), input.getDouble(end));
+			return new SampleRange(input.getDouble(start), input.getDouble(end));
 	
 		} else if (input.isList(key)) {
 			// Try to get a double list
 			List<Double> attempt = input.getDoubleList(key);
 
 			if (attempt != null && attempt.size() == 2)
-				return new Range(attempt.get(0), attempt.get(1));
+				return new SampleRange(attempt.get(0), attempt.get(1));
 			else if (attempt != null && attempt.size() == 1)
-				return new Range(attempt.get(0));
+				return new SampleRange(attempt.get(0));
 			else
 				return defaultValue;
 			
