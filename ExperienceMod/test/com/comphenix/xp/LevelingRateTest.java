@@ -4,6 +4,8 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
+import com.comphenix.xp.lookup.LevelingRate;
+
 public class LevelingRateTest {
 
 	@Test

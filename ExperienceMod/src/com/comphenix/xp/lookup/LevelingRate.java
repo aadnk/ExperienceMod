@@ -1,4 +1,4 @@
-package com.comphenix.xp;
+package com.comphenix.xp.lookup;
 
 import com.comphenix.xp.extra.IntervalTree;
 
