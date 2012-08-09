@@ -49,6 +49,11 @@ public class ExperienceEnhancementsListener extends AbstractExperienceListener {
 	// Used by item enchant to swallow events
 	private Map<String, Integer> overrideEnchant = new HashMap<String, Integer>();
 	
+	// If we encounter any problem at all with our reflection trickery, we'll disable the maximum
+	// enchant level at once. This could happen if CraftBukkit changes, or we're installed on a server
+	// that is Bukkit-compatible only.
+	private boolean disableEnchantingTrickery;
+	
 	// Reflection helpers
 	private Field costsField;
 	private Method containerHandle;
@@ -123,6 +128,10 @@ public class ExperienceEnhancementsListener extends AbstractExperienceListener {
 		if (overrideEnchant.containsKey(name)) {
 			event.setExpLevelCost(overrideEnchant.get(name));
 			return;
+			
+		} else if (disableEnchantingTrickery) {
+			// Prevent too many errors from occurring
+			return;
 		}
 		
 		int maxEnchant = getConfiguration(player).getMaximumEnchantLevel();
@@ -165,7 +174,7 @@ public class ExperienceEnhancementsListener extends AbstractExperienceListener {
 					ref[slot] = (int) (ref[slot] * reverseFactor);
 					
 					if (hasDebugger()) {
-						debugger.printWarning(this, "Modified slot %s from %s to %s.", slot, oldCost, ref[slot]);
+						debugger.printDebug(this, "Modified slot %s from %s to %s.", slot, oldCost, ref[slot]);
 					}
 					
 					// We have to ignore the next enchant event
@@ -188,14 +197,16 @@ public class ExperienceEnhancementsListener extends AbstractExperienceListener {
 			
 			// A bunch or problems could occur
 		} catch (IllegalAccessException e) {
-			debugger.printWarning(this, "Cannot modify enchanting table: %s", e.toString());
-			e.printStackTrace();
+			ErrorReporting.DEFAULT.reportError(debugger, this, e, event, maxEnchant);
+			disableEnchantingTrickery = true;
+			
 		} catch (IllegalArgumentException e) {
-			debugger.printWarning(this, "Cannot modify enchanting table: %s", e.toString());
-			e.printStackTrace();
+			ErrorReporting.DEFAULT.reportError(debugger, this, e, event, maxEnchant);
+			disableEnchantingTrickery = true;
+			
 		} catch (InvocationTargetException e) {
-			debugger.printWarning(this, "Cannot modify enchanting table: %s", e.toString());
-			e.printStackTrace();
+			ErrorReporting.DEFAULT.reportError(debugger, this, e, event, maxEnchant);
+			disableEnchantingTrickery = true;
 		}
 	}
 	
@@ -259,7 +270,6 @@ public class ExperienceEnhancementsListener extends AbstractExperienceListener {
     	
 		// Permission check
         if(Permissions.hasMaxEnchant(player)) {
-
     		costs[last] = getMaxBonus(event.getEnchantmentBonus(), last);
 
             if (hasDebugger())
@@ -280,9 +290,6 @@ public class ExperienceEnhancementsListener extends AbstractExperienceListener {
         	
         	for (int i = 0; i < 3; i++) {
         		costs[i] = (int) (costs[i] * enchantFactor);
-        		
-                if (hasDebugger())
-            		debugger.printDebug(this, "Multiplied %d by %s.", i, enchantFactor);	
         	}
         }
 	}

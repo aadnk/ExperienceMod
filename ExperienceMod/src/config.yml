@@ -22,6 +22,10 @@ virtual scan radius: 20
 # The default channel to use. If you're not using HeroChat, any channel will do.
 default channels: [global]
 
+# Enchanting settings
+maximum enchant level: 30
+maximum bookcase count: 15 
+
 # Mobs can be selected by name|death_case|[spawner]|[baby]|[tamed]:
 mobs:
   enderman:

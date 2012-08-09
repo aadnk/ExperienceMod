@@ -62,10 +62,12 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 	private static final String MESSAGE_MAX_RATE_SETTING = "message max rate";
 	
 	private static final String MAXIMUM_ENCHANT_LEVEL = "maximum enchant level";
+	private static final String MAXIMUM_BOOKCASE_COUNT = "maximum bookcase count";
 	
 	public static final double DEFAULT_SCAN_RADIUS = 20;
 	public static final int DEFAULT_MESSAGE_RATE = 5;
 	public static final int DEFAULT_MAXIMUM_ENCHANT_LEVEL = 30;
+	public static final int DEFAULT_MAXIMUM_BOOKCASE_COUNT = 15;
 	
 	private Debugger logger;
 	
@@ -82,7 +84,9 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 	private MessagePlayerQueue messageQueue;
 
 	private LevelingRate levelingRate;
+	
 	private int maximumEnchantLevel;
+	private int maximumBookcaseCount;
 	
 	// Global settings
 	private GlobalSettings globalSettings;
@@ -117,6 +121,7 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		this.logger = other.logger;
 		
 		this.maximumEnchantLevel = other.maximumEnchantLevel;
+		this.maximumBookcaseCount = other.maximumBookcaseCount;
 		this.defaultRewardsDisabled = other.defaultRewardsDisabled;
 		this.economyItemWorth = other.economyItemWorth;
 		this.economyDropItem = other.economyDropItem;
@@ -227,6 +232,7 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 			// This will be the last set value
 			copy.defaultRewardsDisabled = config.defaultRewardsDisabled;
 			copy.maximumEnchantLevel = config.maximumEnchantLevel;
+			copy.maximumBookcaseCount = config.maximumBookcaseCount;
 			copy.messageQueue = config.messageQueue;
 			copy.rewardProvider = config.rewardProvider;
 			copy.channelProvider = config.channelProvider;
@@ -272,6 +278,7 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		
 		// Enchanting settings
 		maximumEnchantLevel = config.getInt(MAXIMUM_ENCHANT_LEVEL, DEFAULT_MAXIMUM_ENCHANT_LEVEL);
+		maximumBookcaseCount = config.getInt(MAXIMUM_BOOKCASE_COUNT, DEFAULT_MAXIMUM_BOOKCASE_COUNT);
 		
 		// Whether or not to remove all default XP drops
 		defaultRewardsDisabled = config.getBoolean(DEFAULT_REWARDS_SETTING, true);
@@ -560,6 +567,10 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 	
 	public int getMaximumEnchantLevel() {
 		return maximumEnchantLevel;
+	}
+
+	public int getMaximumBookcaseCount() {
+		return maximumBookcaseCount;
 	}
 
 	public PlayerRewards getPlayerRewards() {
