@@ -19,7 +19,8 @@ package de.congrace.exp4j;
  * 
  */
 public abstract class CustomFunction {
-	final int argc;
+	// Had to remove the final flag
+	int argc;
 
 	final String name;
 
@@ -30,6 +31,9 @@ public abstract class CustomFunction {
 	 *            the name of the function (e.g. foo)
 	 */
 	protected CustomFunction(String name) throws InvalidCustomFunctionException {
+		if (name == null)
+			throw new IllegalArgumentException("Function name is null.");
+		
 		this.argc = 1;
 		this.name = name;
 		int firstChar = (int) name.charAt(0);
@@ -50,4 +54,32 @@ public abstract class CustomFunction {
 	}
 
 	public abstract double applyFunction(double... args);
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + argc;
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		CustomFunction other = (CustomFunction) obj;
+		if (argc != other.argc)
+			return false;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
+			return false;
+		return true;
+	}
 }

@@ -110,127 +110,16 @@ public class ExpressionBuilder {
 
 	private Map<String, CustomFunction> getBuiltinFunctions() {
 		try {
-			CustomFunction abs = new CustomFunction("abs") {
-				@Override
-				public double applyFunction(double... args) {
-					return Math.abs(args[0]);
-				}
-			};
-			CustomFunction acos = new CustomFunction("acos") {
-				@Override
-				public double applyFunction(double... args) {
-					return Math.acos(args[0]);
-				}
-			};
-			CustomFunction asin = new CustomFunction("asin") {
-				@Override
-				public double applyFunction(double... args) {
-					return Math.asin(args[0]);
-				}
-			};
-			CustomFunction atan = new CustomFunction("atan") {
-				@Override
-				public double applyFunction(double... args) {
-					return Math.atan(args[0]);
-				}
-			};
-			CustomFunction cbrt = new CustomFunction("cbrt") {
-				@Override
-				public double applyFunction(double... args) {
-					return Math.cbrt(args[0]);
-				}
-			};
-			CustomFunction ceil = new CustomFunction("ceil") {
-				@Override
-				public double applyFunction(double... args) {
-					return Math.ceil(args[0]);
-				}
-			};
-			CustomFunction cos = new CustomFunction("cos") {
-				@Override
-				public double applyFunction(double... args) {
-					return Math.cos(args[0]);
-				}
-			};
-			CustomFunction cosh = new CustomFunction("cosh") {
-				@Override
-				public double applyFunction(double... args) {
-					return Math.cosh(args[0]);
-				}
-			};
-			CustomFunction exp = new CustomFunction("exp") {
-				@Override
-				public double applyFunction(double... args) {
-					return Math.exp(args[0]);
-				}
-			};
-			CustomFunction expm1 = new CustomFunction("expm1") {
-				@Override
-				public double applyFunction(double... args) {
-					return Math.expm1(args[0]);
-				}
-			};
-			CustomFunction floor = new CustomFunction("floor") {
-				@Override
-				public double applyFunction(double... args) {
-					return Math.floor(args[0]);
-				}
-			};
-			CustomFunction log = new CustomFunction("log") {
-				@Override
-				public double applyFunction(double... args) {
-					return Math.log(args[0]);
-				}
-			};
-			CustomFunction sine = new CustomFunction("sin") {
-				@Override
-				public double applyFunction(double... args) {
-					return Math.sin(args[0]);
-				}
-			};
-			CustomFunction sinh = new CustomFunction("sinh") {
-				@Override
-				public double applyFunction(double... args) {
-					return Math.sinh(args[0]);
-				}
-			};
-			CustomFunction sqrt = new CustomFunction("sqrt") {
-				@Override
-				public double applyFunction(double... args) {
-					return Math.sqrt(args[0]);
-				}
-			};
-			CustomFunction tan = new CustomFunction("tan") {
-				@Override
-				public double applyFunction(double... args) {
-					return Math.tan(args[0]);
-				}
-			};
-			CustomFunction tanh = new CustomFunction("tanh") {
-				@Override
-				public double applyFunction(double... args) {
-					return Math.tanh(args[0]);
-				}
-			};
+
 			Map<String, CustomFunction> customFunctions = new HashMap<String, CustomFunction>();
-			customFunctions.put("abs", abs);
-			customFunctions.put("acos", acos);
-			customFunctions.put("asin", asin);
-			customFunctions.put("atan", atan);
-			customFunctions.put("cbrt", cbrt);
-			customFunctions.put("ceil", ceil);
-			customFunctions.put("cos", cos);
-			customFunctions.put("cosh", cosh);
-			customFunctions.put("exp", exp);
-			customFunctions.put("expm1", expm1);
-			customFunctions.put("floor", floor);
-			customFunctions.put("log", log);
-			customFunctions.put("sin", sine);
-			customFunctions.put("sinh", sinh);
-			customFunctions.put("sqrt", sqrt);
-			customFunctions.put("tan", tan);
-			customFunctions.put("tanh", tanh);
+			
+			// Initialize using enum
+			for (BultinFunction.StandardFunctions name : BultinFunction.StandardFunctions.values()) {
+				customFunctions.put(name.getFunctionName(), new BultinFunction(name));
+			}
+			
 			return customFunctions;
+			
 		} catch (InvalidCustomFunctionException e) {
 			// this should not happen...
 			throw new RuntimeException(e);

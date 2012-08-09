@@ -11,7 +11,7 @@
         </sealing>
     </manifest>
     <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
-        <folder path="/ExperienceMod/inc"/>
+        <javaElement handleIdentifier="=ExperienceMod/lib"/>
         <javaElement handleIdentifier="=ExperienceMod/src"/>
     </selectedElements>
 </jardesc>
