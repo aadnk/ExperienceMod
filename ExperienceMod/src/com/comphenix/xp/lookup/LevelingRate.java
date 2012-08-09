@@ -83,6 +83,21 @@ public class LevelingRate extends IntervalTree<Integer, Integer> {
 	}
 	
 	/**
+	 * Inserts every level range from the given tree into the current tree.
+	 * @param other - the levels to read from.
+	 */
+	public void putAll(LevelingRate other) {
+
+		// Copy the expressions first - be sure to use the overridden method
+		for (IntervalTree<Integer, Calculable>.Entry entry : other.expressions.entrySet()) {
+			put(entry.getKey().lowerEndpoint(), entry.getKey().upperEndpoint(), entry.getValue());
+		}
+		
+		// Then the cache
+		super.putAll(other);
+	}
+	
+	/**
 	 * Determines if the given level has a specified amount of experience.
 	 * @param level - level to check.
 	 * @return TRUE if the given level has a custom amount of experience, FALSE otherwise.

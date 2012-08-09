@@ -39,6 +39,7 @@ import com.comphenix.xp.parser.Utility;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.parser.sections.ItemsSectionParser;
 import com.comphenix.xp.parser.sections.ItemsSectionResult;
+import com.comphenix.xp.parser.sections.LevelsSectionParser;
 import com.comphenix.xp.parser.sections.MobSectionParser;
 import com.comphenix.xp.parser.sections.PlayerSectionParser;
 import com.comphenix.xp.parser.text.ItemParser;
@@ -77,6 +78,8 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 	private ChannelProvider channelProvider;
 	private MessagePlayerQueue messageQueue;
 
+	private LevelingRate levelingRate;
+	
 	// Global settings
 	private GlobalSettings globalSettings;
 
@@ -138,6 +141,7 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		this.complexRewards = copyActionsWithMultiplier(other.complexRewards, newMultiplier);
 		this.experienceDrop = other.experienceDrop.withMultiplier(newMultiplier);
 		this.playerRewards = other.playerRewards.withMultiplier(newMultiplier);
+		this.levelingRate = other.levelingRate;
 		this.checkRewards();
 	}
 		
@@ -211,6 +215,7 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 			
 			copy.experienceDrop.putAll(config.experienceDrop);
 			copy.playerRewards.putAll(config.playerRewards);
+			copy.levelingRate.putAll(config.levelingRate);
 			mergeActions(copy.actionRewards, config.actionRewards);
 			mergeActions(copy.complexRewards, config.complexRewards);
 			
@@ -251,11 +256,13 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		MobSectionParser mobsParser = new MobSectionParser(actionParser, mobParser, multiplier);
 		ItemsSectionParser itemsParser = new ItemsSectionParser(itemParser, actionParser, actionTypes, multiplier);
 		PlayerSectionParser playerParser = new PlayerSectionParser(actionParser, multiplier);
+		LevelsSectionParser levelsParser = new LevelsSectionParser();
 		
 		// Set debugger
 		mobsParser.setDebugger(logger);
 		itemsParser.setDebugger(logger);
 		playerParser.setDebugger(logger);
+		levelsParser.setDebugger(logger);
 		
 		// Whether or not to remove all default XP drops
 		defaultRewardsDisabled = config.getBoolean(DEFAULT_REWARDS_SETTING, true);
@@ -301,6 +308,9 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 			
 			// Load player rewards
 			playerRewards = playerParser.parse(config, "player");
+			
+			// Load custom levels
+			levelingRate = levelsParser.parse(config, "levels");
 			
 		} catch (ParsingException e) {
 			// This must be because a debugger isn't attached. Damn it.
@@ -349,6 +359,7 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		}
 		
 		playerRewards = new PlayerRewards(multiplier);
+		this.levelingRate = new LevelingRate();
 		this.multiplier = multiplier;
 	}
 	

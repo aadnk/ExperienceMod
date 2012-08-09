@@ -26,7 +26,7 @@ public class LevelsSectionParserTest {
 		// Default experience bars in Minecraft 1.3
 		section.set("0 - 15", "17");
 		section.set("16 - 29", "17 + (level - 15) * 3");
-		section.set("30 - 1000", "62 + (level - 30) * 7");
+		section.set("30 - Infinity", "62 + (level - 30) * 7");
 		
 		try {
 			LevelingRate rate = levelsParser.parse(config, "levels");

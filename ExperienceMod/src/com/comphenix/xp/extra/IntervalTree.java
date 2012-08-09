@@ -1,8 +1,16 @@
 package com.comphenix.xp.extra;
 
+import java.util.HashSet;
+import java.util.Map;
 import java.util.NavigableMap;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+
+import org.apache.commons.lang.NotImplementedException;
+
+import com.google.common.collect.Range;
+import com.google.common.collect.Ranges;
 
 /**
  * Represents a generic store of intervals and associated values. No two intervals
@@ -21,6 +29,37 @@ public abstract class IntervalTree<TKey extends Comparable<TKey>, TValue> {
 		BOTH
 	}
 	
+	/**
+	 * Represents a range and a value in this interval tree.
+	 */
+	public class Entry implements Map.Entry<Range<TKey>, TValue> {
+		private Range<TKey> key;
+		private TValue value;
+		
+		public Entry(Range<TKey> key, TValue value) {
+			this.key = key;
+			this.value = value;
+		}
+
+		@Override
+		public Range<TKey> getKey() {
+			return key;
+		}
+
+		@Override
+		public TValue getValue() {
+			return value;
+		}
+
+		@Override
+		public TValue setValue(TValue value) {
+			throw new NotImplementedException();
+		}
+	}
+	
+	/**
+	 * Represents a single end point (open, close or both) of a range.
+	 */
 	protected class EndPoint {
 		
 		// Whether or not the end-point is opening a range, closing a range or both.
@@ -122,6 +161,48 @@ public abstract class IntervalTree<TKey extends Comparable<TKey>, TValue> {
 	 */
 	public boolean containsKey(TKey key) {
 		return getEndPoint(key) != null;
+	}
+	
+	/**
+	 * Enumerates over every range in this interval tree.
+	 * @return Number of ranges.
+	 */
+	public Set<Entry> entrySet() {
+
+		// Don't mind the Java noise
+		Set<Entry> result = new HashSet<Entry>();
+		Map.Entry<TKey, EndPoint> last = null;
+		
+		for (Map.Entry<TKey, EndPoint> entry : bounds.entrySet()) {
+			switch (entry.getValue().state) {
+			case BOTH:
+				result.add(new Entry(Ranges.singleton(entry.getKey()), entry.getValue().value));
+				break;
+			case CLOSE:
+				Range<TKey> range = Ranges.closed(last.getKey(), entry.getKey());
+				result.add(new Entry(range, entry.getValue().value));
+				break;
+			case OPEN:
+				// We don't know the full range yet
+				last = entry;
+				break;
+			default:
+				throw new IllegalStateException("Illegal open/close state detected.");
+			}
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * Inserts every range from the given tree into the current tree.
+	 * @param other - the other tree to read from.
+	 */
+	public void putAll(IntervalTree<TKey, TValue> other) {
+		// Naively copy every range.
+		for (Entry entry : other.entrySet()) {
+			put(entry.key.lowerEndpoint(), entry.key.upperEndpoint(), entry.value);
+		}
 	}
 	
 	/**
