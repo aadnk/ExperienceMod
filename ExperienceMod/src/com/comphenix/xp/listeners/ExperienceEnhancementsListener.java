@@ -40,6 +40,7 @@ import com.comphenix.xp.extra.ConstantRandom;
 import com.comphenix.xp.extra.Permissions;
 import com.comphenix.xp.reflect.FieldUtils;
 import com.comphenix.xp.reflect.MethodUtils;
+import com.comphenix.xp.rewards.items.RandomSampling;
 
 public class ExperienceEnhancementsListener extends AbstractExperienceListener {
 		
@@ -134,10 +135,12 @@ public class ExperienceEnhancementsListener extends AbstractExperienceListener {
 			return;
 		}
 		
-		int maxEnchant = getConfiguration(player).getMaximumEnchantLevel();
+		Configuration config = getConfiguration(player);
+		int maxEnchant = config.getMaximumEnchantLevel();
+
 		double reverseFactor = (double)Configuration.DEFAULT_MAXIMUM_ENCHANT_LEVEL / (double)maxEnchant;
 		 
-		// Don't do anything if we're using the default enchanting level
+		// Don't do anything if we're at the default enchanting level
 		if (maxEnchant == Configuration.DEFAULT_MAXIMUM_ENCHANT_LEVEL) {
 			return;
 		}
@@ -210,6 +213,12 @@ public class ExperienceEnhancementsListener extends AbstractExperienceListener {
 		}
 	}
 	
+	private int getUnmodifiedMaximumEnchant(Configuration config) {
+		
+		// Calculate the highest enchanting level possible
+		return getMaxBonus(config.getMaximumBookcaseCount(), config.getMaximumBookcaseCount(), 2);
+	}
+	
 	private Method getEnchantMethod(Object container, Object entity, String methodName) {
 		
 		Method guess = MethodUtils.getMatchingAccessibleMethod(
@@ -258,9 +267,15 @@ public class ExperienceEnhancementsListener extends AbstractExperienceListener {
 	
 	private void handleItemEnchanting(PrepareItemEnchantEvent event, Player player) {
 
+		Random rnd = RandomSampling.getThreadRandom();
+		
     	int[] costs = event.getExpLevelCostsOffered();
     	int last = costs.length - 1;
-
+    	
+    	Configuration config = getConfiguration(player);
+		int maxEnchant = config.getMaximumEnchantLevel();
+		int maxUnmodified = getUnmodifiedMaximumEnchant(config);
+       
     	// Probably won't occur, but we'll check it anyway
     	if (last == 0) {
     		if (hasDebugger())
@@ -268,25 +283,30 @@ public class ExperienceEnhancementsListener extends AbstractExperienceListener {
     		return;
     	}
     	
+    	if (maxUnmodified != Configuration.DEFAULT_MAXIMUM_BOOKCASE_COUNT) {
+    		// We'll have to recreate the costs
+    		for (int i = 0; i < 3; i++) {
+    			costs[i] = getBonus(rnd, event.getEnchantmentBonus(), config.getMaximumBookcaseCount(), i);
+    		}
+    	}
+    	
 		// Permission check
         if(Permissions.hasMaxEnchant(player)) {
-    		costs[last] = getMaxBonus(event.getEnchantmentBonus(), last);
+    		costs[last] = getMaxBonus(event.getEnchantmentBonus(), config.getMaximumBookcaseCount(), last);
 
             if (hasDebugger())
         		debugger.printDebug(this, "Changed experience level costs for %s.", player.getName());	
         }
         
         // Modify the displayed enchanting levels
-        modifyCostList(player, costs);
+        modifyCostList(maxEnchant, maxUnmodified, costs);
 	}
 	
-	private void modifyCostList(Player player, int[] costs) {
-		
-        int maxEnchant = getConfiguration(player).getMaximumEnchantLevel();
+	private void modifyCostList(int maxEnchant, int maxUnmodified, int[] costs) {
         
         // No need to do this if we're just using the default maximum
-        if (maxEnchant != Configuration.DEFAULT_MAXIMUM_ENCHANT_LEVEL) {
-        	double enchantFactor = (double)maxEnchant / (double)Configuration.DEFAULT_MAXIMUM_ENCHANT_LEVEL;
+        if (maxEnchant != maxUnmodified) {
+        	double enchantFactor = (double)maxEnchant / (double)maxUnmodified;
         	
         	for (int i = 0; i < 3; i++) {
         		costs[i] = (int) (costs[i] * enchantFactor);
@@ -297,15 +317,16 @@ public class ExperienceEnhancementsListener extends AbstractExperienceListener {
 	/**
 	 * Determines the minimum level cost in a particular enchanting table slot.
 	 * @param bookshelves - the number of bookshelves around the enchanting table.
+	 * @param maxBookselfCount - the maximum number of bookshelves.
 	 * @param slot - the slot number.
 	 * @return The minimum level cost for this slot.
 	 */
-	public int getMinBonus(int bookshelves, int slot) {
+	public int getMinBonus(int bookshelves, int maxBookselfCount, int slot) {
 		
 		Validate.isTrue(slot > 0, "Slot # cannot be less than zero.");
 		Validate.isTrue(slot < 3, "Slot # cannot be greater than 3.");
 
-		return getBonus(ConstantRandom.MINIMUM, bookshelves, slot);
+		return getBonus(ConstantRandom.MINIMUM, maxBookselfCount, bookshelves, slot);
 	}
 	
 	/**
@@ -314,12 +335,12 @@ public class ExperienceEnhancementsListener extends AbstractExperienceListener {
 	 * @param slot - the slot number.
 	 * @return The maximum level cost for this slot.
 	 */
-	public int getMaxBonus(int bookshelves, int slot) {
+	public int getMaxBonus(int bookshelves, int maxBookselfCount, int slot) {
 		
 		Validate.isTrue(slot > 0, "Slot # cannot be less than zero.");
 		Validate.isTrue(slot < 3, "Slot # cannot be greater than 3.");
 
-		return getBonus(ConstantRandom.MAXIMUM, bookshelves, slot);
+		return getBonus(ConstantRandom.MAXIMUM, maxBookselfCount, bookshelves, slot);
 	}
 	
 	/**
@@ -327,13 +348,14 @@ public class ExperienceEnhancementsListener extends AbstractExperienceListener {
 	 * of bookshelves surrounding it.
 	 * @param rnd - a random number generator.
 	 * @param bookshelves - the number of bookshelves around the enchanting table.
+	 * @param maxBookselfCount - the maximum number of bookshelves.
 	 * @param slot - the slot number.
 	 * @return The level cost in this slot.
 	 */
-	public int getBonus(Random rnd, int bookshelves, int slot) {
+	public int getBonus(Random rnd, int bookshelves, int maxBookselfCount, int slot) {
 		// Clamp bookshelves
-		if (bookshelves > 15) {
-			bookshelves = 15;
+		if (bookshelves > maxBookselfCount) {
+			bookshelves = maxBookselfCount;
 		}
 
 		int j = rnd.nextInt(8) + 1 + (bookshelves >> 1) + rnd.nextInt(bookshelves + 1);
