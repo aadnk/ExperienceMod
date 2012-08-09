@@ -254,7 +254,7 @@ public class Action {
 		
 		// Guard against NULL messages
 		if (channels != null && service != null) {
-			// Transmit the message on all the channels
+			// Transmit the message on all channels
 			for (String channel : channels) {
 				String text = message.getText();
 				

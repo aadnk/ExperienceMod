@@ -320,15 +320,6 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		checkRewards();
 	}
 	
-	
-	public GlobalSettings getGlobalSettings() {
-		return globalSettings;
-	}
-
-	public void setGlobalSettings(GlobalSettings globalSettings) {
-		this.globalSettings = globalSettings;
-	}
-	
 	private void loadRate(ConfigurationSection config) {
 		
 		// Load the message queue
@@ -470,6 +461,22 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		preset = value;
 	}
 	
+	public GlobalSettings getGlobalSettings() {
+		return globalSettings;
+	}
+
+	public void setGlobalSettings(GlobalSettings globalSettings) {
+		this.globalSettings = globalSettings;
+	}
+	
+	/**
+	 * Overrides the rate at which players gain levels.
+	 * @return Custom rules for how much experience a player needs to level up.
+	 */
+	public LevelingRate getLevelingRate() {
+		return levelingRate;
+	}
+
 	@Override
 	public Configuration withMultiplier(double newMultiplier) {
 		return new Configuration(this, newMultiplier);

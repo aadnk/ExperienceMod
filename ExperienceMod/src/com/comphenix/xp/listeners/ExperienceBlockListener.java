@@ -72,7 +72,7 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 			
 			// See if this deserves more experience
 			if (block != null && player != null) { 
-				handleBlockBreakEvent(block, player);
+				handleBlockBreakEvent(event, block, player);
 			}
 			
 		} catch (Exception e) {
@@ -80,7 +80,7 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 		}
 	}
 	
-	private void handleBlockBreakEvent(Block block, Player player) {
+	private void handleBlockBreakEvent(BlockBreakEvent event, Block block, Player player) {
 		
 		ItemStack toolItem = player.getItemInHand();
 		ItemQuery retrieveKey = ItemQuery.fromAny(block);
@@ -107,6 +107,16 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 				// Guard
 				if (action == null)
 					return;
+				
+				if (!action.canRewardPlayer(rewards, player, 1)) {
+					if (hasDebugger())
+						debugger.printDebug(this, "Block place by %s cancelled: Not enough resources for item %s",
+							player.getName(), block.getType());
+					
+					if (!Permissions.hasUntouchable(player))
+						event.setCancelled(true);
+					return;
+				}
 				
 				Collection<ResourceHolder> result = action.rewardPlayer(rewards, random, player, block.getLocation());
 				config.getMessageQueue().enqueue(player, action, channels.getFormatter(player, result));
@@ -136,6 +146,16 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 				if (action == null)
 					return;
 				
+				if (!action.canRewardPlayer(rewards, player, 1)) {
+					if (hasDebugger())
+						debugger.printDebug(this, "Block place by %s cancelled: Not enough resources for item %s",
+							player.getName(), block.getType());
+					
+					if (!Permissions.hasUntouchable(player))
+						event.setCancelled(true);
+					return;
+				}
+				
 				Collection<ResourceHolder> result = action.rewardPlayer(rewards, random, player, block.getLocation());
 				config.getMessageQueue().enqueue(player, action, channels.getFormatter(player, result));
 				
@@ -147,7 +167,7 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 		
 		// Done
 	}
-	
+
 	private Action getBlockBonusAction(ItemTree tree, ItemQuery key, Block block) {
 		
 		List<Integer> ids = tree.getAllRankedID(key);
