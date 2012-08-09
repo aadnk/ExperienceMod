@@ -26,6 +26,7 @@ import org.bukkit.entity.Player;
 
 import com.comphenix.xp.Configuration;
 import com.comphenix.xp.Server;
+import com.comphenix.xp.lookup.LevelingRate;
 import com.comphenix.xp.rewards.ResourceHolder;
 import com.comphenix.xp.rewards.ResourcesParser;
 import com.comphenix.xp.rewards.RewardService;
@@ -39,6 +40,7 @@ import com.comphenix.xp.rewards.RewardTypes;
 public class RewardVirtual implements RewardService {
 
 	private double searchRadius = 20;
+	private LevelingRate levelingRate;
 	
 	private ResourcesParser parser = new ExperienceParser();
 	
@@ -121,6 +123,14 @@ public class RewardVirtual implements RewardService {
 	public void setSearchRadius(double searchRadius) {
 		this.searchRadius = searchRadius;
 	}
+
+	public LevelingRate getLevelingRate() {
+		return levelingRate;
+	}
+
+	public void setLevelingRate(LevelingRate levelingRate) {
+		this.levelingRate = levelingRate;
+	}
 	
 	@Override
 	public RewardTypes getRewardType() {
@@ -136,7 +146,8 @@ public class RewardVirtual implements RewardService {
 	public RewardService clone(Configuration config) {
 		RewardVirtual copy = new RewardVirtual();
 		
-		copy.setSearchRadius(searchRadius);
+		copy.setLevelingRate(config.getLevelingRate());
+		copy.setSearchRadius(config.getScanRadiusSetting());
 		copy.parser = parser;
 		return copy;
 	}

@@ -618,6 +618,10 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		return getComplexReward(actionTypes.getType(ActionTypes.BREWING));
 	}
 
+	public double getScanRadiusSetting() {
+		return scanRadiusSetting;
+	}
+
 	/**
 	 * Retrieves the current registered action types.
 	 * @return Registry of action types.
