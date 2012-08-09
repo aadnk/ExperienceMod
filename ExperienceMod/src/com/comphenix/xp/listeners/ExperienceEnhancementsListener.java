@@ -35,6 +35,7 @@ import org.bukkit.inventory.InventoryView;
 
 import com.comphenix.xp.Configuration;
 import com.comphenix.xp.Debugger;
+import com.comphenix.xp.Presets;
 import com.comphenix.xp.extra.ConstantRandom;
 import com.comphenix.xp.extra.Permissions;
 import com.comphenix.xp.reflect.FieldUtils;
@@ -54,8 +55,9 @@ public class ExperienceEnhancementsListener extends AbstractExperienceListener {
 	private Method entityMethod;
 	private Method enchantItemMethod;
 	
-	public ExperienceEnhancementsListener(Debugger debugger) {
+	public ExperienceEnhancementsListener(Debugger debugger, Presets presets) {
 		this.debugger = debugger;
+		this.presets = presets;
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -124,7 +126,7 @@ public class ExperienceEnhancementsListener extends AbstractExperienceListener {
 		}
 		
 		int maxEnchant = getConfiguration(player).getMaximumEnchantLevel();
-		double enchantFactor = (double)maxEnchant / (double)Configuration.DEFAULT_MAXIMUM_ENCHANT_LEVEL;
+		double reverseFactor = (double)Configuration.DEFAULT_MAXIMUM_ENCHANT_LEVEL / (double)maxEnchant;
 		 
 		// Don't do anything if we're using the default enchanting level
 		if (maxEnchant == Configuration.DEFAULT_MAXIMUM_ENCHANT_LEVEL) {
@@ -160,7 +162,11 @@ public class ExperienceEnhancementsListener extends AbstractExperienceListener {
 					int oldCost = ref[slot];
 					
 					// Change the cost at the last second
-					ref[slot] = (int) (ref[slot] * enchantFactor);
+					ref[slot] = (int) (ref[slot] * reverseFactor);
+					
+					if (hasDebugger()) {
+						debugger.printWarning(this, "Modified slot %s from %s to %s.", slot, oldCost, ref[slot]);
+					}
 					
 					// We have to ignore the next enchant event
 					overrideEnchant.put(name, oldCost);
@@ -240,21 +246,44 @@ public class ExperienceEnhancementsListener extends AbstractExperienceListener {
     }
 	
 	private void handleItemEnchanting(PrepareItemEnchantEvent event, Player player) {
-		
+
+    	int[] costs = event.getExpLevelCostsOffered();
+    	int last = costs.length - 1;
+
+    	// Probably won't occur, but we'll check it anyway
+    	if (last == 0) {
+    		if (hasDebugger())
+    			debugger.printDebug(this, "Got empty list of experience costs.");
+    		return;
+    	}
+    	
 		// Permission check
         if(Permissions.hasMaxEnchant(player)) {
-        	
-        	int[] costs = event.getExpLevelCostsOffered();
-        	int index = costs.length - 1;
-        	
-        	if (index >= 0) {
-        		costs[index] = getMaxBonus(event.getEnchantmentBonus(), index);
 
-	            if (hasDebugger())
-	        		debugger.printDebug(this, "Changed experience level costs for %s.", player.getName());
+    		costs[last] = getMaxBonus(event.getEnchantmentBonus(), last);
+
+            if (hasDebugger())
+        		debugger.printDebug(this, "Changed experience level costs for %s.", player.getName());	
+        }
+        
+        // Modify the displayed enchanting levels
+        modifyCostList(player, costs);
+	}
+	
+	private void modifyCostList(Player player, int[] costs) {
+		
+        int maxEnchant = getConfiguration(player).getMaximumEnchantLevel();
+        
+        // No need to do this if we're just using the default maximum
+        if (maxEnchant != Configuration.DEFAULT_MAXIMUM_ENCHANT_LEVEL) {
+        	double enchantFactor = (double)maxEnchant / (double)Configuration.DEFAULT_MAXIMUM_ENCHANT_LEVEL;
+        	
+        	for (int i = 0; i < 3; i++) {
+        		costs[i] = (int) (costs[i] * enchantFactor);
         		
-        	} else if (hasDebugger())
-        		debugger.printDebug(this, "Got empty list of experience costs.");
+                if (hasDebugger())
+            		debugger.printDebug(this, "Multiplied %d by %s.", i, enchantFactor);	
+        	}
         }
 	}
 	

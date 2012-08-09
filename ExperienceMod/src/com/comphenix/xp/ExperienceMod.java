@@ -757,10 +757,11 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			xpItemListener = new ExperienceItemListener(this, playerScheduler, customProvider, presets);
 			xpBlockListener = new ExperienceBlockListener(this, presets, historyProviders);
 			xpMobListener = new ExperienceMobListener(this, presets);
-			xpEnchancer = new ExperienceEnhancementsListener(this);
+			xpEnchancer = new ExperienceEnhancementsListener(this, presets);
 			xpCleanup = new ExperienceCleanupListener(presets, interactionListener, playerScheduler);
 			
 		} else {
+			xpEnchancer.setPresets(presets);
 			xpItemListener.setPresets(presets);
 			xpBlockListener.setPresets(presets);
 			xpMobListener.setPresets(presets);
