@@ -84,8 +84,8 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 	private ActionTypes actionTypes;
 	
 	// Every standard reward
-	private Map<Integer, ItemTree> actionRewards;
-	private Map<Integer, PotionTree> complexRewards;
+	private Map<Integer, ItemTree> actionRewards = new HashMap<Integer, ItemTree>();
+	private Map<Integer, PotionTree> complexRewards = new HashMap<Integer, PotionTree>();
 	
 	private MobTree experienceDrop;
 	private PlayerRewards playerRewards;
