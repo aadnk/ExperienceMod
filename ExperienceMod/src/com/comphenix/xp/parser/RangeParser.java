@@ -90,24 +90,8 @@ public class RangeParser extends ConfigurationParser<SampleRange> {
 			}
 			
 		} else if (root instanceof String) { 
-			String text = (String) root;
-			
-			// Try a simple "-" syntax
-			Matcher match = matchRange.matcher(text);
-			
-			// Construct the range from the captured groups
-			if (match.matches()) {
-				if (match.groupCount() == 1 || match.group(2) == null) {
-					return new SampleRange(
-							tryParse(match.group(1))
-					);
-				} else {
-					return new SampleRange(
-							tryParse(match.group(1)),
-							tryParse(match.group(2))
-					); 
-				}
-			}
+			// Parse it as a string
+			return parseString((String) root, defaultValue);
 		}
 		
 		// Backwards compatibility
@@ -116,6 +100,29 @@ public class RangeParser extends ConfigurationParser<SampleRange> {
 		} else {
 			return defaultValue;
 		}
+	}
+	
+	public SampleRange parseString(String text, SampleRange defaultValue) {
+		
+		// Try a simple "-" syntax
+		Matcher match = matchRange.matcher(text);
+		
+		// Construct the range from the captured groups
+		if (match.matches()) {
+			if (match.groupCount() == 1 || match.group(2) == null) {
+				return new SampleRange(
+						tryParse(match.group(1))
+				);
+			} else {
+				return new SampleRange(
+						tryParse(match.group(1)),
+						tryParse(match.group(2))
+				); 
+			}
+		}
+		
+		// No match
+		return defaultValue;
 	}
 
 	private double tryParse(Object obj) {
