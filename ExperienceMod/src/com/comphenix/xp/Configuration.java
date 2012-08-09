@@ -61,8 +61,11 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 	private static final String DEFAULT_CHANNELS_SETTING = "default channels";
 	private static final String MESSAGE_MAX_RATE_SETTING = "message max rate";
 	
+	private static final String MAXIMUM_ENCHANT_LEVEL = "maximum enchant level";
+	
 	private static final double DEFAULT_SCAN_RADIUS = 20;
 	private static final int DEFAULT_MESSAGE_RATE = 5;
+	private static final int DEFAULT_MAXIMUM_ENCHANT_LEVEL = 30;
 	
 	private Debugger logger;
 	
@@ -79,6 +82,7 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 	private MessagePlayerQueue messageQueue;
 
 	private LevelingRate levelingRate;
+	private int maximumEnchantLevel;
 	
 	// Global settings
 	private GlobalSettings globalSettings;
@@ -112,6 +116,7 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		this.multiplier = newMultiplier;
 		this.logger = other.logger;
 		
+		this.maximumEnchantLevel = other.maximumEnchantLevel;
 		this.defaultRewardsDisabled = other.defaultRewardsDisabled;
 		this.economyItemWorth = other.economyItemWorth;
 		this.economyDropItem = other.economyDropItem;
@@ -221,6 +226,7 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 			
 			// This will be the last set value
 			copy.defaultRewardsDisabled = config.defaultRewardsDisabled;
+			copy.maximumEnchantLevel = config.maximumEnchantLevel;
 			copy.messageQueue = config.messageQueue;
 			copy.rewardProvider = config.rewardProvider;
 			copy.channelProvider = config.channelProvider;
@@ -263,6 +269,9 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		itemsParser.setDebugger(logger);
 		playerParser.setDebugger(logger);
 		levelsParser.setDebugger(logger);
+		
+		// Enchanting settings
+		maximumEnchantLevel = config.getInt(MAXIMUM_ENCHANT_LEVEL, DEFAULT_MAXIMUM_ENCHANT_LEVEL);
 		
 		// Whether or not to remove all default XP drops
 		defaultRewardsDisabled = config.getBoolean(DEFAULT_REWARDS_SETTING, true);
@@ -549,6 +558,10 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		return defaultRewardsDisabled;
 	}
 	
+	public int getMaximumEnchantLevel() {
+		return maximumEnchantLevel;
+	}
+
 	public PlayerRewards getPlayerRewards() {
 		return playerRewards;
 	}
