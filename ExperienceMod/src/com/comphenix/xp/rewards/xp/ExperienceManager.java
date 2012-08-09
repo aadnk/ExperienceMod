@@ -56,10 +56,10 @@ public class ExperienceManager {
 	}
 
 	/**
-	 * Initialise the XP lookup tables. Basing this on observations noted in
+	 * Initialize the XP lookup tables. Basing this on observations noted in
 	 * https://bukkit.atlassian.net/browse/BUKKIT-47
 	 * 
-	 * 7 xp to get to level 1, 17 to level 2, 31 to level 3... At each level,
+	 * 7 XP to get to level 1, 17 to level 2, 31 to level 3... At each level,
 	 * the increment to get to the next level increases alternately by 3 and 4
 	 * 
 	 * @param maxLevel The highest level handled by the lookup tables
@@ -69,13 +69,6 @@ public class ExperienceManager {
 		xpTotalToReachLevel = new int[maxLevel];
 
 		xpTotalToReachLevel[0] = 0;
-		// Code valid for MC 1.2 and earlier
-		// int incr = 7;
-		// for (int i = 1; i < xpTotalToReachLevel.length; i++) {
-		// xpRequiredForNextLevel[i - 1] = incr;
-		// xpTotalToReachLevel[i] = xpTotalToReachLevel[i - 1] + incr;
-		// incr += (i % 2 == 0) ? 4 : 3;
-		// }
 
 		// Valid for MC 1.3 and later
 		int incr = 17;
@@ -163,8 +156,10 @@ public class ExperienceManager {
 		Player player = getPlayer();
 		int curLvl = player.getLevel();
 		int newLvl = getLevelForExp(xp);
+		
 		if (curLvl != newLvl) {
 			player.setLevel(newLvl);
+			player.setTotalExperience(player.getTotalExperience() + amt);
 		}
 
 		float pct = ((float) (xp - getXpForLevel(newLvl)) / (float) xpRequiredForNextLevel[newLvl]);
