@@ -25,6 +25,9 @@ import java.util.Map;
 import java.util.Random;
 
 import org.apache.commons.lang.Validate;
+import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -43,7 +46,8 @@ import com.comphenix.xp.reflect.MethodUtils;
 import com.comphenix.xp.rewards.items.RandomSampling;
 
 public class ExperienceEnhancementsListener extends AbstractExperienceListener {
-		
+	
+	// Constants (unfortunate naming)	
 	private Debugger debugger;
 	private ErrorReporting report = ErrorReporting.DEFAULT;
 	
@@ -191,6 +195,8 @@ public class ExperienceEnhancementsListener extends AbstractExperienceListener {
 					// Attempt to call this method
 					if (enchantItemMethod != null) {
 						enchantItemMethod.invoke(result, entity, slot);
+					} else {
+						debugger.printWarning(this, "Unable to modify slot %s cost. Reflection failed.", slot);
 					}
 					
 					// OK, it's over
@@ -228,6 +234,9 @@ public class ExperienceEnhancementsListener extends AbstractExperienceListener {
 			// Great, got it on the first try
 			return guess;
 		} else {
+			if (hasDebugger())
+				debugger.printDebug(this, "Using fallback method to detect correct Minecraft method.");
+			
 			// Damn, something's wrong. The method name must have changed. Try again.
 			methodName = lastMinecraftMethod();
 			guess = MethodUtils.getMatchingAccessibleMethod(
@@ -271,6 +280,7 @@ public class ExperienceEnhancementsListener extends AbstractExperienceListener {
 		
     	int[] costs = event.getExpLevelCostsOffered();
     	int last = costs.length - 1;
+    	int bonus = event.getEnchantmentBonus();
     	
     	Configuration config = getConfiguration(player);
 		int maxEnchant = config.getMaximumEnchantLevel();
@@ -284,15 +294,23 @@ public class ExperienceEnhancementsListener extends AbstractExperienceListener {
     	}
     	
     	if (maxUnmodified != Configuration.DEFAULT_MAXIMUM_BOOKCASE_COUNT) {
+    		if (config.getMaximumBookcaseCount() > Configuration.DEFAULT_MAXIMUM_BOOKCASE_COUNT) {
+    			// Count blocks higher up
+    			bonus = getCustomBookshelfCount(event.getEnchantBlock(), config.getMaximumBookcaseCount(), 0);
+    			
+        		if (hasDebugger())
+        			debugger.printDebug(this, "Bookshelf count: %s", bonus);
+    		}
+    		
     		// We'll have to recreate the costs
     		for (int i = 0; i < 3; i++) {
-    			costs[i] = getBonus(rnd, event.getEnchantmentBonus(), config.getMaximumBookcaseCount(), i);
+    			costs[i] = getBonus(rnd, bonus, config.getMaximumBookcaseCount(), i);
     		}
     	}
     	
 		// Permission check
         if(Permissions.hasMaxEnchant(player)) {
-    		costs[last] = getMaxBonus(event.getEnchantmentBonus(), config.getMaximumBookcaseCount(), last);
+    		costs[last] = getMaxBonus(bonus, config.getMaximumBookcaseCount(), last);
 
             if (hasDebugger())
         		debugger.printDebug(this, "Changed experience level costs for %s.", player.getName());	
@@ -314,6 +332,67 @@ public class ExperienceEnhancementsListener extends AbstractExperienceListener {
         }
 	}
 	
+	private int getCustomBookshelfCount(Block table, int maxBookshelfCount, int yOffset) {
+		
+		final int bookID = Material.BOOKSHELF.getId();
+		final World world = table.getWorld();
+		
+		// Usually 15 bookshelves per vertical stack
+		int height = (int) Math.ceil(maxBookshelfCount / 15.0);
+		
+		int x = table.getX();
+		int y = table.getY();
+		int z = table.getZ();
+		int count = 0;
+		
+		for (int i = yOffset; i < height; i++) 
+	    for (int j = -1; j <= 1; j++) 
+	    for (int k = -1; k <= 1; k++) {
+	            	
+        	// We check every block in 2x2, except the middle, for air blocks. 
+        	//  (seen from above)
+        	//    A A A
+        	//    A t A
+        	//    A A A
+        	//
+        	// t is at origin, where j = 0 and k = 0.
+        	//
+        	// Legend: A = air, t = table, # = bookcase.
+            if ((j != 0 || k != 0) && 
+            		world.getBlockTypeIdAt(x + k, y + i, z + j) == 0) {
+            	
+            	// Next, we count the bookcases directly diagonally, horizontally and vertically from the air blocks:
+            	//   #   #   # 
+            	//     A A A
+            	//   # A t A #
+            	//     A A A
+            	//   #   #   #
+                if (world.getBlockTypeIdAt(x + k * 2, y + i, z + j * 2) == bookID) {
+                	count++;
+                }
+
+                // Count the two left over blocks in the corners:
+            	//     #   #  
+            	//   # A x A #
+            	//     x t x 
+            	//   # A x A #
+            	//     #   # 
+                // Legend: x = ignored blocks 
+                if (k != 0 && j != 0) {
+                    if (world.getBlockTypeIdAt(x + k * 2, y + i, z + j) == bookID) {
+                    	count++;
+                    }
+
+                    if (world.getBlockTypeIdAt(x + k, y + i, z + j * 2) == bookID) {
+                    	count++;
+                    }
+                }
+            }
+        }
+
+		return count;
+	}
+
 	/**
 	 * Determines the minimum level cost in a particular enchanting table slot.
 	 * @param bookshelves - the number of bookshelves around the enchanting table.

@@ -61,13 +61,14 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 	private static final String DEFAULT_CHANNELS_SETTING = "default channels";
 	private static final String MESSAGE_MAX_RATE_SETTING = "message max rate";
 	
-	private static final String MAXIMUM_ENCHANT_LEVEL = "maximum enchant level";
-	private static final String MAXIMUM_BOOKCASE_COUNT = "maximum bookcase count";
+	private static final String MAXIMUM_ENCHANT_LEVEL_SETTING = "maximum enchant level";
+	private static final String MAXIMUM_BOOKCASE_COUNT_SETTING = "maximum bookcase count";
 	
 	public static final double DEFAULT_SCAN_RADIUS = 20;
 	public static final int DEFAULT_MESSAGE_RATE = 5;
 	public static final int DEFAULT_MAXIMUM_ENCHANT_LEVEL = 30;
 	public static final int DEFAULT_MAXIMUM_BOOKCASE_COUNT = 15;
+	public static final int MAXIMUM_BOOKCASE_COUNT = 255; 
 	
 	private Debugger logger;
 	
@@ -277,8 +278,14 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		levelsParser.setDebugger(logger);
 		
 		// Enchanting settings
-		maximumEnchantLevel = config.getInt(MAXIMUM_ENCHANT_LEVEL, DEFAULT_MAXIMUM_ENCHANT_LEVEL);
-		maximumBookcaseCount = config.getInt(MAXIMUM_BOOKCASE_COUNT, DEFAULT_MAXIMUM_BOOKCASE_COUNT);
+		maximumEnchantLevel = config.getInt(MAXIMUM_ENCHANT_LEVEL_SETTING, DEFAULT_MAXIMUM_ENCHANT_LEVEL);
+		maximumBookcaseCount = config.getInt(MAXIMUM_BOOKCASE_COUNT_SETTING, DEFAULT_MAXIMUM_BOOKCASE_COUNT);
+		
+		// There's a limit to things
+		if (maximumBookcaseCount > MAXIMUM_BOOKCASE_COUNT) {
+			maximumBookcaseCount = MAXIMUM_BOOKCASE_COUNT;
+			logger.printWarning(this, "Maximum bookcase count cannot exceed 255.");
+		}
 		
 		// Whether or not to remove all default XP drops
 		defaultRewardsDisabled = config.getBoolean(DEFAULT_REWARDS_SETTING, true);

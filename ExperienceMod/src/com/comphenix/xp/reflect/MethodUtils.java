@@ -972,7 +972,7 @@ public class MethodUtils {
                         }
                         
                         if (log != null) {
-                        	log.severe("Couldn't find accessible method.");
+                        	//log.severe("Couldn't find accessible method.");
                         }
                    }
                 }
