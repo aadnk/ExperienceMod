@@ -63,9 +63,9 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 	
 	private static final String MAXIMUM_ENCHANT_LEVEL = "maximum enchant level";
 	
-	private static final double DEFAULT_SCAN_RADIUS = 20;
-	private static final int DEFAULT_MESSAGE_RATE = 5;
-	private static final int DEFAULT_MAXIMUM_ENCHANT_LEVEL = 30;
+	public static final double DEFAULT_SCAN_RADIUS = 20;
+	public static final int DEFAULT_MESSAGE_RATE = 5;
+	public static final int DEFAULT_MAXIMUM_ENCHANT_LEVEL = 30;
 	
 	private Debugger logger;
 	

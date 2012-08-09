@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.Random;
 
 import org.apache.commons.lang.Validate;
-import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -34,6 +33,7 @@ import org.bukkit.event.enchantment.PrepareItemEnchantEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.InventoryView;
 
+import com.comphenix.xp.Configuration;
 import com.comphenix.xp.Debugger;
 import com.comphenix.xp.extra.ConstantRandom;
 import com.comphenix.xp.extra.Permissions;
@@ -114,12 +114,20 @@ public class ExperienceEnhancementsListener extends AbstractExperienceListener {
 		InventoryView view = event.getView();
 		Integer slot = event.whichButton();
 		
-		HumanEntity player = (HumanEntity) event.getEnchanter();
+		Player player = event.getEnchanter();
 		String name = player.getName();
 		
 		// Prevent infinite recursion and revert the temporary cost change
 		if (overrideEnchant.containsKey(name)) {
 			event.setExpLevelCost(overrideEnchant.get(name));
+			return;
+		}
+		
+		int maxEnchant = getConfiguration(player).getMaximumEnchantLevel();
+		double enchantFactor = (double)maxEnchant / (double)Configuration.DEFAULT_MAXIMUM_ENCHANT_LEVEL;
+		 
+		// Don't do anything if we're using the default enchanting level
+		if (maxEnchant == Configuration.DEFAULT_MAXIMUM_ENCHANT_LEVEL) {
 			return;
 		}
 		
@@ -152,7 +160,7 @@ public class ExperienceEnhancementsListener extends AbstractExperienceListener {
 					int oldCost = ref[slot];
 					
 					// Change the cost at the last second
-					ref[slot] = 1;
+					ref[slot] = (int) (ref[slot] * enchantFactor);
 					
 					// We have to ignore the next enchant event
 					overrideEnchant.put(name, oldCost);
