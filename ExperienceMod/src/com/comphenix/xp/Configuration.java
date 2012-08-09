@@ -28,15 +28,19 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import com.comphenix.xp.listeners.ErrorReporting;
 import com.comphenix.xp.listeners.PlayerCleanupListener;
 import com.comphenix.xp.lookup.*;
-import com.comphenix.xp.lookup.Query.Types;
 import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.messages.MessagePlayerQueue;
 import com.comphenix.xp.parser.ActionParser;
 import com.comphenix.xp.parser.StringListParser;
 import com.comphenix.xp.parser.Utility;
 import com.comphenix.xp.parser.ParsingException;
+import com.comphenix.xp.parser.sections.ItemsSectionParser;
+import com.comphenix.xp.parser.sections.ItemsSectionResult;
+import com.comphenix.xp.parser.sections.MobSectionParser;
+import com.comphenix.xp.parser.sections.PlayerSectionParser;
 import com.comphenix.xp.parser.text.ItemParser;
 import com.comphenix.xp.parser.text.MobParser;
 import com.comphenix.xp.rewards.ResourceFactory;
@@ -80,8 +84,8 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 	private ActionTypes actionTypes;
 	
 	// Every standard reward
-	private Map<Integer, ItemTree> actionRewards = new HashMap<Integer, ItemTree>();
-	private Map<Integer, PotionTree> complexRewards = new HashMap<Integer, PotionTree>();
+	private Map<Integer, ItemTree> actionRewards;
+	private Map<Integer, PotionTree> complexRewards;
 	
 	private MobTree experienceDrop;
 	private PlayerRewards playerRewards;
@@ -236,14 +240,23 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 	 */
 	public void loadFromConfig(ConfigurationSection config) {
 		
-		StringListParser listParser = new StringListParser();
-		
-		// Load scalar values
+		// Load scalar values first
 		if (config.isDouble(MULTIPLIER_SETTING))
 			multiplier = config.getDouble(MULTIPLIER_SETTING, 1);
 		else
 			multiplier = config.getInt(MULTIPLIER_SETTING, 1);
-
+		
+		// Initialize parsers
+		StringListParser listParser = new StringListParser();
+		MobSectionParser mobsParser = new MobSectionParser(actionParser, mobParser, multiplier);
+		ItemsSectionParser itemsParser = new ItemsSectionParser(itemParser, actionParser, actionTypes, multiplier);
+		PlayerSectionParser playerParser = new PlayerSectionParser(actionParser, multiplier);
+		
+		// Set debugger
+		mobsParser.setDebugger(logger);
+		itemsParser.setDebugger(logger);
+		playerParser.setDebugger(logger);
+		
 		// Whether or not to remove all default XP drops
 		defaultRewardsDisabled = config.getBoolean(DEFAULT_REWARDS_SETTING, true);
 		scanRadiusSetting = readDouble(config, VIRTUAL_SCAN_RADIUS_SETTING, DEFAULT_SCAN_RADIUS);
@@ -276,12 +289,24 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 			setDefaultRewardName(defaultReward);
 	
 		loadRate(config);
-		initialize(multiplier);
-
-		// Load mob experience
-		loadMobs(config.getConfigurationSection("mobs"));
-		loadItemActions(config.getConfigurationSection("items"));
-		loadGenericRewards(config.getConfigurationSection("player"));
+	
+		try {
+			// Load mob experience
+			experienceDrop = mobsParser.parse(config, "mobs");
+			
+			// Load items and potions
+			ItemsSectionResult result = itemsParser.parse(config, "items");
+			actionRewards = result.getActionRewards();
+			complexRewards = result.getComplexRewards();
+			
+			// Load player rewards
+			playerRewards = playerParser.parse(config, "player");
+			
+		} catch (ParsingException e) {
+			// This must be because a debugger isn't attached. Damn it.
+			ErrorReporting.DEFAULT.reportError(logger, this, e);
+		}
+		
 		checkRewards();
 	}
 	
@@ -399,120 +424,6 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 			return parsing;
 		} else {
 			return null;
-		}
-	}
-	
-	private void loadMobs(ConfigurationSection config) {
-		// Guard against null
-		if (config == null)
-			return;
-		
-		for (String key : config.getKeys(false)) {
-			try {				
-				Action value = actionParser.parse(config, key);
-				MobQuery query = mobParser.parse(key);
-
-				if (value != null)
-					experienceDrop.put(query, value);
-				else
-					logger.printWarning(this, "Unable to parse range/value on entity %s.", key);
-				
-			} catch (ParsingException ex) {
-				logger.printWarning(this, "Parsing error - %s", ex.getMessage());
-			}
-		}
-	}
-	
-	private void loadItemActions(ConfigurationSection config) {
-		// Guard against null
-		if (config == null)
-			return;
-		
-		for (String key : config.getKeys(false)) {
-			try {
-				Query item = itemParser.parse(key);
-				ConfigurationSection itemSection = config.getConfigurationSection(key);
-				Types queryType = item.getQueryType();
-				
-				// Read the different rewards
-				for (String action : itemSection.getKeys(false)) {
-					
-					Integer type = actionTypes.getType(action);
-					
-					if (type == null) {
-						
-						// Catch some misunderstanding here
-						if (action.equalsIgnoreCase("message") || action.equalsIgnoreCase("channels")) {
-							logger.printWarning(this, 
-								"Message and channel list must be inside an action (block, smelting, ect.).");
-						} else {
-							logger.printWarning(this, 
-								"Unrecogized action %s under item %s.", action, key);
-						}
-						
-						break;
-					}
-					
-					// Handle the special case of potion queries
-					switch (queryType) {
-					case Items:
-						loadActionOnItem(itemSection, action, item, getActionReward(type), queryType);
-						break;
-						
-					case Potions:
-						loadActionOnItem(itemSection, action, item, getComplexReward(type), queryType);
-						break;
-						
-					default:
-						logger.printWarning(this, "The query type %s cannot be used on items.", queryType);
-					}
-					
-				}
-
-			} catch (ParsingException ex) {	
-				logger.printWarning(this, "Cannot parse item %s - %s", key, ex.getMessage());
-			}
-		}
-	}
-	
-	private void loadGenericRewards(ConfigurationSection config) {
-		// Guard against null
-		if (config == null)
-			return;
-		
-		for (String key : config.getKeys(false)) {
-			
-			try {
-				Action value = actionParser.parse(config, key);
-				
-				if (value != null)
-					playerRewards.put(key, value);
-				else
-					logger.printWarning(this, "Unable to parse range on player reward %s.", key);
-				
-				
-			} catch (ParsingException ex) {
-				logger.printWarning(this, "Parsing error - %s", key, ex.getMessage());
-			}
-		}
-	}
-
-	// I just wanted handle SearchTree<ItemQuery, Range> and SearchTree<PotionQuery, Range> with the same method, but
-	// apparently you can't simply use SearchTree<Query, Range> or some derivation to match them both. Too bad.
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private void loadActionOnItem(ConfigurationSection config, String key, Query item, SearchTree destination, Query.Types checkType) throws ParsingException  {
-		
-		Action range = actionParser.parse(config, key);
-		
-		// Check the query type
-		if (item.getQueryType() != checkType)
-			throw new IllegalArgumentException("Cannot load action " + key + " on this item matcher.");
-		
-		// Ignore this type
-		if (range != null) {
-			destination.put(item, range);
-		} else {
-			logger.printWarning(this, "Unable to read range on %s.", key);
 		}
 	}
 
