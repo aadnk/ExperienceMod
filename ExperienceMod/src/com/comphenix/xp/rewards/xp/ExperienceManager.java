@@ -17,9 +17,9 @@
 
 package com.comphenix.xp.rewards.xp;
 
+import java.lang.ref.WeakReference;
 import java.util.Arrays;
 
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 /**
@@ -38,6 +38,7 @@ public class ExperienceManager {
 	private static int xpRequiredForNextLevel[];
 	private static int xpTotalToReachLevel[];
 
+	private final WeakReference<Player> player;
 	private final String playerName;
 
 	static {
@@ -47,6 +48,19 @@ public class ExperienceManager {
 		initLookupTables(25);
 	}
 
+	/**
+	 * Create a new ExperienceManager for the given player.
+	 * 
+	 * @param player The player for this ExperienceManager object
+	 */
+	public ExperienceManager(Player player) {
+		if (player == null)
+			throw new IllegalArgumentException("Player cannot be null.");
+		
+		this.player = new WeakReference<Player>(player);
+		this.playerName = player.getName();
+	}
+	
 	public static int getHardMaxLevel() {
 		return hardMaxLevel;
 	}
@@ -96,6 +110,7 @@ public class ExperienceManager {
 		int level = 0;
 		int curExp = 7; // level 1
 		int incr = 10;
+		
 		while (curExp <= exp) {
 			curExp += incr;
 			level++;
@@ -105,23 +120,14 @@ public class ExperienceManager {
 	}
 
 	/**
-	 * Create a new ExperienceManager for the given player.
-	 * 
-	 * @param player The player for this ExperienceManager object
-	 */
-	public ExperienceManager(Player player) {
-		this.playerName = player.getName();
-		getPlayer(); // ensure it's a valid player name
-	}
-
-	/**
 	 * Get the Player associated with this ExperienceManager.
 	 * 
 	 * @return the Player object
 	 * @throws IllegalStateException if the player is no longer online
 	 */
 	public Player getPlayer() {
-		Player p = Bukkit.getPlayer(playerName);
+		Player p = player.get();
+		
 		if (p == null) {
 			throw new IllegalStateException("Player " + playerName + " is not online");
 		}
