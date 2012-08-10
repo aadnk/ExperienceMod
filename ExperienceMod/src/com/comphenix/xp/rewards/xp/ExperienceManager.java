@@ -212,6 +212,20 @@ public class ExperienceManager {
 	}
 
 	/**
+	 * Retrieves the amount of experience the experience bar can hold at the given level.
+	 * @param level - level to check.
+	 * @return The amount of experience at this level in the level bar.
+	 */
+	public int getXpNeededToLevelUp(int level) {
+		if (level < 0)
+			throw new IllegalArgumentException("Level cannot be negative.");
+		
+		// Initialize lookup tables
+		getXpForLevel(level);
+		return xpRequiredForNextLevel[level];
+	}
+	
+	/**
 	 * Return the total XP needed to be the given level.
 	 * 
 	 * @param level The level to check for.

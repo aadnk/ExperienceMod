@@ -18,7 +18,6 @@
 package com.comphenix.xp.listeners;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
@@ -101,55 +100,38 @@ public class ExperienceEnhancementsListener extends AbstractExperienceListener {
         }
 	}
 	
-	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-	public void onPrepareItemEnchantEvent(PrepareItemEnchantEvent event) {
-
-		// Like above
-		try {
-			final Player player = event.getEnchanter();
-
-			if (player != null) {
-				handleItemEnchanting(event, player);
-
-				// Just in case this hasn't already been done
-				overrideEnchant.remove(player.getName());
-			}
-			
-		} catch (Exception e) {
-			report.reportError(debugger, this, e, event);
-		}
-	}
-
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void onEnchantItemEvent(EnchantItemEvent event) {
-		
-		InventoryView view = event.getView();
-		Integer slot = event.whichButton();
-		
-		Player player = event.getEnchanter();
-		String name = player.getName();
-		
-		// Prevent infinite recursion and revert the temporary cost change
-		if (overrideEnchant.containsKey(name)) {
-			event.setExpLevelCost(overrideEnchant.get(name));
-			return;
-			
-		} else if (disableEnchantingTrickery) {
-			// Prevent too many errors from occurring
-			return;
-		}
-		
-		Configuration config = getConfiguration(player);
-		int maxEnchant = config.getMaximumEnchantLevel();
 
-		double reverseFactor = (double)Configuration.DEFAULT_MAXIMUM_ENCHANT_LEVEL / (double)maxEnchant;
-		 
-		// Don't do anything if we're at the default enchanting level
-		if (maxEnchant == Configuration.DEFAULT_MAXIMUM_ENCHANT_LEVEL) {
-			return;
-		}
+		int maxEnchant = 0;
 		
 		try {
+			InventoryView view = event.getView();
+			Integer slot = event.whichButton();
+			
+			Player player = event.getEnchanter();
+			String name = player.getName();
+			
+			// Prevent infinite recursion and revert the temporary cost change
+			if (overrideEnchant.containsKey(name)) {
+				event.setExpLevelCost(overrideEnchant.get(name));
+				return;
+				
+			} else if (disableEnchantingTrickery) {
+				// Prevent too many errors from occurring
+				return;
+			}
+			
+			Configuration config = getConfiguration(player);
+			maxEnchant = config.getMaximumEnchantLevel();
+	
+			double reverseFactor = (double)Configuration.DEFAULT_MAXIMUM_ENCHANT_LEVEL / (double)maxEnchant;
+			 
+			// Don't do anything if we're at the default enchanting level
+			if (maxEnchant == Configuration.DEFAULT_MAXIMUM_ENCHANT_LEVEL) {
+				return;
+			}
+
 			// Read the container-field in CraftInventoryView
 			if (containerHandle == null)
 				containerHandle = MethodUtils.getAccessibleMethod(view.getClass(), "getHandle", null);
@@ -205,15 +187,7 @@ public class ExperienceEnhancementsListener extends AbstractExperienceListener {
 			}
 			
 			// A bunch or problems could occur
-		} catch (IllegalAccessException e) {
-			ErrorReporting.DEFAULT.reportError(debugger, this, e, event, maxEnchant);
-			disableEnchantingTrickery = true;
-			
-		} catch (IllegalArgumentException e) {
-			ErrorReporting.DEFAULT.reportError(debugger, this, e, event, maxEnchant);
-			disableEnchantingTrickery = true;
-			
-		} catch (InvocationTargetException e) {
+		} catch (Exception e) {
 			ErrorReporting.DEFAULT.reportError(debugger, this, e, event, maxEnchant);
 			disableEnchantingTrickery = true;
 		}
@@ -274,6 +248,25 @@ public class ExperienceEnhancementsListener extends AbstractExperienceListener {
         }
     }
 	
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+	public void onPrepareItemEnchantEvent(PrepareItemEnchantEvent event) {
+
+		// Like above
+		try {
+			final Player player = event.getEnchanter();
+
+			if (player != null) {
+				handleItemEnchanting(event, player);
+
+				// Just in case this hasn't already been done
+				overrideEnchant.remove(player.getName());
+			}
+			
+		} catch (Exception e) {
+			report.reportError(debugger, this, e, event);
+		}
+	}
+    
 	private void handleItemEnchanting(PrepareItemEnchantEvent event, Player player) {
 
 		Random rnd = RandomSampling.getThreadRandom();
@@ -361,7 +354,7 @@ public class ExperienceEnhancementsListener extends AbstractExperienceListener {
             if ((j != 0 || k != 0) && 
             		world.getBlockTypeIdAt(x + k, y + i, z + j) == 0) {
             	
-            	// Next, we count the bookcases directly diagonally, horizontally and vertically from the air blocks:
+            	// Next, we count the bookcases in a star shape around the air blocks and the enchanting table.
             	//   #   #   # 
             	//     A A A
             	//   # A t A #

@@ -91,6 +91,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	private ExperienceMobListener xpMobListener;
 	private ExperienceEnhancementsListener xpEnchancer;
 	private ExperienceCleanupListener xpCleanup;
+	private ExperienceLevelListener xpLevel;
 	
 	private ExperienceInformerListener informer;
 	private ItemRewardListener itemListener;
@@ -251,6 +252,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 				manager.registerEvents(xpMobListener, this);
 				manager.registerEvents(xpEnchancer, this);
 				manager.registerEvents(xpCleanup, this);
+				manager.registerEvents(xpLevel, this);
 				manager.registerEvents(informer, this);
 			
 			} catch (IOException e) {
@@ -758,6 +760,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			xpBlockListener = new ExperienceBlockListener(this, presets, historyProviders);
 			xpMobListener = new ExperienceMobListener(this, presets);
 			xpEnchancer = new ExperienceEnhancementsListener(this, presets);
+			xpLevel = new ExperienceLevelListener(this, presets);
 			xpCleanup = new ExperienceCleanupListener(presets, interactionListener, playerScheduler);
 			
 		} else {
@@ -765,6 +768,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			xpItemListener.setPresets(presets);
 			xpBlockListener.setPresets(presets);
 			xpMobListener.setPresets(presets);
+			xpLevel.setPresets(presets);
 			xpCleanup.setPlayerCleanupListeners(presets, interactionListener, playerScheduler);
 		}
 	}
