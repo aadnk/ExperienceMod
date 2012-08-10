@@ -1,7 +1,5 @@
 package com.comphenix.xp.listeners;
 
-import java.util.Random;
-
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -10,9 +8,7 @@ import org.bukkit.event.player.PlayerExpChangeEvent;
 import com.comphenix.xp.Configuration;
 import com.comphenix.xp.Debugger;
 import com.comphenix.xp.Presets;
-import com.comphenix.xp.SampleRange;
 import com.comphenix.xp.lookup.LevelingRate;
-import com.comphenix.xp.rewards.items.RandomSampling;
 import com.comphenix.xp.rewards.xp.ExperienceManager;
 
 public class ExperienceLevelListener extends AbstractExperienceListener {
@@ -40,9 +36,8 @@ public class ExperienceLevelListener extends AbstractExperienceListener {
 		
 		Player player = event.getPlayer();
 		Configuration config = getConfiguration(player);
-		ExperienceManager manager = new ExperienceManager(player);
 		
-		Random rnd = RandomSampling.getThreadRandom();
+		ExperienceManager manager = new ExperienceManager(player);
 		LevelingRate rate = config.getLevelingRate();
 		
 		// Retrieve the desired amount of experience required to level up
@@ -52,11 +47,28 @@ public class ExperienceLevelListener extends AbstractExperienceListener {
 		// See if we need to modify the experience gained
 		if (desiredLevelUp != defaultLevelUp) {
 			// Make experience drops correspond to the desired level rate
-			double factor = (double)desiredLevelUp / (double)defaultLevelUp;
+			double factor = (double)defaultLevelUp / (double)desiredLevelUp;
 			
 			// We can't give fractional values with ordinary experience orbs, but we can approximate it
-			SampleRange approximate = new SampleRange(factor * event.getAmount());
-			event.setAmount(Math.max(approximate.sampleInt(rnd), 0));
+			double exact = event.getAmount() * factor;
+			int oldXP = event.getAmount();
+			int newXP = (int) exact;
+			
+			event.setAmount(newXP);
+			
+			// Give the last fraction
+			if (exact > newXP) {
+				manager.changeExp(exact - newXP);
+			}
+			
+			if (hasDebugger())
+				debugger.printDebug(this, "Changed xp orb from %s to %.2f. Factor: %.2f", 
+						oldXP, exact, factor);
 		}
+	}
+	
+	// Determine if a debugger is attached and is listening
+	private boolean hasDebugger() {
+		return debugger != null && debugger.isDebugEnabled();
 	}
 }

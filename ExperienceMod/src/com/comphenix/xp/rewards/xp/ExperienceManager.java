@@ -130,13 +130,24 @@ public class ExperienceManager {
 
 	/**
 	 * Adjust the player's XP by the given amount in an intelligent fashion.
-	 * Works around some of the non-intuitive behaviour of the basic Bukkit
+	 * Works around some of the non-intuitive behavior of the basic Bukkit
 	 * player.giveExp() method.
 	 * 
 	 * @param amt Amount of XP, may be negative
 	 */
 	public void changeExp(int amt) {
-		setExp(getCurrentExp(), amt);
+		changeExp((double) amt);
+	}
+	
+	/**
+	 * Adjust the player's XP by the given amount in an intelligent fashion.
+	 * Works around some of the non-intuitive behavior of the basic Bukkit
+	 * player.giveExp() method.
+	 * 
+	 * @param amt Amount of XP, may be negative
+	 */
+	public void changeExp(double amt) {
+		setExp(getCurrentFractionalXP(), amt);
 	}
 
 	/**
@@ -148,8 +159,18 @@ public class ExperienceManager {
 		setExp(0, amt);
 	}
 
-	private void setExp(int base, int amt) {
-		int xp = base + amt;
+	/**
+	 * Set the player's fractional experience.
+	 * 
+	 * @param amt Amount of XP, should not be negative
+	 */
+	public void setExp(double amt) {
+		setExp(0, amt);
+	}
+	
+	private void setExp(double base, double amt) {
+		int xp = (int) (base + amt);
+		
 		if (xp < 0)
 			xp = 0;
 
@@ -157,13 +178,14 @@ public class ExperienceManager {
 		int curLvl = player.getLevel();
 		int newLvl = getLevelForExp(xp);
 		
+		// Increment level and total experience
 		if (curLvl != newLvl) {
 			player.setLevel(newLvl);
-			player.setTotalExperience(player.getTotalExperience() + amt);
+			player.setTotalExperience(player.getTotalExperience() + xpRequiredForNextLevel[curLvl]);
 		}
 
-		float pct = ((float) (xp - getXpForLevel(newLvl)) / (float) xpRequiredForNextLevel[newLvl]);
-		player.setExp(pct);
+		double pct = (base - getXpForLevel(newLvl) + amt) / (double) (xpRequiredForNextLevel[newLvl]);
+		player.setExp((float) pct);
 	}
 
 	/**
@@ -173,9 +195,21 @@ public class ExperienceManager {
 	 */
 	public int getCurrentExp() {
 		Player player = getPlayer();
+		
 		int lvl = player.getLevel();
-		int cur = getXpForLevel(lvl)
-				+ (int) Math.round(xpRequiredForNextLevel[lvl] * player.getExp());
+		int cur = getXpForLevel(lvl) + (int) Math.round(xpRequiredForNextLevel[lvl] * player.getExp());
+		return cur;
+	}
+	
+	/**
+	 * Get the player's current fractional XP.
+	 * @return The player's total XP with fractions.
+	 */
+	private double getCurrentFractionalXP() {
+		Player player = getPlayer();
+		
+		int lvl = player.getLevel();
+		double cur = getXpForLevel(lvl) + (double) (xpRequiredForNextLevel[lvl] * player.getExp());
 		return cur;
 	}
 
