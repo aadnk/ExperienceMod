@@ -9,6 +9,7 @@ import com.comphenix.xp.extra.Service;
 import com.comphenix.xp.extra.ServiceProvider;
 import com.comphenix.xp.history.HawkeyeService;
 import com.comphenix.xp.history.LogBlockService;
+import com.comphenix.xp.messages.ChannelChatService;
 import com.comphenix.xp.messages.HeroService;
 import com.comphenix.xp.metrics.Metrics.Graph;
 import com.comphenix.xp.rewards.RewardTypes;
@@ -43,37 +44,31 @@ public class DataCollector {
 		
 		Graph optionalMods = metrics.createGraph("Optional Mods Enabled");
 
-		optionalMods.addPlotter(new Metrics.Plotter("LogBlock") {
-			public int getValue() {
-				return isServiceEnabled(mod.getHistoryProviders(), LogBlockService.NAME) ? 1 : 0;
-			}
-		});
-		
-		optionalMods.addPlotter(new Metrics.Plotter("HawkEye") {
-			public int getValue() {
-				return isServiceEnabled(mod.getHistoryProviders(), HawkeyeService.NAME) ? 1 : 0;
-			}
-		});
-		
-		optionalMods.addPlotter(new Metrics.Plotter("Vault") {
-			public int getValue() {
-				// Vault is enabled if we have an economy reward
-				return isServiceEnabled(mod.getRewardProvider(), RewardTypes.ECONOMY.name()) ? 1 : 0;
-			}
-		});
-		
-		optionalMods.addPlotter(new Metrics.Plotter("HeroChat") {
-			public int getValue() {
-				return isServiceEnabled(mod.getChannelProvider(), HeroService.NAME) ? 1 : 0;
-			}
-		});
-		
+		optionalMods.addPlotter(createServicePlotter(mod.getHistoryProviders(), "LogBlock", LogBlockService.NAME));
+		optionalMods.addPlotter(createServicePlotter(mod.getHistoryProviders(), "HawkEye", HawkeyeService.NAME));
+		optionalMods.addPlotter(createServicePlotter(mod.getRewardProvider(), "Vault", RewardTypes.ECONOMY.name() ));
+		optionalMods.addPlotter(createServicePlotter(mod.getChannelProvider(), "HeroChat", HeroService.NAME));
+		optionalMods.addPlotter(createServicePlotter(mod.getChannelProvider(), "ChannelChat", ChannelChatService.NAME));
+
 		// And, finally, ExperienceBridgeMod
 		optionalMods.addPlotter(new Metrics.Plotter("ExperienceBridgeMod") {
 			public int getValue() {
 				return mod.getServer().getPluginManager().getPlugin("ExperienceBridgeMod") != null ? 1 : 0;
 			}
 		});
+	}
+
+	private <TService extends Service> Metrics.Plotter createServicePlotter(
+			final ServiceProvider<TService> provider, 
+			final String plotName, final String serviceName) {
+		
+		// Create a plotter for this service
+		return new Metrics.Plotter(plotName) {
+			@Override
+			public int getValue() {
+				return isServiceEnabled(provider, serviceName) ? 1 : 0;
+			}
+		};
 	}
 
 	protected void addWarningCount() {
