@@ -10,5 +10,6 @@
 	<classpathentry kind="lib" path="mods/Herochat.jar"/>
 	<classpathentry kind="lib" path="mods/LogBlock.jar"/>
 	<classpathentry kind="lib" path="mods/Vault.jar"/>
+	<classpathentry kind="lib" path="mods/ChannelChat.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

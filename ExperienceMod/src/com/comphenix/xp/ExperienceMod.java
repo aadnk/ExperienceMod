@@ -54,6 +54,7 @@ import com.comphenix.xp.history.LogBlockService;
 import com.comphenix.xp.history.MemoryService;
 import com.comphenix.xp.listeners.*;
 import com.comphenix.xp.lookup.*;
+import com.comphenix.xp.messages.ChannelChatService;
 import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.messages.HeroService;
 import com.comphenix.xp.messages.MessageFormatter;
@@ -157,6 +158,11 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 				channelProvider.register(new HeroService());
 				channelProvider.setDefaultName(HeroService.NAME);
 				currentLogger.info("Using HeroChat for channels.");
+			
+			} else if (ChannelChatService.exists()) {
+				channelProvider.register(new ChannelChatService());
+				channelProvider.setDefaultName(ChannelChatService.NAME);
+				currentLogger.info("Using ChannelChat for channels.");
 				
 			} else {
 				channelProvider.register(new StandardService( getServer() ));
