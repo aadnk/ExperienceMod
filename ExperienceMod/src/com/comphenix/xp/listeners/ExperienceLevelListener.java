@@ -47,11 +47,11 @@ public class ExperienceLevelListener extends AbstractExperienceListener {
 		}
 		
 		// Retrieve the desired amount of experience required to level up
-		int desiredLevelUp = rate.get(player.getLevel());
-		int defaultLevelUp = manager.getXpNeededToLevelUp(player.getLevel());
+		Integer desiredLevelUp = rate.get(player.getLevel());
+		Integer defaultLevelUp = manager.getXpNeededToLevelUp(player.getLevel());
 		
 		// See if we need to modify the experience gained
-		if (desiredLevelUp != defaultLevelUp) {
+		if (desiredLevelUp != null && desiredLevelUp != defaultLevelUp) {
 			// Make experience drops correspond to the desired level rate
 			double factor = (double)defaultLevelUp / (double)desiredLevelUp;
 			
