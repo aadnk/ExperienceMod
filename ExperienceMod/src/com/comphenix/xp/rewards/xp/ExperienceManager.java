@@ -232,6 +232,16 @@ public class ExperienceManager {
 	}
 
 	/**
+	 * Checks if the player has the given amount of fractional XP.
+	 * 
+	 * @param amt The amount to check for.
+	 * @return true if the player has enough XP, false otherwise
+	 */
+	public boolean hasExp(double amt) {
+		return getCurrentFractionalXP() >= amt;
+	}
+	
+	/**
 	 * Get the level that the given amount of XP falls within.
 	 * 
 	 * @param exp The amount to check for.

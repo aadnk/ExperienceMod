@@ -40,6 +40,12 @@ public class ExperienceLevelListener extends AbstractExperienceListener {
 		ExperienceManager manager = new ExperienceManager(player);
 		LevelingRate rate = config.getLevelingRate();
 		
+		if (rate == null) {
+			if (hasDebugger())
+				debugger.printDebug(this, "No leveling rate detected.");
+			return;
+		}
+		
 		// Retrieve the desired amount of experience required to level up
 		int desiredLevelUp = rate.get(player.getLevel());
 		int defaultLevelUp = manager.getXpNeededToLevelUp(player.getLevel());

@@ -66,7 +66,7 @@ public class RewardVirtual implements RewardService {
 		
 		// See if we'd end up with negative experience
 		if (resource.getAmount() < 0) {
-			return manager.hasExp(-resource.getAmount());
+			return manager.hasExp(-resource.getAmount() * getLevelingFactor(player, manager));
 		} else {
 			return true;
 		}
@@ -84,7 +84,7 @@ public class RewardVirtual implements RewardService {
 		
 		// Rely on the brilliance of others
 		if (resource.getAmount() != 0) {
-			manager.changeExp(resource.getAmount());
+			manager.changeExp(resource.getAmount() * getLevelingFactor(player, manager));
 		}
 	}
 
@@ -105,6 +105,15 @@ public class RewardVirtual implements RewardService {
 		else
 			// Spawn experience
 			Server.spawnExperience(world, point, resource.getAmount());
+	}
+	
+	private double getLevelingFactor(Player player, ExperienceManager manager) {
+		// Retrieve the desired amount of experience required to level up
+		int desiredLevelUp = levelingRate.get(player.getLevel());
+		int defaultLevelUp = manager.getXpNeededToLevelUp(player.getLevel());
+	
+		// Make experience drops correspond to the desired level rate
+		return (double)defaultLevelUp / (double)desiredLevelUp;
 	}
 	
 	private boolean isExperience(ResourceHolder resource) { 
