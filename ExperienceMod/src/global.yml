@@ -2,6 +2,9 @@ max blocks in history: 5000
 # Time (in seconds) before block changes are removed from memory
 max age in history: 600 
 
+# Number of seconds a player's preset configuration is cached
+preset cache timeout: 10
+
 auto update: true
 use metrics: true
 use permissions: true

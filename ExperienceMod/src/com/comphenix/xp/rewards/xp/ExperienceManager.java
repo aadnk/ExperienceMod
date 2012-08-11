@@ -30,6 +30,8 @@ import org.bukkit.entity.Player;
  * Credit to nisovin (http://forums.bukkit.org/threads/experienceutils-make-giving-taking-exp-a-bit-more-intuitive.54450/#post-1067480) 
  * for an implementation that avoids the problems of getTotalExperience(), which doesn't work properly after a player 
  * has enchanted something.
+ * 
+ * Modified by Comphenix.
  */
 public class ExperienceManager {
 	// this is to stop the lookup tables growing without control

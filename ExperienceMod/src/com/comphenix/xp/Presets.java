@@ -20,6 +20,7 @@ package com.comphenix.xp;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import net.milkbowl.vault.chat.Chat;
 
@@ -34,6 +35,12 @@ import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.parser.primitives.StringParser;
 import com.comphenix.xp.parser.text.ParameterParser;
 import com.comphenix.xp.parser.text.PresetParser;
+import com.google.common.base.Optional;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
 import com.google.common.collect.Lists;
 
 /**
@@ -45,6 +52,13 @@ public class Presets implements PlayerCleanupListener {
 	
 	private static final String IMPORT_FILE_SETTING = "file";
 	private static final String LOCAL_SETTING = "local";
+
+	// MineCraft servers with more than 1000 players? Ridiculous.
+	private static final int MAXIMUM_CACHE_SIZE = 1000;
+	
+	// We can reference players directly as the Guava Cache is using WeakReferences under the hood
+	private Cache<Player, Optional<Configuration>> configCache;
+	private Supplier<Configuration> defaultCached;
 	
 	// Mapping of preset name and configuration
 	private PresetTree presets;
@@ -58,14 +72,48 @@ public class Presets implements PlayerCleanupListener {
 	// Chat
 	private Chat chat;
 	
-	public Presets(ConfigurationSection config, Debugger logger, Chat chat, ConfigurationLoader loader) {
+	public Presets(ConfigurationSection config, ConfigurationLoader loader, 
+				   int cacheTimeout, Debugger logger, Chat chat) {
 		
 		this.presets = new PresetTree();
 		this.logger = logger;
 		this.chat = chat;
 		
-		if (config != null)
+		if (config != null) {
 			loadPresets(config, loader);
+		}
+			
+		initializeCache(cacheTimeout);
+	}
+	
+	private void initializeCache(int cacheTimeout) {
+		// Don't create a cache if we're just going to throw away the values all the time
+		if (cacheTimeout > 0) {
+			// Construct our cache
+			configCache = CacheBuilder.newBuilder().
+				weakKeys().
+				weakValues().
+				maximumSize(MAXIMUM_CACHE_SIZE).
+				expireAfterWrite(cacheTimeout, TimeUnit.SECONDS).
+				build(new CacheLoader<Player, Optional<Configuration>>() {
+					@Override
+					public Optional<Configuration> load(Player player) throws Exception {
+						return Optional.fromNullable(getPlayerConfiguration(player));
+					}
+				});
+		}
+		
+		// Cache the default configuration too
+		defaultCached = Suppliers.memoizeWithExpiration(new Supplier<Configuration>() {
+			@Override
+			public Configuration get() {
+				try {
+					return getConfiguration(null, null);
+				} catch (ParsingException e) {
+					throw new RuntimeException("Parsing problem.", e);
+				}
+			}
+		}, cacheTimeout, TimeUnit.SECONDS);
 	}
 	
 	/**
@@ -93,29 +141,62 @@ public class Presets implements PlayerCleanupListener {
 		return null;
 	}
 	
+	/**
+	 * Retrieves the default configuration for the given player.
+	 * @param sender - the sender, or NULL to retrieve the generic/default configuration.
+	 * @return Configuration, or NULL if no configuration could be found.
+	 * @throws ParsingException - If the sender has a malformed preset list.
+	 */
 	public Configuration getConfiguration(CommandSender sender) throws ParsingException {
 		
+		// See if we in fact can use presets
+		if (chat != null && sender instanceof Player) {
+			// Use the cache if it's present
+			if (configCache != null) {
+				try {
+					return configCache.get((Player) sender).orNull();
+				} catch (Exception e) {
+					throw new ParsingException("Cannot load configuration.", e);
+				}
+			} else {
+				return getPlayerConfiguration((Player) sender);
+			}
+			
+		// Default configuration
+		} else {
+			
+			try {
+				return defaultCached.get();
+				
+				// Catch our runtime error
+			} catch (RuntimeException e) {
+				if (e.getCause() instanceof ParsingException)
+					throw (ParsingException) e.getCause();
+				else
+					throw e;
+			}
+		}
+	}
+	
+	private Configuration getPlayerConfiguration(Player sender) throws ParsingException {
+		
+		Player player = (Player) sender;
 		String preset = null;
 		String world = null;
 		
-		if (chat != null && sender instanceof Player) {
-			Player player = (Player) sender;
+		try {
+			preset = chat.getPlayerInfoString(player, OPTION_PRESET_SETTING, null);
 			
-			try {
-				preset = chat.getPlayerInfoString(player, OPTION_PRESET_SETTING, null);
-				
-			} catch (RuntimeException e) {
-				// Must be a runtime exception, otherwise we'd have to handle it from the method above.
-				if (!ignorableException(e)) {
-					throw e;
-				} else {
-					logger.printDebug(this, "Ignored NPE from mChat.");
-				}
+		} catch (RuntimeException e) {
+			// Must be a runtime exception, otherwise we'd have to handle it from the method above.
+			if (!ignorableException(e)) {
+				throw e;
+			} else {
+				logger.printDebug(this, "Ignored NPE from mChat.");
 			}
-			
-			world = player.getWorld().getName();
 		}
 		
+		world = player.getWorld().getName();
 		return getConfiguration(preset, world);
 	}
 	

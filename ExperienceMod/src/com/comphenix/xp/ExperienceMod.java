@@ -458,7 +458,8 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			loadConfig("config.yml", "Creating default configuration.");
 			
 			// Load it
-			presets = new Presets(presetList, this, chat, configLoader);
+			presets = new Presets(presetList, configLoader, globalSettings.getPresetCacheTimeout(), 
+						 		  this, chat);
 			setPresets(presets);
 			
 			// Vault is required here

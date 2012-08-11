@@ -13,12 +13,14 @@ public class GlobalSettings {
 	// Settings
 	public static final String MAX_BLOCKS_IN_HISTORY_SETTING = "max blocks in history";
 	public static final String MAX_AGE_IN_HISTORY_SETTING = "max age in history";
+	public static final String PRESET_CACHE_TIMEOUT_SETTING = "preset cache timeout";
 	public static final String USE_PERMISSIONS = "use permissions";
 	public static final String USE_METRICS = "use metrics";
 	public static final String DISABLED_SERVICES = "disabled services";
 	
 	private static final int DEFAULT_MAX_BLOCKS_IN_HISTORY = 5000;
 	private static final int DEFAULT_MAX_AGE_IN_HISTORY = 600; // 10 minutes
+	private static final int DEFAULT_PRESET_CACHE_TIMEOUT = 10; // Seconds
 	private static final boolean DEFAULT_USE_PERMISSIONS = true;
 	private static final boolean DEFAULT_USE_METRICS = true;
 	
@@ -28,6 +30,9 @@ public class GlobalSettings {
 	// Block changes memory history
 	private int maxBlocksInHistory;
 	private int maxAgeInHistory;
+	
+	// Player confguration cache
+	private int presetCacheTimeout;
 
 	private boolean useMetrics;
 	private boolean usePermissions;
@@ -53,6 +58,9 @@ public class GlobalSettings {
 		maxBlocksInHistory = config.getInt(MAX_BLOCKS_IN_HISTORY_SETTING, DEFAULT_MAX_BLOCKS_IN_HISTORY);
 		maxAgeInHistory = config.getInt(MAX_AGE_IN_HISTORY_SETTING, DEFAULT_MAX_AGE_IN_HISTORY);
 		
+		// Preset cache
+		presetCacheTimeout = config.getInt(PRESET_CACHE_TIMEOUT_SETTING, DEFAULT_PRESET_CACHE_TIMEOUT);
+		
 		useMetrics = config.getBoolean(USE_METRICS, DEFAULT_USE_METRICS);
 		usePermissions = config.getBoolean(USE_PERMISSIONS, DEFAULT_USE_PERMISSIONS);
 		disabledServices = listParser.parseSafe(config, DISABLED_SERVICES);
@@ -69,6 +77,10 @@ public class GlobalSettings {
 		if (maxBlocksInHistory < -1) {
 			debugger.printWarning(this, "Maximum number of blocks (in seconds) cannot be %s.", maxBlocksInHistory);
 			maxBlocksInHistory = -1;
+		}
+		if (presetCacheTimeout < 0) {
+			debugger.printWarning(this, "Preset cache cannot be negative: %s", presetCacheTimeout);
+			presetCacheTimeout = 0;
 		}
 		
 		// Save it
@@ -97,6 +109,7 @@ public class GlobalSettings {
 		if (updated) {
 			currentConfig.set(MAX_BLOCKS_IN_HISTORY_SETTING, maxBlocksInHistory);
 			currentConfig.set(MAX_AGE_IN_HISTORY_SETTING, maxAgeInHistory);
+			currentConfig.set(PRESET_CACHE_TIMEOUT_SETTING, presetCacheTimeout);
 			currentConfig.set(USE_METRICS, useMetrics);
 			currentConfig.set(USE_PERMISSIONS, usePermissions);
 			currentConfig.set(DISABLED_SERVICES, disabledServices);
@@ -113,6 +126,25 @@ public class GlobalSettings {
 		this.useMetrics = useMetrics;
 	}
 	
+	/**
+	 * Retrieves the number of seconds a player's preset configuration is cached.
+	 * @return Player cache timeout in seconds.
+	 */
+	public int getPresetCacheTimeout() {
+		return presetCacheTimeout;
+	}
+
+	/**
+	 * Sets the number of seconds a player's preset configuration is cached
+	 * @param presetCacheTimeout - new cache timeout in seconds.
+	 */
+	public void setPresetCacheTimeout(int presetCacheTimeout) {
+		if (presetCacheTimeout < 0)
+			throw new IllegalArgumentException("Preset cache cannot be negative.");
+		
+		this.presetCacheTimeout = presetCacheTimeout;
+	}
+
 	public int getMaxBlocksInHistory() {
 		return maxBlocksInHistory;
 	}
