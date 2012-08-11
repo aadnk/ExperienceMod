@@ -128,19 +128,11 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		this.economyDropItem = other.economyDropItem;
 		this.scanRadiusSetting = other.scanRadiusSetting;
 		
-		// Copy providers
-		if (other.rewardProvider != null) {
-			this.rewardProvider = other.rewardProvider.createView(this);
-		}
-		if (other.channelProvider != null) {
-			this.channelProvider = other.channelProvider.createView();
-		}
-		if (other.messageQueue != null) {
-			this.messageQueue = other.messageQueue.createView();
-		}
-		if (other.actionParser != null) {
-			this.actionParser = other.actionParser.createView(rewardProvider);
-		}
+		this.rewardProvider = other.rewardProvider;
+		this.channelProvider = other.channelProvider;
+		this.actionParser = other.actionParser;
+		this.messageQueue = other.messageQueue;
+		this.initializeReferences();
 		
 		// Copy parsers
 		this.itemParser = other.itemParser;
@@ -195,6 +187,22 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 				destination.put(key, value);
 			else
 				destination.get(key).putAll(value);
+		}
+	}
+	
+	private void initializeReferences() {
+		
+		if (rewardProvider != null) {
+			rewardProvider = rewardProvider.createView(this);
+		}
+		if (channelProvider != null) {
+			channelProvider = channelProvider.createView();
+		}
+		if (messageQueue != null) {
+			messageQueue = messageQueue.createView();
+		}
+		if (actionParser != null) {
+			actionParser = actionParser.createView(rewardProvider);
 		}
 	}
 	
@@ -340,6 +348,8 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 			ErrorReporting.DEFAULT.reportError(logger, this, e);
 		}
 		
+		// Reload providers
+		initializeReferences();
 		checkRewards();
 	}
 	

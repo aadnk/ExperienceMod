@@ -111,7 +111,7 @@ public class RewardVirtual implements RewardService {
 		// Retrieve the desired amount of experience required to level up
 		Integer desiredLevelUp = levelingRate.get(player.getLevel());
 		Integer defaultLevelUp = manager.getXpNeededToLevelUp(player.getLevel());
-	
+		
 		// Make experience drops correspond to the desired level rate
 		if (desiredLevelUp == null)
 			return 1; // Use the default rate

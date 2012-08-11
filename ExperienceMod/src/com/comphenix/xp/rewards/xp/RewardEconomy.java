@@ -61,8 +61,6 @@ public class RewardEconomy implements RewardService {
 	public RewardEconomy(Economy economy, Debugger debugger, ItemRewardListener listener) {
 		if (economy == null)
 			throw new IllegalArgumentException("Vault (Economy) was not found.");
-		if (debugger == null)
-			throw new NullArgumentException("debugger");
 		if (listener == null)
 			throw new NullArgumentException("listener");
 		

@@ -186,10 +186,13 @@ public class ExperienceManager {
 		int curLvl = player.getLevel();
 		int newLvl = getLevelForExp(xp);
 		
-		// Increment level and total experience
+		// Increment level
 		if (curLvl != newLvl) {
 			player.setLevel(newLvl);
-			player.setTotalExperience(player.getTotalExperience() + xpRequiredForNextLevel[curLvl]);
+		}
+		// Increment total experience - this should force the server to send an update packet
+		if (xp > base) {
+			player.setTotalExperience(player.getTotalExperience() + xp - (int)base);
 		}
 
 		double pct = (base - getXpForLevel(newLvl) + amt) / (double) (xpRequiredForNextLevel[newLvl]);
