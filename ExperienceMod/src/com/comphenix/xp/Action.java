@@ -20,6 +20,7 @@ package com.comphenix.xp;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -53,7 +54,7 @@ public class Action {
 	
 	public Action() {
 		// Default constructor
-		rewards = new HashMap<String, ResourceFactory>();;
+		rewards = new LinkedHashMap<String, ResourceFactory>();;
 	}
 	
 	public Action(String rewardType, ResourceFactory reward) {
@@ -68,18 +69,37 @@ public class Action {
 		this.id = id;
 	}
 	
+	/**
+	 * Adds the given reward to the action that will be triggered.
+	 * @param rewardType - name of the reward.
+	 * @param factory - factory that generates the rewards when they are needed.
+	 */
 	public void addReward(String rewardType, ResourceFactory factory) {
 		rewards.put(Utility.getEnumName(rewardType), factory);
 	}
 	
+	/**
+	 * Remove a reward by name.
+	 * @param rewardType - name of the reward to remove.
+	 */
 	public void removeReward(String rewardType) {
 		rewards.remove(Utility.getEnumName(rewardType));
 	}
 	
+	/**
+	 * Retrieves a associated reward by name.
+	 * @param name - name of the reward to retrieve.
+	 * @return Factory that generates rewards of this type.
+	 */
 	public ResourceFactory getReward(String name) {
 		return rewards.get(Utility.getEnumName(name));
 	}
 	
+	/**
+	 * Retrieves a associated reward by type.
+	 * @param type - type of the reward to retrieve.
+	 * @return Factory that generates rewards of this type.
+	 */
 	public ResourceFactory getReward(RewardTypes type) {
 		return rewards.get(type.name());
 	}
@@ -92,81 +112,112 @@ public class Action {
 		return rewards.keySet();
 	}
 	
+	/**
+	 * Removes all associated rewards.
+	 */
 	public void removeAll() {
 		rewards.clear();
 	}
+	
+	/**
+	 * Generates a list of resources, in the same order as each associated reward factory.
+	 * @param provider - provider of reward services.
+	 * @param rnd - random number generator.
+	 * @return A list of resources in a specific order.
+	 */
+	public List<ResourceHolder> generateRewards(RewardProvider provider, Random rnd) {
+		
+		// Reward the player or anyone once
+		return generateRewards(provider, rnd, 1);
+	}
+	
+	/**
+	 * Generates a list of resources, in the same order as each associated reward factory.
+	 * @param provider - provider of reward services.
+	 * @param rnd - random number generator.
+	 * @param count - number of times to reward this action.
+	 * @return A list of resources in a specific order.
+	 */
+	public List<ResourceHolder> generateRewards(RewardProvider provider, Random rnd, int count) {
+		
+		List<ResourceHolder> result = new ArrayList<ResourceHolder>(rewards.size());
+		
+		// Save some time
+		if (count == 0) {
+			return result;
+		}
+		
+		// Generate every reward in "insertion" order
+		for (ResourceFactory factory : rewards.values()) {
+			result.add(factory.getResource(rnd, count));
+		}
+		
+		return result;
+	}
 
 	/**
-	 * Determines whether or not a player can be rewarded (or penalized) the given number of times.
+	 * Determines whether or not a player can be rewarded (or penalized) with the given list of rewards.
 	 * @param provider - reward provider.
 	 * @param player - the player to test.
-	 * @param count - number of times to reward this action.
-	 * @return TRUE if the action can be rewarded that number of times, FALSE otherwise.
+	 * @param generatedRewards - the list of rewards to use.
+	 * @return TRUE if the action can be rewarded with this list, FALSE otherwise.
 	 */
-	public boolean canRewardPlayer(RewardProvider provider, Player player, int count) {
+	public boolean canRewardPlayer(RewardProvider provider, Player player, List<ResourceHolder> generatedRewards) {
+
+		// This is why the order is important
+		int index = 0;
 		
-		// Give every reward
+		// Enumerate the list of rewards
 		for (Map.Entry<String, ResourceFactory> entry : rewards.entrySet()) {
 			
-			String key = Utility.getEnumName(entry.getKey());
+			// Quit if we've exhausted the list
+			if (index >= generatedRewards.size())
+				break;
+			
+			String key = entry.getKey();
 			RewardService manager = provider.getByName(key);
+			ResourceHolder resource = generatedRewards.get(index++);
 			
-			// That is, the highest penalty we can give
-			ResourceHolder minimum = entry.getValue().getMinimum(count);
-			ResourceHolder maximum = entry.getValue().getMaximum(count);
-			
-			// See if the manager allows this extreme
+			// See if the manager allows this 
 			if (manager != null) {
-				if (!(manager.canReward(player, minimum) &&
-					  manager.canReward(player, maximum))) {
+				if (!manager.canReward(player, resource)) {
 					return false;
 				}
 			}
 		}
 		
-		// Yes, we can
+		// Yes we can
 		return true;
 	}
 	
 	/**
 	 * Rewards or penalizes a player with the given amount of resources.
-	 * @param provider - reward provider that determines specifically how to reward players.
-	 * @param rnd - random number generator.
-	 * @param player - the player to reward.
-	 * @return The amount of total resources that were given.
-	 */
-	public Collection<ResourceHolder> rewardPlayer(RewardProvider provider, Random rnd, Player player) {
-		
-		// Give the reward once
-		return rewardPlayer(provider, rnd, player, 1);
-	}
-	
-	/**
-	 * Rewards or penalizes a player with the given amount of resources.
 	 * <p>
-	 * The returned collection may be either null or empty when no rewards has been given.
+	 * In the resulting list the resources will be arbitrarily ordered, and resources of the same type
+	 * will be combined into one.
 	 * 
 	 * @param provider - reward provider that determines specifically how to reward players.
-	 * @param rnd - random number generator.
 	 * @param player - the player to reward.
-	 * @param count - the number of times to give this resource.
-	 * @return The amount of total resources that were given.
+	 * @param generatedRewards - the list of rewards to use.
+	 * @return Combined amount of resources given.
 	 */
-	public Collection<ResourceHolder> rewardPlayer(RewardProvider provider, Random rnd, Player player, int count) {
+	public Collection<ResourceHolder> rewardPlayer(RewardProvider provider, Player player, List<ResourceHolder> generatedRewards) {
 		
 		Map<String, ResourceHolder> result = new HashMap<String, ResourceHolder>();
 		
-		// No need to do anything
-		if (count == 0)
-			return null;
+		// Like above
+		int index = 0;
 		
 		// Give every reward
 		for (Map.Entry<String, ResourceFactory> entry : rewards.entrySet()) {
 			
-			String key = Utility.getEnumName(entry.getKey());
-			RewardService manager = provider.getByName(key);
+			// Quit if we've exhausted the list
+			if (index >= generatedRewards.size())
+				break;
 			
-			ResourceHolder resource = entry.getValue().getResource(rnd, count);
+			String key = entry.getKey();
+			RewardService manager = provider.getByName(key);
+			ResourceHolder resource = generatedRewards.get(index++);
 			
 			if (manager != null) {
 				manager.reward(player, resource);
@@ -179,23 +230,32 @@ public class Action {
 	
 	/**
 	 * Rewards or penalizes a given player with resources at a given location.
+	 * <p>
+	 * In the resulting list the resources will be arbitrarily ordered, and resources of the same type
+	 * will be combined into one.
+	 * 
 	 * @param provider - reward provider that determines specifically how to reward players.
-	 * @param rnd - random number generator.
 	 * @param player - the player to reward.
+	 * @param generatedRewards - the list of rewards to use.
 	 * @param point - the location to place the reward, if relevant.
-	 * @return The amount of total resources that were given.
+	 * @return Combined amount of resources given.
 	 */
-	public Collection<ResourceHolder> rewardPlayer(RewardProvider provider, Random rnd, Player player, Location point) {
+	public Collection<ResourceHolder> rewardPlayer(RewardProvider provider, Player player, 
+												   List<ResourceHolder> generatedRewards, Location point) {
 		
 		Map<String, ResourceHolder> result = new HashMap<String, ResourceHolder>();
+		int index = 0;
 		
-		// As the above
+		// Give every reward
 		for (Map.Entry<String, ResourceFactory> entry : rewards.entrySet()) {
 			
-			String key = Utility.getEnumName(entry.getKey());
-			RewardService manager = provider.getByName(key);
+			// Quit if we've exhausted the list
+			if (index >= generatedRewards.size())
+				break;
 			
-			ResourceHolder resource = entry.getValue().getResource(rnd);
+			String key = entry.getKey();
+			RewardService manager = provider.getByName(key);
+			ResourceHolder resource = generatedRewards.get(index++);
 			
 			if (manager != null) {
 				manager.reward(player, point, resource);
@@ -208,23 +268,32 @@ public class Action {
 	
 	/**
 	 * Spawns resources at the given location.
+	 * 
+	 * In the resulting list the resources will be arbitrarily ordered, and resources of the same type
+	 * will be combined into one.
+	 * 
 	 * @param provider - reward provider that determines specifically how to award resources.
-	 * @param rnd - random number generator.
 	 * @param world - the world where the resources should be spawned.
+	 * @param generatedRewards - the list of rewards to use.
 	 * @param point - the location to place the reward.
-	 * @return The amount of total resources that were given.
+	 * @return Combined amount of resources given.
 	 */
-	public Collection<ResourceHolder> rewardAnyone(RewardProvider provider, Random rnd, World world, Location point) {
+	public Collection<ResourceHolder> rewardAnyone(RewardProvider provider, World world, 
+												   List<ResourceHolder> generatedRewards, Location point) {
 		
 		Map<String, ResourceHolder> result = new HashMap<String, ResourceHolder>();
+		int index = 0;
 		
-		// As the above
+		// Give every reward
 		for (Map.Entry<String, ResourceFactory> entry : rewards.entrySet()) {
 			
-			String key = Utility.getEnumName(entry.getKey());
-			RewardService manager = provider.getByName(key);
+			// Quit if we've exhausted the list
+			if (index >= generatedRewards.size())
+				break;
 			
-			ResourceHolder resource = entry.getValue().getResource(rnd);
+			String key = entry.getKey();
+			RewardService manager = provider.getByName(key);
+			ResourceHolder resource = generatedRewards.get(index++);
 			
 			if (manager != null) {
 				manager.reward(world, point, resource);
@@ -246,6 +315,13 @@ public class Action {
 		result.put(resource.getName(), resource);
 	}
 	
+	/**
+	 * Sends a message from the given player informing anyone listening of 
+	 * the action performed and the resources awarded.
+	 * @param provider - channel provider to use.
+	 * @param formatter - message formatter, complete with all the parameter information.
+	 * @param player - the sender.
+	 */
 	public void emoteMessages(ChannelProvider provider, MessageFormatter formatter, Player player) {
 	
 		List<String> channels = getChannels(provider, message);
@@ -277,6 +353,11 @@ public class Action {
 		}
 	}
 	
+	/**
+	 * Sends a general message informing anyone listening of the resources awarded.
+	 * @param provider - channel provider to use.
+	 * @param formatter - message formatter, complete with all the parameter information.
+	 */
 	public void announceMessages(ChannelProvider provider, MessageFormatter formatter) {
 
 		List<String> channels = getChannels(provider, message);

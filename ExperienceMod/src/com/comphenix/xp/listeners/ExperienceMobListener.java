@@ -19,6 +19,7 @@ package com.comphenix.xp.listeners;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Random;
 
 import org.apache.commons.lang.StringUtils;
@@ -121,11 +122,13 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 			RewardProvider rewards = config.getRewardProvider();
 			ChannelProvider channels = config.getChannelProvider();
 			
+			List<ResourceHolder> generated = action.generateRewards(rewards, random);
+			
 			// Spawn the experience ourself
 			event.setDroppedExp(0);
 			
 			// Make sure the action is legal
-			if (hasKiller && !action.canRewardPlayer(rewards, killer, 1)) {
+			if (hasKiller && !action.canRewardPlayer(rewards, killer, generated)) {
 				if (hasDebugger())
 					debugger.printDebug(this, "Entity %d kill cancelled: Player %s hasn't got enough resources.",
 							id, killer.getName());
@@ -142,7 +145,7 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 				return;
 			}
 			
-			Collection<ResourceHolder> result = action.rewardAnyone(rewards, random, entity.getWorld(), entity.getLocation());
+			Collection<ResourceHolder> result = action.rewardAnyone(rewards, entity.getWorld(), generated, entity.getLocation());
 			config.getMessageQueue().enqueue(null, action, channels.getFormatter(null, result));
 			
 			if (hasDebugger())

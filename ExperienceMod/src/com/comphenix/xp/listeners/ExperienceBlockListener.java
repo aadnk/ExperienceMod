@@ -108,7 +108,9 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 				if (action == null)
 					return;
 				
-				if (!action.canRewardPlayer(rewards, player, 1)) {
+				List<ResourceHolder> generated = action.generateRewards(rewards, random);
+				
+				if (!action.canRewardPlayer(rewards, player, generated)) {
 					if (hasDebugger())
 						debugger.printDebug(this, "Block place by %s cancelled: Not enough resources for item %s",
 							player.getName(), block.getType());
@@ -118,7 +120,7 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 					return;
 				}
 				
-				Collection<ResourceHolder> result = action.rewardPlayer(rewards, random, player, block.getLocation());
+				Collection<ResourceHolder> result = action.rewardPlayer(rewards, player, generated, block.getLocation());
 				config.getMessageQueue().enqueue(player, action, channels.getFormatter(player, result));
 				
 				if (hasDebugger())
@@ -146,7 +148,10 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 				if (action == null)
 					return;
 				
-				if (!action.canRewardPlayer(rewards, player, 1)) {
+				// What we will award
+				List<ResourceHolder> generated = action.generateRewards(rewards, random);
+				
+				if (!action.canRewardPlayer(rewards, player, generated)) {
 					if (hasDebugger())
 						debugger.printDebug(this, "Block place by %s cancelled: Not enough resources for item %s",
 							player.getName(), block.getType());
@@ -156,7 +161,8 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 					return;
 				}
 				
-				Collection<ResourceHolder> result = action.rewardPlayer(rewards, random, player, block.getLocation());
+				// What was awarded
+				Collection<ResourceHolder> result = action.rewardPlayer(rewards, player, generated, block.getLocation());
 				config.getMessageQueue().enqueue(player, action, channels.getFormatter(player, result));
 				
 				if (hasDebugger())
@@ -238,9 +244,10 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 				Action action = placeReward.get(retrieveKey);
 				RewardProvider rewards = config.getRewardProvider();
 				ChannelProvider channels = config.getChannelProvider();
+				List<ResourceHolder> generated = action.generateRewards(rewards, random);
 				
 				// Make sure the action is legal
-				if (!action.canRewardPlayer(rewards, player, 1)) {
+				if (!action.canRewardPlayer(rewards, player, generated)) {
 					if (hasDebugger())
 						debugger.printDebug(this, "Block place by %s cancelled: Not enough resources for item %s",
 							player.getName(), block.getType());
@@ -252,7 +259,7 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 				}
 				
 				// Reward and print messages
-				Collection<ResourceHolder> result = action.rewardPlayer(rewards, random, player);
+				Collection<ResourceHolder> result = action.rewardPlayer(rewards, player, generated);
 				config.getMessageQueue().enqueue(player, action, channels.getFormatter(player, result));
 				
 				if (hasDebugger())
