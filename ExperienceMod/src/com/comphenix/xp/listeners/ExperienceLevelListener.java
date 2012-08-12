@@ -22,7 +22,7 @@ public class ExperienceLevelListener extends AbstractExperienceListener {
 
 	// Invoked after the player picks up an experience orb, but before he or she is awarded any experience
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-	public void onEnchantItemEvent(PlayerExpChangeEvent event) {
+	public void onPlayerExpChangeEvent(PlayerExpChangeEvent event) {
 		
 		try {
 			handleEnchantItemEvent(event);

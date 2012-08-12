@@ -134,8 +134,9 @@ public class Presets implements PlayerCleanupListener {
 		Configuration result = presets.get(query);
 	
 		// Determine what to return
-		if (result != null)
+		if (result != null) {
 			return result;
+		}
 		
 		// Error
 		return null;
