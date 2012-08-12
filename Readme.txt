@@ -42,7 +42,7 @@ JAVADOC
 HOW TO COMPILE
 
     If it's not already referenced, include the Bukkit MOD API:
-        bukkit-1.2.5-R4.0.jar
+        bukkit-1.3.1-R1.0.jar
 
 This project can also be found on:
 http://dev.bukkit.org/server-mods/experiencemod/

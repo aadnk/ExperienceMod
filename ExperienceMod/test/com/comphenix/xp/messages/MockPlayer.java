@@ -1062,4 +1062,19 @@ public class MockPlayer implements Player {
 	@Override
 	public void loadData() {
 	}
+
+	@Override
+	public int getExpToLevel() {
+		return 0;
+	}
+
+	@Override
+	public boolean hasLineOfSight(Entity arg0) {
+		return false;
+	}
+
+	@Override
+	public boolean isValid() {
+		return true;
+	}
 }
