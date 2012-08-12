@@ -136,9 +136,9 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 				// Events will not be directly cancelled for untouchables
 				if (!Permissions.hasUntouchable(killer)) {
 					// To cancel this event, spawn a new mob at the exact same location.
-					LivingEntity spawned = entity.getWorld().spawnCreature(entity.getLocation(), entity.getType());
+					LivingEntity spawned = (LivingEntity) entity.getWorld().spawnEntity(entity.getLocation(), entity.getType());
 					spawned.addPotionEffects(entity.getActivePotionEffects());
-					
+
 					// Prevent drops
 					event.getDrops().clear();
 				}
