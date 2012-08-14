@@ -55,10 +55,11 @@ public class StandardBlockService implements BlockService {
 						 block.match(Material.BURNING_FURNACE))) {
 					return new BlockResponse(type, ActionTypes.SMELTING, Permissions.REWARDS_SMELTING);
 				}
+				
+			default:
+				// Unable to process block
+				return BlockResponse.FAILURE;
 		}
-		
-		// Unable to process block
-		return BlockResponse.FAILURE;
 	}
 	
 	@Override

@@ -18,6 +18,7 @@
 package com.comphenix.xp.rewards;
 
 import java.util.HashMap;
+
 import org.apache.commons.lang.NullArgumentException;
 
 import com.comphenix.xp.Configuration;
@@ -146,7 +147,7 @@ public class RewardProvider extends ServiceProvider<RewardService> {
 			return null;
 		else if (configuration != null)
 			return reward.clone(configuration);
-		else
+		else 
 			return reward;
 	}
 	

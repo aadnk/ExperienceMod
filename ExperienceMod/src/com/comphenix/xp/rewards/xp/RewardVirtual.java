@@ -26,6 +26,7 @@ import org.bukkit.entity.Player;
 
 import com.comphenix.xp.Configuration;
 import com.comphenix.xp.Server;
+import com.comphenix.xp.lookup.LevelingRate;
 import com.comphenix.xp.rewards.ResourceHolder;
 import com.comphenix.xp.rewards.ResourcesParser;
 import com.comphenix.xp.rewards.RewardService;
@@ -39,6 +40,7 @@ import com.comphenix.xp.rewards.RewardTypes;
 public class RewardVirtual implements RewardService {
 
 	private double searchRadius = 20;
+	private LevelingRate levelingRate;
 	
 	private ResourcesParser parser = new ExperienceParser();
 	
@@ -64,7 +66,7 @@ public class RewardVirtual implements RewardService {
 		
 		// See if we'd end up with negative experience
 		if (resource.getAmount() < 0) {
-			return manager.hasExp(-resource.getAmount());
+			return manager.hasExp(-resource.getAmount() * getLevelingFactor(player, manager));
 		} else {
 			return true;
 		}
@@ -82,7 +84,7 @@ public class RewardVirtual implements RewardService {
 		
 		// Rely on the brilliance of others
 		if (resource.getAmount() != 0) {
-			manager.changeExp(resource.getAmount());
+			manager.changeExp(resource.getAmount() * getLevelingFactor(player, manager));
 		}
 	}
 
@@ -105,6 +107,18 @@ public class RewardVirtual implements RewardService {
 			Server.spawnExperience(world, point, resource.getAmount());
 	}
 	
+	private double getLevelingFactor(Player player, ExperienceManager manager) {
+		// Retrieve the desired amount of experience required to level up
+		Integer desiredLevelUp = levelingRate.get(player.getLevel());
+		Integer defaultLevelUp = manager.getXpNeededToLevelUp(player.getLevel());
+		
+		// Make experience drops correspond to the desired level rate
+		if (desiredLevelUp == null)
+			return 1; // Use the default rate
+		else
+			return (double)defaultLevelUp / (double)desiredLevelUp;
+	}
+	
 	private boolean isExperience(ResourceHolder resource) { 
 		return resource instanceof ExperienceHolder;
 	}
@@ -121,6 +135,14 @@ public class RewardVirtual implements RewardService {
 	public void setSearchRadius(double searchRadius) {
 		this.searchRadius = searchRadius;
 	}
+
+	public LevelingRate getLevelingRate() {
+		return levelingRate;
+	}
+
+	public void setLevelingRate(LevelingRate levelingRate) {
+		this.levelingRate = levelingRate;
+	}
 	
 	@Override
 	public RewardTypes getRewardType() {
@@ -136,7 +158,8 @@ public class RewardVirtual implements RewardService {
 	public RewardService clone(Configuration config) {
 		RewardVirtual copy = new RewardVirtual();
 		
-		copy.setSearchRadius(searchRadius);
+		copy.setLevelingRate(config.getLevelingRate());
+		copy.setSearchRadius(config.getScanRadiusSetting());
 		copy.parser = parser;
 		return copy;
 	}

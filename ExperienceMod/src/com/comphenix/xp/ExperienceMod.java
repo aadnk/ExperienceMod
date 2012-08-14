@@ -54,6 +54,7 @@ import com.comphenix.xp.history.LogBlockService;
 import com.comphenix.xp.history.MemoryService;
 import com.comphenix.xp.listeners.*;
 import com.comphenix.xp.lookup.*;
+import com.comphenix.xp.messages.ChannelChatService;
 import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.messages.HeroService;
 import com.comphenix.xp.messages.MessageFormatter;
@@ -91,6 +92,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	private ExperienceMobListener xpMobListener;
 	private ExperienceEnhancementsListener xpEnchancer;
 	private ExperienceCleanupListener xpCleanup;
+	private ExperienceLevelListener xpLevel;
 	
 	private ExperienceInformerListener informer;
 	private ItemRewardListener itemListener;
@@ -156,6 +158,11 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 				channelProvider.register(new HeroService());
 				channelProvider.setDefaultName(HeroService.NAME);
 				currentLogger.info("Using HeroChat for channels.");
+			
+			} else if (ChannelChatService.exists()) {
+				channelProvider.register(new ChannelChatService());
+				channelProvider.setDefaultName(ChannelChatService.NAME);
+				currentLogger.info("Using ChannelChat for channels.");
 				
 			} else {
 				channelProvider.register(new StandardService( getServer() ));
@@ -251,6 +258,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 				manager.registerEvents(xpMobListener, this);
 				manager.registerEvents(xpEnchancer, this);
 				manager.registerEvents(xpCleanup, this);
+				manager.registerEvents(xpLevel, this);
 				manager.registerEvents(informer, this);
 			
 			} catch (IOException e) {
@@ -363,26 +371,41 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		// Reload the saved configuration
 		if (!savedFile.exists()) {
 
-			// Get the default file
-			InputStream input = ExperienceMod.class.getResourceAsStream("/" + name);
+			InputStream input = null;
+			OutputStream output = null;
 			
-			// Make sure the directory exists 
-			if (!directory.exists()) {
-				directory.mkdirs();
+			try {
+			
+				// Get the default file
+				input = ExperienceMod.class.getResourceAsStream("/" + name);
 				
-				if (!directory.exists())
-					throw new IOException("Could not create the directory " + directory.getAbsolutePath());
-			}
+				// See if we found it
+				if (input == null) {
+					throw new MissingResourceException(
+							"Cannot find built in resource file.", "ExperienceMod", name);
+				}
+				
+				// Make sure the directory exists 
+				if (!directory.exists()) {
+					directory.mkdirs();
+					
+					if (!directory.exists())
+						throw new IOException("Could not create the directory " + directory.getAbsolutePath());
+				}
+	
+				// Copy content
+				output = new FileOutputStream(savedFile);
+				copyLarge(input, output);
 			
-			OutputStream output = new FileOutputStream(savedFile);
-			
-			// Check just in case
-			if (input == null) {
-				throw new MissingResourceException(
-						"Cannot find built in resource file.", "ExperienceMod", name);
+			} catch (IOException e) {
+				throw e;
+			} finally {
+				// Clean up
+				if (input != null)
+					input.close();
+				if (output != null)
+					output.close();
 			}
-
-			copyLarge(input, output);
 		}
 		
 		// Retrieve the saved file
@@ -441,7 +464,8 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			loadConfig("config.yml", "Creating default configuration.");
 			
 			// Load it
-			presets = new Presets(presetList, this, chat, configLoader);
+			presets = new Presets(presetList, configLoader, globalSettings.getPresetCacheTimeout(), 
+						 		  this, chat);
 			setPresets(presets);
 			
 			// Vault is required here
@@ -742,13 +766,16 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			xpItemListener = new ExperienceItemListener(this, playerScheduler, customProvider, presets);
 			xpBlockListener = new ExperienceBlockListener(this, presets, historyProviders);
 			xpMobListener = new ExperienceMobListener(this, presets);
-			xpEnchancer = new ExperienceEnhancementsListener(this);
+			xpEnchancer = new ExperienceEnhancementsListener(this, presets);
+			xpLevel = new ExperienceLevelListener(this, presets);
 			xpCleanup = new ExperienceCleanupListener(presets, interactionListener, playerScheduler);
 			
 		} else {
+			xpEnchancer.setPresets(presets);
 			xpItemListener.setPresets(presets);
 			xpBlockListener.setPresets(presets);
 			xpMobListener.setPresets(presets);
+			xpLevel.setPresets(presets);
 			xpCleanup.setPlayerCleanupListeners(presets, interactionListener, playerScheduler);
 		}
 	}

@@ -6,19 +6,19 @@ import org.apache.commons.lang.NullArgumentException;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 
-import com.comphenix.xp.Range;
+import com.comphenix.xp.SampleRange;
 import com.comphenix.xp.rewards.ResourceFactory;
 import com.comphenix.xp.rewards.ResourceHolder;
 
 public class CurrencyFactory implements ResourceFactory {
-	private Range range;
+	private SampleRange range;
 	private double multiplier;
 	
-	public CurrencyFactory(Range range) {
+	public CurrencyFactory(SampleRange range) {
 		this(range, 1);
 	}
 	
-	private CurrencyFactory(Range range, double multiplier) {
+	private CurrencyFactory(SampleRange range, double multiplier) {
 		if (range == null)
 			throw new NullArgumentException("range");
 		
@@ -27,7 +27,7 @@ public class CurrencyFactory implements ResourceFactory {
 	}
 	
 	public CurrencyFactory(double value) {
-		this(new Range(value));
+		this(new SampleRange(value));
 	}
 	
 	@Override
@@ -44,7 +44,7 @@ public class CurrencyFactory implements ResourceFactory {
 		return new ExperienceHolder(experience);
 	}
 	
-	public Range getRange() {
+	public SampleRange getRange() {
 		return range.multiply(multiplier);
 	}
 

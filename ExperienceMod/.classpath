@@ -2,12 +2,14 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="test"/>
+	<classpathentry kind="src" path="lib"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/jre6"/>
-	<classpathentry kind="lib" path="E:/Games/Minecraft/Server Mods/API/bukkit-1.2.5-R4.0.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
-	<classpathentry kind="lib" path="lib/Vault.jar"/>
-	<classpathentry kind="lib" path="lib/LogBlock.jar"/>
-	<classpathentry kind="lib" path="lib/HawkEye.jar"/>
-	<classpathentry kind="lib" path="lib/Herochat.jar"/>
+	<classpathentry kind="lib" path="mods/HawkEye.jar"/>
+	<classpathentry kind="lib" path="mods/Herochat.jar"/>
+	<classpathentry kind="lib" path="mods/LogBlock.jar"/>
+	<classpathentry kind="lib" path="mods/Vault.jar"/>
+	<classpathentry kind="lib" path="mods/ChannelChat.jar"/>
+	<classpathentry kind="lib" path="E:/Games/Minecraft/Server Mods/API/bukkit-1.3.1-R1.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -18,6 +18,7 @@
 package com.comphenix.xp.listeners;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Random;
 
 import org.apache.commons.lang.StringUtils;
@@ -117,13 +118,18 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 			action = playerReward.getFishingFailure();
 			message = "Fishing failed for %s: Spawned %d xp.";
 			break;
+			
+		default:
+			return;
 		}
 		
 		// Has an action been set?
 		if (action != null) {
+			RewardProvider rewards = config.getRewardProvider();
+			List<ResourceHolder> generated = action.generateRewards(rewards, random);
 			
 			// Check and see if the player is broke
-			if (!action.canRewardPlayer(config.getRewardProvider(), player, 1)) {
+			if (!action.canRewardPlayer(rewards, player, generated)) {
 				if (hasDebugger())
 					debugger.printDebug(this, "Unable to penalize fishing for %s. Not enough funds.", player.getName());
 				
@@ -133,7 +139,7 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 				return;
 			}
 			
-			Collection<ResourceHolder> result = action.rewardPlayer(config.getRewardProvider(), random, player);
+			Collection<ResourceHolder> result = action.rewardPlayer(rewards, player, generated);
 			config.getMessageQueue().enqueue(player, action, channels.getFormatter(player, result));
 			
 			if (hasDebugger())
@@ -424,12 +430,25 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 		
 		// Create a rewardable future action handler
 		return new RewardableAction() {
+			private List<ResourceHolder> generated;
+			
+			public void generateRewards(Action action, int count) {
+				generated = action.generateRewards(rewardsProvider, random, count);
+			}
+			
 			@Override
 			public void performAction(Player player, ItemStack stack, Action action, int count) {
 
+				// Just in case
+				if (generated == null)
+					generateRewards(action, count);
+				
 				// Give the experience straight to the user
-				Collection<ResourceHolder> result = action.rewardPlayer(rewardsProvider, random, player, count);
+				Collection<ResourceHolder> result = action.rewardPlayer(rewardsProvider, player, generated);
 				messageQueue.enqueue(player, action, channelsProvider.getFormatter(player, result, count));
+				
+				// Reset
+				generated = null;
 				
 				// Like above
 				if (hasDebugger())
@@ -439,7 +458,9 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 
 			@Override
 			public boolean canPerform(Player player, Action action, int count) {
-				return action.canRewardPlayer(rewardsProvider, player, count);
+				if (generated == null)
+					generateRewards(action, count);
+				return action.canRewardPlayer(rewardsProvider, player, generated);
 			}
 		};
 	}

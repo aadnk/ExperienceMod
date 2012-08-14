@@ -73,6 +73,10 @@ public class StandardService implements ChannelService {
 			case WORLD:
 				server.broadcastMessage(message);
 				break;
+			case PRIVATE:
+				// We don't know to whom, so print it to the console
+				server.getLogger().info(String.format("Lost message: " + message));
+				break;
 			}
 		}
 	}

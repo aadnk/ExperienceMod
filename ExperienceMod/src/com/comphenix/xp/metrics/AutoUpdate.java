@@ -309,12 +309,17 @@ public class AutoUpdate implements Runnable, Listener {
 					
 					jo = (JSONObject) ja.get(0);
 					nv = bukkitdevPrefix + jo.get("name") + bukkitdevSuffix;
-					
-					if (av.equals(nv) || (updateVersion != null && updateVersion.equals(nv))) {
+
+					// Quit if we've updated before, or we have a more recent version
+					if ((updateVersion != null && updateVersion.equals(nv)) || 
+						new Version(av).compareTo(new Version(nv)) >= 0) {
+						
+						plugin.getLogger().info("[AutoUpdate] No new version detected.");
+						plugin.getLogger().info("[AutoUpdate] Version online: " + nv);
 						lock.set(false);
 						return;
 					}
-					
+
 					updateURL = (String) jo.get("dl_link");
 					updateVersion = nv;
 					type = (String) jo.get("type");
@@ -555,7 +560,7 @@ public class AutoUpdate implements Runnable, Listener {
 		    List<String> lines = new ArrayList<String>();
 			String prefix = "  ";
 
-			lines.add(String.format("[%] [AutoUpdate]:", plugin.getName()));
+			lines.add(String.format("[" + plugin.getName() + "] [AutoUpdate]: "));
 			lines.add("Internal error!");
 			lines.add("");
 			lines.add("If this bug hasn't been reported please open a ticket at " + SUPPORT_URL);

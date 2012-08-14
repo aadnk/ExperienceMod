@@ -19,6 +19,7 @@ package com.comphenix.xp.listeners;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Random;
 
 import org.apache.commons.lang.StringUtils;
@@ -35,7 +36,7 @@ import com.comphenix.xp.Action;
 import com.comphenix.xp.Configuration;
 import com.comphenix.xp.Debugger;
 import com.comphenix.xp.Presets;
-import com.comphenix.xp.Range;
+import com.comphenix.xp.SampleRange;
 import com.comphenix.xp.extra.Permissions;
 import com.comphenix.xp.lookup.MobQuery;
 import com.comphenix.xp.messages.ChannelProvider;
@@ -121,11 +122,13 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 			RewardProvider rewards = config.getRewardProvider();
 			ChannelProvider channels = config.getChannelProvider();
 			
+			List<ResourceHolder> generated = action.generateRewards(rewards, random);
+			
 			// Spawn the experience ourself
 			event.setDroppedExp(0);
 			
 			// Make sure the action is legal
-			if (hasKiller && !action.canRewardPlayer(rewards, killer, 1)) {
+			if (hasKiller && !action.canRewardPlayer(rewards, killer, generated)) {
 				if (hasDebugger())
 					debugger.printDebug(this, "Entity %d kill cancelled: Player %s hasn't got enough resources.",
 							id, killer.getName());
@@ -133,16 +136,16 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 				// Events will not be directly cancelled for untouchables
 				if (!Permissions.hasUntouchable(killer)) {
 					// To cancel this event, spawn a new mob at the exact same location.
-					LivingEntity spawned = entity.getWorld().spawnCreature(entity.getLocation(), entity.getType());
+					LivingEntity spawned = (LivingEntity) entity.getWorld().spawnEntity(entity.getLocation(), entity.getType());
 					spawned.addPotionEffects(entity.getActivePotionEffects());
-					
+
 					// Prevent drops
 					event.getDrops().clear();
 				}
 				return;
 			}
 			
-			Collection<ResourceHolder> result = action.rewardAnyone(rewards, random, entity.getWorld(), entity.getLocation());
+			Collection<ResourceHolder> result = action.rewardAnyone(rewards, entity.getWorld(), generated, entity.getLocation());
 			config.getMessageQueue().enqueue(null, action, channels.getFormatter(null, result));
 			
 			if (hasDebugger())
@@ -163,7 +166,7 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 			
 			// Alter the default experience drop too
 			if (config.getMultiplier() != 1) {
-				Range increase = new Range(expDropped * config.getMultiplier());
+				SampleRange increase = new SampleRange(expDropped * config.getMultiplier());
 				int expChanged = increase.sampleInt(random);
 				
 				event.setDroppedExp(expChanged);

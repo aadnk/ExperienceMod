@@ -2,7 +2,7 @@ package com.comphenix.xp.rewards.xp;
 
 import org.bukkit.configuration.ConfigurationSection;
 
-import com.comphenix.xp.Range;
+import com.comphenix.xp.SampleRange;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.parser.RangeParser;
 import com.comphenix.xp.rewards.ResourceFactory;
@@ -15,7 +15,7 @@ public class ExperienceParser extends ResourcesParser {
 	@Override
 	public ResourceFactory parse(ConfigurationSection input, String key) throws ParsingException {
 
-		Range range = rangeParser.parse(input, key, null);
+		SampleRange range = rangeParser.parse(input, key, null);
 		
 		// Handle the NULL case too
 		if (range != null) {
