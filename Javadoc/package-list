@@ -9,7 +9,10 @@ com.comphenix.xp.metrics
 com.comphenix.xp.mods
 com.comphenix.xp.parser
 com.comphenix.xp.parser.primitives
+com.comphenix.xp.parser.sections
 com.comphenix.xp.parser.text
+com.comphenix.xp.reflect
 com.comphenix.xp.rewards
 com.comphenix.xp.rewards.items
 com.comphenix.xp.rewards.xp
+de.congrace.exp4j
