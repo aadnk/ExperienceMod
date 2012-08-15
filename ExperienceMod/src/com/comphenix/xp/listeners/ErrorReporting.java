@@ -116,6 +116,12 @@ public class ErrorReporting {
 		writer.println("Sender:");
 		writer.println(addPrefix(getStringDescription(sender), SECOND_LEVEL_PREFIX));
 		
+		// Add the server version too
+		if (Bukkit.getServer() != null) {
+			writer.println("Server:");
+			writer.println(addPrefix(Bukkit.getServer().getVersion(), SECOND_LEVEL_PREFIX));
+		}
+		
 		// Inform of this occurrence
 		if (debugger != null) {	
 			debugger.printWarning(this, "Error %s occured in %s.", error, sender);
