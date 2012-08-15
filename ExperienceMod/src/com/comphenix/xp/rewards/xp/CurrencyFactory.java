@@ -38,10 +38,10 @@ public class CurrencyFactory implements ResourceFactory {
 	@Override
 	public ResourceHolder getResource(Random rnd, int count) {
 
-		final int experience = getRange().sampleInt(rnd) * count;
+		final int currency = getRange().sampleInt(rnd) * count;
 		
 		// Doesn't have to be more complicated than this
-		return new ExperienceHolder(experience);
+		return new CurrencyHolder(currency);
 	}
 	
 	public SampleRange getRange() {

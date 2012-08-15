@@ -83,7 +83,7 @@ public class ErrorReporting {
 
 		// Helpful message
 		writer.println("[ExperienceMod] INTERNAL ERROR!");
-	    writer.println("If this problem has't already been reported, please open a ticket");
+	    writer.println("If this problem hasn't already been reported, please open a ticket");
 	    writer.println("at " + supportURL + " with the following data:");
 	    
 	    // Now, let us print important exception information

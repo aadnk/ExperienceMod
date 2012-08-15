@@ -55,8 +55,8 @@ public class RewardEconomy implements RewardService {
 	private ItemStack economyItem;
 	private Integer economyWorth;
 	
-	// Ordinary experience parser
-	private ResourcesParser parser = new ExperienceParser();
+	// A currency parser
+	private ResourcesParser parser = new CurrencyParser();
 	
 	public RewardEconomy(Economy economy, Debugger debugger, ItemRewardListener listener) {
 		if (economy == null)
@@ -186,9 +186,10 @@ public class RewardEconomy implements RewardService {
 		int sign = resource.getAmount() < 0 ? -1 : 1;
 		
 		// Make sure it's valid too
-		if (worth < 1)
+		if (worth < 1) {
 			worth = defaultWorth;
-		
+		}
+			
 		// Create the proper amount of items
 		for (; amount > 0; amount -= worth) {
 			Item spawned = world.dropItemNaturally(point, stack);

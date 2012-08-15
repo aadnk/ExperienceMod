@@ -23,12 +23,15 @@ import java.util.List;
 import java.util.Random;
 
 import org.apache.commons.lang.StringUtils;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 
@@ -45,11 +48,24 @@ import com.comphenix.xp.rewards.RewardProvider;
 
 public class ExperienceMobListener extends AbstractExperienceListener {
 
+	/**
+	 * Used to schedule a future reward.
+	 * @author Kristian
+	 */
+	private class FutureReward {
+		public List<ResourceHolder> generated;
+		public Action action;
+		public Configuration config;
+	}
+	
 	private Debugger debugger;
 	
 	// To determine spawn reason
 	private HashMap<Integer, SpawnReason> spawnReasonLookup = new HashMap<Integer, SpawnReason>();
 
+	// The resources to award
+	private HashMap<Integer, FutureReward> scheduledRewards = new HashMap<Integer, FutureReward>();
+	
 	// Random source
 	private Random random = new Random();
 	
@@ -76,6 +92,96 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 		}
 	}
 	
+	
+	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+	public void onEntityDamageByEntityEvent(EntityDamageByEntityEvent event) {
+		
+		try {
+			Entity attacker = event.getDamager();
+			LivingEntity killer = null;
+			
+			// See if we have a player or an arrow
+			if (attacker instanceof Player)
+				killer = (Player) attacker;
+			else if (attacker instanceof Projectile)
+				killer = ((Projectile) attacker).getShooter();
+			
+			// Only cancel living entity damage events from players
+			if (event.getEntity() instanceof LivingEntity &&
+				killer instanceof Player) {
+				
+				LivingEntity entity = (LivingEntity) event.getEntity();
+				Player playerKiller = (Player) killer;
+				int damage = event.getDamage();
+				
+				// Predict the amount of damage actually inflicted
+                if ((float) entity.getNoDamageTicks() > (float) entity.getMaximumNoDamageTicks() / 2.0F) {
+                    if (damage > entity.getLastDamage()) {
+                    	damage -= entity.getLastDamage();
+                    } else {
+                    	return;
+                    }
+                }
+                
+                // Will this most likely cause the entity to die?
+                // Note that this doesn't take into account potions and armor.
+                if (entity.getHealth() <= damage) {
+                	// Prevent this damage
+                	if (!onFutureKillEvent(entity, playerKiller)) {
+            			// Events will not be directly cancelled for untouchables
+            			if (!Permissions.hasUntouchable(playerKiller))
+            				event.setCancelled(true);
+            			
+        				if (hasDebugger())
+        					debugger.printDebug(this, "Entity %d kill cancelled: Player %s hasn't got enough resources.",
+        							entity.getEntityId(), playerKiller.getName());
+                	}
+                }
+			}
+		
+		// Every entry method must have a generic catcher
+		} catch (Exception e) {
+			report.reportError(debugger, this, e, event);
+		}
+	}
+	
+	private boolean onFutureKillEvent(LivingEntity entity, Player killer) {
+		
+		Configuration config = getConfiguration(entity, killer);
+		
+		// Warn, but allow
+		if (config == null) {
+			return true;
+		}
+		
+		// Quickly retrieve the correct action
+		RewardProvider rewards = config.getRewardProvider();
+		Action action = getAction(config, entity, killer);
+		
+		// Allow event
+		if (action == null) {
+			return true;
+		}
+		
+		// Generate some rewards
+		List<ResourceHolder> generated = action.generateRewards(rewards, random);
+		
+		FutureReward future = new FutureReward();
+		future.action = action;
+		future.generated = generated;
+		future.config = config;
+		scheduledRewards.put(entity.getEntityId(), future);
+		
+		// Could we reward the player if this mob was killed?
+		if (!action.canRewardPlayer(rewards, killer, generated)) {
+			future.generated = null;
+			return false;
+		}
+		
+		// Allow this event
+		return true;
+	}
+	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onEntityDeathEvent(EntityDeathEvent event) {
 		
@@ -94,56 +200,80 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 		}
 	}
 	
-	private void handleEntityDeath(EntityDeathEvent event, LivingEntity entity, Player killer) {
+	private Configuration getConfiguration(LivingEntity entity, Player killer) {
 		
 		boolean hasKiller = (killer != null);
-		Configuration config = null;
+		
+		if (hasKiller)
+			return getConfiguration(killer);
+		else
+			return getConfiguration(entity.getWorld());
+		
+	}
+	
+	private Action getAction(Configuration config, LivingEntity entity, Player killer) {
 		
 		Integer id = entity.getEntityId();
-		MobQuery query = MobQuery.fromExact(entity, spawnReasonLookup.get(id), hasKiller);
-
-		if (hasKiller)
-			config = getConfiguration(killer);
-		else
-			config = getConfiguration(entity.getWorld());
+		MobQuery query = MobQuery.fromExact(entity, spawnReasonLookup.get(id), killer != null);
 		
-		// Guard
+		// Report this problem
 		if (config == null) {
 			if (hasDebugger())
 				debugger.printDebug(this, "No config found for mob %d, query: %s", id, query);
-			return;
+			
+			// No action could be found
+			return null;
 		}
 		
-		Action action = config.getExperienceDrop().get(query);
-
+		return config.getExperienceDrop().get(query);
+	}
+	
+	private void handleEntityDeath(EntityDeathEvent event, LivingEntity entity, Player killer) {
+		
+		boolean hasKiller = (killer != null);
+		Integer id = entity.getEntityId();
+		
+		// Values that are either precomputed, or computed on the spot
+		Configuration config = null;
+		Action action = null;
+		List<ResourceHolder> generated = null;
+		
+		// Retrieve reward from lookup
+		if (scheduledRewards.containsKey(id)) {
+		
+			FutureReward future = scheduledRewards.get(id);
+			
+			if (future != null) {
+				action = future.action;
+				generated = future.generated;
+				config = future.config;
+			}
+		
+			// And we're done with this mob
+			scheduledRewards.remove(id);
+			
+		} else {
+			config = getConfiguration(entity, killer);
+			
+			// Make sure the configuration was found
+			if (config != null) {
+				action = getAction(config, entity, killer);
+				RewardProvider rewards = config.getRewardProvider();
+				
+				// And that the action was found
+				if (action != null)
+					generated = action.generateRewards(rewards, random);
+			}
+		}
+		
 		// Make sure the reward has been changed
-		if (action != null) {
+		if (generated != null) {
 			
-			RewardProvider rewards = config.getRewardProvider();
 			ChannelProvider channels = config.getChannelProvider();
-			
-			List<ResourceHolder> generated = action.generateRewards(rewards, random);
-			
+			RewardProvider rewards = config.getRewardProvider();
+
 			// Spawn the experience ourself
 			event.setDroppedExp(0);
-			
-			// Make sure the action is legal
-			if (hasKiller && !action.canRewardPlayer(rewards, killer, generated)) {
-				if (hasDebugger())
-					debugger.printDebug(this, "Entity %d kill cancelled: Player %s hasn't got enough resources.",
-							id, killer.getName());
-				
-				// Events will not be directly cancelled for untouchables
-				if (!Permissions.hasUntouchable(killer)) {
-					// To cancel this event, spawn a new mob at the exact same location.
-					LivingEntity spawned = (LivingEntity) entity.getWorld().spawnEntity(entity.getLocation(), entity.getType());
-					spawned.addPotionEffects(entity.getActivePotionEffects());
-
-					// Prevent drops
-					event.getDrops().clear();
-				}
-				return;
-			}
 			
 			Collection<ResourceHolder> result = action.rewardAnyone(rewards, entity.getWorld(), generated, entity.getLocation());
 			config.getMessageQueue().enqueue(null, action, channels.getFormatter(null, result));
