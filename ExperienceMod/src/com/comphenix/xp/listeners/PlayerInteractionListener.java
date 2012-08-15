@@ -40,7 +40,7 @@ public class PlayerInteractionListener implements PlayerCleanupListener, Listene
 		public ItemQuery block;
 	}
 	
-	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = false)
 	public void onPlayerInteractEvent(PlayerInteractEvent event) {
 		
 		try {
