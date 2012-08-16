@@ -69,9 +69,11 @@ public class MobMatcher extends TextParser<List<Short>> {
 		
 		// Add every default entity type and name
 		for (EntityType type : EntityType.values()) {
-			if (type != null && type.isAlive() && type.isSpawnable()) {
+			if (type != null && type.isAlive()) {
 				registerMob(type.name(), type.getTypeId());
-				registerMob(type.getName(), type.getTypeId());
+				
+				if (type.getName() != null)
+					registerMob(type.getName(), type.getTypeId());
 			}
 		}
 	}
