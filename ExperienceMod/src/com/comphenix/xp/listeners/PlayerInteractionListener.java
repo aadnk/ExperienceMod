@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang.NullArgumentException;
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -55,7 +56,7 @@ public class PlayerInteractionListener implements PlayerCleanupListener, Listene
 				ClickEvent click = new ClickEvent();
 				click.block = ItemQuery.fromExact(event.getClickedBlock());
 				click.time = System.currentTimeMillis();
-				
+
 				// Store this block (by copy, so we don't keep chunks in memory)
 				lastRightClicked.put(player.getName(), click);
 			}
@@ -68,14 +69,27 @@ public class PlayerInteractionListener implements PlayerCleanupListener, Listene
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onInventoryCloseEvent(InventoryCloseEvent event) {
 	
+		long current = System.currentTimeMillis();
+		
 		try {
 		
 			HumanEntity player = event.getPlayer();
 			
 			// Make sure this is a valid inventory open event
-			if (player != null && player instanceof Player) {
-				// This information is now outdated
-				lastRightClicked.remove(player.getName());
+			if (player instanceof Player) {
+
+				ClickEvent click = lastRightClicked.get(player.getName());
+				
+				// Ignore very recent close events - they are likely to be wrong
+				if (click != null && (current - click.time) >= 25) {
+
+					// This information is now outdated
+					lastRightClicked.remove(player.getName());	
+					
+				} else {
+					if (debugger != null)
+						debugger.printDebug(this, "Swallowed a close event.");
+				}
 			}
 		
 		} catch (Exception e) {
@@ -108,6 +122,8 @@ public class PlayerInteractionListener implements PlayerCleanupListener, Listene
 			throw new NullArgumentException("player");
 		
 		ClickEvent last = lastRightClicked.get(player.getName());
+		
+		System.out.println(ReflectionToStringBuilder.toString(last));
 		
 		// Make sure we're not outside the age limit
 		if (last != null && (
