@@ -4,7 +4,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang.NullArgumentException;
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -122,8 +121,6 @@ public class PlayerInteractionListener implements PlayerCleanupListener, Listene
 			throw new NullArgumentException("player");
 		
 		ClickEvent last = lastRightClicked.get(player.getName());
-		
-		System.out.println(ReflectionToStringBuilder.toString(last));
 		
 		// Make sure we're not outside the age limit
 		if (last != null && (
