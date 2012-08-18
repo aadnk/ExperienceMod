@@ -27,7 +27,8 @@ public interface Query {
 		Items,
 		Potions,
 		Mobs,
-		Configurations
+		Configurations, 
+		Players
 	}
 	
 	public Types getQueryType();
