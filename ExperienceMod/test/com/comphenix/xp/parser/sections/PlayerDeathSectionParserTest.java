@@ -2,6 +2,7 @@ package com.comphenix.xp.parser.sections;
 
 import static org.junit.Assert.*;
 
+import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.junit.Test;
 
 import com.comphenix.xp.Action;
@@ -33,7 +34,7 @@ public class PlayerDeathSectionParserTest {
 		
 		// Lookup
 		PlayerTree tree = test.getPlayerDeathDrop();
-		PlayerQuery aadnkQuery = PlayerQuery.fromExact("aadnk", "admin");
+		PlayerQuery aadnkQuery = PlayerQuery.fromExact("aadnk", new String[] { "admin" }, DamageCause.ENTITY_ATTACK, true);
 		PlayerQuery vipQuery = PlayerQuery.fromExact("test", "vip");
 		
 		Action aadnkAction = new Action();

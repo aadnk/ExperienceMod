@@ -154,6 +154,7 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		this.rewardProvider = provider;
 		this.channelProvider = channels;
 		this.actionParser = new ActionParser(provider);
+		this.playerParser = new PlayerParser();
 	}
 	
 	// Makes a copy of a action reward tree
@@ -274,9 +275,8 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 			multiplier = config.getDouble(MULTIPLIER_SETTING, 1);
 		else
 			multiplier = config.getInt(MULTIPLIER_SETTING, 1);
-		
+				
 		// Initialize parsers
-		StringListParser listParser = new StringListParser();
 		MobSectionParser mobsParser = new MobSectionParser(actionParser, mobParser, multiplier);
 		PlayerDeathSectionParser playerDeathParser = new PlayerDeathSectionParser(actionParser, playerParser, multiplier);
 		ItemsSectionParser itemsParser = new ItemsSectionParser(itemParser, actionParser, actionTypes, multiplier);
@@ -288,6 +288,7 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		itemsParser.setDebugger(logger);
 		playerParser.setDebugger(logger);
 		levelsParser.setDebugger(logger);
+		playerDeathParser.setDebugger(logger);
 		
 		// Enchanting settings
 		maximumEnchantLevel = config.getInt(MAXIMUM_ENCHANT_LEVEL_SETTING, DEFAULT_MAXIMUM_ENCHANT_LEVEL);
@@ -321,6 +322,7 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		}
 		
 		// Default message channels
+		StringListParser listParser = new StringListParser();
 		channelProvider.setDefaultChannels(listParser.parseSafe(config, DEFAULT_CHANNELS_SETTING));
 		
 		// Load reward type
@@ -331,7 +333,7 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 			setDefaultRewardName(defaultReward);
 	
 		loadRate(config);
-	
+		
 		try {
 			// Load mob experience
 			experienceDrop = mobsParser.parse(config, "mobs");

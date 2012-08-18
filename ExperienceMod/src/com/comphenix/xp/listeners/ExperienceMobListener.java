@@ -23,8 +23,8 @@ import java.util.List;
 import java.util.Random;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.builder.ToStringBuilder;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
@@ -200,7 +200,7 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 		
 		try {
 			// Only drop experience from mobs
-			if (entity != null && isMob(entity)) {
+			if (entity != null) {
 				result = handleEntityDeath(event, entity, killer);
 			}
 			
@@ -216,6 +216,9 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 	
 	private void handlePlayerDeath(PlayerDeathEvent event, Player player, Collection<ResourceHolder> dropped) {
 
+		// Let us handle the dropped experience
+    	event.setDroppedExp(0);
+		
 		// Permission check
         if(Permissions.hasKeepExp(player)) {
         	
@@ -275,12 +278,12 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 		if (entity instanceof Player) {
 			
 			Player entityPlayer = (Player) entity;
-			PlayerQuery query = PlayerQuery.fromExact(
-					entityPlayer.getName(), 
-					playerGroups.getPlayerGroups(entityPlayer), 
-					entityPlayer.getLastDamageCause().getCause(),
-					killer != null);
 			
+			PlayerQuery query = PlayerQuery.fromExact(
+					entityPlayer, 
+					playerGroups.getPlayerGroups(entityPlayer), 
+					killer != null);
+
 			if (config != null) {
 				return config.getPlayerDeathDrop().get(query);
 				
@@ -349,6 +352,9 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 			}
 		}
 		
+		if (hasDebugger())
+			debugger.printDebug(this, "Generated: %s", ToStringBuilder.reflectionToString(generated));
+		
 		// Make sure the reward has been changed
 		if (generated != null) {
 			
@@ -358,7 +364,13 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 			// Spawn the experience ourself
 			event.setDroppedExp(0);
 			
-			result = action.rewardAnyone(rewards, entity.getWorld(), generated, entity.getLocation());
+			// Reward the killer directly, or just drop it naturally
+			if (killer != null)
+				result = action.rewardPlayer(rewards, killer, generated);
+			else
+				result = action.rewardAnyone(rewards, entity.getWorld(), generated, entity.getLocation());
+			
+			// Print message
 			config.getMessageQueue().enqueue(null, action, channels.getFormatter(null, result));
 			
 			if (hasDebugger())
@@ -407,14 +419,5 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 	// Determine if a debugger is attached and is listening
 	private boolean hasDebugger() {
 		return debugger != null && debugger.isDebugEnabled();
-	}
-	
-	private boolean isMob(LivingEntity entity) {
-		
-		EntityType type = entity.getType();
-		
-		// Exclude players
-		return type != null &&
-			   type != EntityType.PLAYER;
 	}
 }

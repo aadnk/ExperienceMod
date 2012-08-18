@@ -6,6 +6,8 @@ import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.bukkit.entity.Player;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
 import com.comphenix.xp.parser.Utility;
@@ -73,6 +75,28 @@ public class PlayerQuery implements Query {
 				noDamages, 
 				noKill);
 	}
+	
+	/**
+	 * Creates an exact query - where null values only match unspecified "any" queries.
+	 * @param player - player to match, or  NULL to match every possible player.
+	 * @param groups - groups to match. Use a NULL element to match unspecified values.
+	 * @param murder - whether or the player was killed by another player, or NULL to match unknown cases.
+	 * @return Resulting query.
+	 */
+	public static PlayerQuery fromExact(Player player, String[] groups, Boolean murder) {
+
+		EntityDamageEvent event = player.getLastDamageCause();
+		DamageCause cause = null;
+
+		if (event != null) {
+			cause = event.getCause();
+		}
+
+		// Delegate to a more specific method
+		return fromExact(player != null ? player.getName() : null, 
+						 groups, cause, murder);
+	}
+	
 	
 	/**
 	 * Creates an exact query - where null values only match unspecified "any" queries.
@@ -179,7 +203,8 @@ public class PlayerQuery implements Query {
 			// Make sure the current query is the superset of other
 			return QueryMatching.matchParameter(names, query.names) &&
 				   QueryMatching.matchParameter(groups, query.groups) &&
-				   QueryMatching.matchParameter(deathCause, query.deathCause);
+				   QueryMatching.matchParameter(deathCause, query.deathCause) &&
+				   QueryMatching.matchParameter(murder, query.murder);
 		}
 		
 		// Query must be of the same type
@@ -193,7 +218,6 @@ public class PlayerQuery implements Query {
 				hasNames() ? StringUtils.join(names, ", ") : "",
 				hasGroups() ? StringUtils.join(groups, ", ") : "",
 				hasDeathCause() ? StringUtils.join(deathCause, ", ") : "",
-			    Utility.formatBoolean("spawner", murder));
-		
+			    Utility.formatBoolean("murder", murder));
 	}
 }
