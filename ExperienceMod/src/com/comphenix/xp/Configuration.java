@@ -37,13 +37,10 @@ import com.comphenix.xp.parser.ActionParser;
 import com.comphenix.xp.parser.StringListParser;
 import com.comphenix.xp.parser.Utility;
 import com.comphenix.xp.parser.ParsingException;
-import com.comphenix.xp.parser.sections.ItemsSectionParser;
-import com.comphenix.xp.parser.sections.ItemsSectionResult;
-import com.comphenix.xp.parser.sections.LevelsSectionParser;
-import com.comphenix.xp.parser.sections.MobSectionParser;
-import com.comphenix.xp.parser.sections.PlayerSectionParser;
+import com.comphenix.xp.parser.sections.*;
 import com.comphenix.xp.parser.text.ItemParser;
 import com.comphenix.xp.parser.text.MobParser;
+import com.comphenix.xp.parser.text.PlayerParser;
 import com.comphenix.xp.rewards.ResourceFactory;
 import com.comphenix.xp.rewards.RewardProvider;
 import com.comphenix.xp.rewards.RewardTypes;
@@ -99,13 +96,15 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 	private Map<Integer, ItemTree> actionRewards = new HashMap<Integer, ItemTree>();
 	private Map<Integer, PotionTree> complexRewards = new HashMap<Integer, PotionTree>();
 	
+	private PlayerTree playerDeathDrop;
 	private MobTree experienceDrop;
 	private PlayerRewards playerRewards;
 	
 	private ItemParser itemParser;
 	private MobParser mobParser;
 	private ActionParser actionParser;
-
+	private PlayerParser playerParser;
+	
 	public Configuration(Debugger debugger, ActionTypes actionTypes) {
 		this.logger = debugger;
 		this.defaultRewardsDisabled = false;
@@ -138,11 +137,13 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		this.itemParser = other.itemParser;
 		this.mobParser = other.mobParser;
 		this.actionTypes = other.actionTypes;
+		this.playerParser = other.playerParser;
 		
 		// Copy (shallow) trees
 		this.actionRewards = copyActionsWithMultiplier(other.actionRewards, newMultiplier);
 		this.complexRewards = copyActionsWithMultiplier(other.complexRewards, newMultiplier);
 		this.experienceDrop = other.experienceDrop.withMultiplier(newMultiplier);
+		this.playerDeathDrop = other.playerDeathDrop.withMultiplier(newMultiplier);
 		this.playerRewards = other.playerRewards.withMultiplier(newMultiplier);
 		this.levelingRate = other.levelingRate;
 		this.checkRewards();
@@ -233,6 +234,7 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 			}
 			
 			copy.experienceDrop.putAll(config.experienceDrop);
+			copy.playerDeathDrop.putAll(config.playerDeathDrop);
 			copy.playerRewards.putAll(config.playerRewards);
 			copy.levelingRate.putAll(config.levelingRate);
 			mergeActions(copy.actionRewards, config.actionRewards);
@@ -251,6 +253,7 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 			copy.itemParser = config.itemParser;
 			copy.mobParser = config.mobParser;
 			copy.actionParser = config.actionParser;
+			copy.playerParser = config.playerParser;
 			
 			// Multiply all multipliers
 			copy.multiplier *= config.multiplier; 
@@ -275,6 +278,7 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		// Initialize parsers
 		StringListParser listParser = new StringListParser();
 		MobSectionParser mobsParser = new MobSectionParser(actionParser, mobParser, multiplier);
+		PlayerDeathSectionParser playerDeathParser = new PlayerDeathSectionParser(actionParser, playerParser, multiplier);
 		ItemsSectionParser itemsParser = new ItemsSectionParser(itemParser, actionParser, actionTypes, multiplier);
 		PlayerSectionParser playerParser = new PlayerSectionParser(actionParser, multiplier);
 		LevelsSectionParser levelsParser = new LevelsSectionParser();
@@ -332,6 +336,9 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 			// Load mob experience
 			experienceDrop = mobsParser.parse(config, "mobs");
 			
+			// Load player death experience
+			playerDeathDrop = playerDeathParser.parse(config, "player death");
+			
 			// Load items and potions
 			ItemsSectionResult result = itemsParser.parse(config, "items");
 			actionRewards = result.getActionRewards();
@@ -375,6 +382,7 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		
 		// Clear previous values
 		experienceDrop = new MobTree(multiplier);
+		playerDeathDrop = new PlayerTree(multiplier);
 		
 		// Initialize all the default rewards
 		for (Integer types : actionTypes.getTypes()) {
@@ -382,6 +390,7 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 			complexRewards.put(types, new PotionTree(multiplier));
 		}
 		
+		playerParser = new PlayerParser();
 		playerRewards = new PlayerRewards(multiplier);
 		this.levelingRate = new LevelingRate();
 		this.multiplier = multiplier;
@@ -403,7 +412,8 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		}
 		
 		// Copy the content of every special collection
-		actions.addAll(experienceDrop.getValues());		
+		actions.addAll(experienceDrop.getValues());
+		actions.addAll(playerDeathDrop.getValues());
 		actions.addAll(playerRewards.getValues());
 		return actions;
 	}
@@ -701,6 +711,22 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 
 	public void setActionParser(ActionParser actionParser) {
 		this.actionParser = actionParser;
+	}
+	
+	public PlayerTree getPlayerDeathDrop() {
+		return playerDeathDrop;
+	}
+
+	public void setPlayerDeathDrop(PlayerTree playerDeathDrop) {
+		this.playerDeathDrop = playerDeathDrop;
+	}
+
+	public PlayerParser getPlayerParser() {
+		return playerParser;
+	}
+
+	public void setPlayerParser(PlayerParser playerParser) {
+		this.playerParser = playerParser;
 	}
 
 	// Let the message queue know

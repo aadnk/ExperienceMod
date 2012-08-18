@@ -18,6 +18,7 @@ import com.comphenix.xp.parser.text.ItemNameParser;
 import com.comphenix.xp.parser.text.ItemParser;
 import com.comphenix.xp.parser.text.MobMatcher;
 import com.comphenix.xp.parser.text.MobParser;
+import com.comphenix.xp.parser.text.PlayerParser;
 import com.comphenix.xp.rewards.RewardProvider;
 import com.comphenix.xp.rewards.RewardTypes;
 import com.comphenix.xp.rewards.items.ItemsParser;
@@ -102,10 +103,11 @@ public class ConfigurationTest {
 	}
 	
 	// Load configuration from text
-	private Configuration createConfig(String text, Debugger debugger, RewardProvider provider) {
+	public static Configuration createConfig(String text, Debugger debugger, RewardProvider provider) {
 		Configuration config = new Configuration(debugger, provider, new ChannelProvider());
 		ItemNameParser nameParser = new ItemNameParser();
 		
+		config.setPlayerParser(new PlayerParser());
 		config.setItemParser(new ItemParser(nameParser));
 		config.setMobParser(new MobParser(new MobMatcher()));
 		config.setActionTypes(ActionTypes.Default());
@@ -113,7 +115,7 @@ public class ConfigurationTest {
 		return config;
 	}
 	
-	private YamlConfiguration fromText(String text) {
+	private static YamlConfiguration fromText(String text) {
 		try {
 			InputStream buffer = new ByteArrayInputStream(text.getBytes("UTF-8"));
 			return YamlConfiguration.loadConfiguration(buffer);

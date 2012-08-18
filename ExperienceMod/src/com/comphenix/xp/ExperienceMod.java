@@ -84,8 +84,10 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	// Scheduling
 	private PlayerScheduler playerScheduler;
 
+	// VAULT only
 	private Economy economy;
 	private Chat chat;
+	private PlayerGroupMembership playerGroups;
 	
 	private ExperienceBlockListener xpBlockListener;
 	private ExperienceItemListener xpItemListener;
@@ -107,7 +109,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	private GlobalSettings globalSettings;
 	private ConfigurationLoader configLoader;
 	private Presets presets;
-
+	
 	// Metrics!
 	private DataCollector dataCollector;
 	private AutoUpdate autoUpdate;
@@ -195,6 +197,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	@Override
 	public void onEnable() {
 		try {
+			playerGroups = new PlayerGroupMembership(chat);
 			interactionListener = new PlayerInteractionListener(this);
 			
 			// Commands
@@ -765,7 +768,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		if (xpBlockListener == null || xpItemListener == null || xpMobListener == null) {
 			xpItemListener = new ExperienceItemListener(this, playerScheduler, customProvider, presets);
 			xpBlockListener = new ExperienceBlockListener(this, presets, historyProviders);
-			xpMobListener = new ExperienceMobListener(this, presets);
+			xpMobListener = new ExperienceMobListener(this, playerGroups, presets);
 			xpEnchancer = new ExperienceEnhancementsListener(this, presets);
 			xpLevel = new ExperienceLevelListener(this, presets);
 			xpCleanup = new ExperienceCleanupListener(presets, interactionListener, playerScheduler);

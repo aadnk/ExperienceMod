@@ -32,7 +32,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.enchantment.EnchantItemEvent;
 import org.bukkit.event.enchantment.PrepareItemEnchantEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.InventoryView;
 
 import com.comphenix.xp.Configuration;
@@ -68,38 +67,7 @@ public class ExperienceEnhancementsListener extends AbstractExperienceListener {
 		this.debugger = debugger;
 		this.presets = presets;
 	}
-	
-	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-	public void onPlayerDeathEvent(PlayerDeathEvent event) {
 		
-		// Handle exceptions too
-		try {
-			Player player = event.getEntity();
-			
-			if (player != null) {
-				handlePlayerDeath(event, player);
-			}
-		} catch (Exception e) {
-			report.reportError(debugger, this, e, event);
-		}
-	}
-	
-	private void handlePlayerDeath(PlayerDeathEvent event, Player player) {
-
-		// Permission check
-        if(Permissions.hasKeepExp(player)) {
-
-            event.setDroppedExp(0);
-            event.setKeepLevel(true);
-            
-            if (hasDebugger())
-        		debugger.printDebug(this, "Prevented experience loss for %s.", player.getName());
-            
-        } else {
-        	event.setKeepLevel(false);
-        }
-	}
-	
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void onEnchantItemEvent(EnchantItemEvent event) {
 

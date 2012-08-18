@@ -33,6 +33,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 
 import com.comphenix.xp.Action;
@@ -42,9 +43,13 @@ import com.comphenix.xp.Presets;
 import com.comphenix.xp.SampleRange;
 import com.comphenix.xp.extra.Permissions;
 import com.comphenix.xp.lookup.MobQuery;
+import com.comphenix.xp.lookup.PlayerQuery;
 import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.rewards.ResourceHolder;
 import com.comphenix.xp.rewards.RewardProvider;
+import com.comphenix.xp.rewards.xp.ExperienceHolder;
+import com.comphenix.xp.rewards.xp.ExperienceManager;
+import com.google.common.collect.Lists;
 
 public class ExperienceMobListener extends AbstractExperienceListener {
 
@@ -60,6 +65,9 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 	
 	private Debugger debugger;
 	
+	// To determine which groups are player is part of
+	private PlayerGroupMembership playerGroups;
+	
 	// To determine spawn reason
 	private HashMap<Integer, SpawnReason> spawnReasonLookup = new HashMap<Integer, SpawnReason>();
 
@@ -72,8 +80,9 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 	// Error report creator
 	private ErrorReporting report = ErrorReporting.DEFAULT;
 	
-	public ExperienceMobListener(Debugger debugger, Presets presets) {
+	public ExperienceMobListener(Debugger debugger, PlayerGroupMembership playerGroups, Presets presets) {
 		this.debugger = debugger;
+		this.playerGroups = playerGroups;
 		setPresets(presets);
 	}
 	
@@ -187,11 +196,16 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 		
 		LivingEntity entity = event.getEntity();
 		Player killer = entity.getKiller();
+		Collection<ResourceHolder> result = null;
 		
 		try {
 			// Only drop experience from mobs
 			if (entity != null && isMob(entity)) {
-				handleEntityDeath(event, entity, killer);
+				result = handleEntityDeath(event, entity, killer);
+			}
+			
+			if (event instanceof PlayerDeathEvent) {
+				handlePlayerDeath((PlayerDeathEvent) event, (Player) entity, result);
 			}
 		
 		// Every entry method must have a generic catcher
@@ -200,35 +214,101 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 		}
 	}
 	
+	private void handlePlayerDeath(PlayerDeathEvent event, Player player, Collection<ResourceHolder> dropped) {
+
+		// Permission check
+        if(Permissions.hasKeepExp(player)) {
+        	
+            event.setKeepLevel(true);
+            
+            if (hasDebugger())
+        		debugger.printDebug(this, "Prevented experience loss for %s.", player.getName());
+            
+        } else {
+        	int total = 0;     	
+        
+        	// Subtract the dropped experience
+        	for (ResourceHolder holder : dropped) {
+        		if (holder instanceof ExperienceHolder) {
+        			ExperienceHolder exp = (ExperienceHolder) holder;
+        			total += exp.getAmount();
+        		}
+        	}
+        	
+        	// Set the correct level and experience
+        	subtractExperience(event, player, total);
+        	
+            if (hasDebugger())
+        		debugger.printDebug(this, "%s took %d experience loss.", player.getName(), total);
+        }
+	}
+	
+	private void subtractExperience(PlayerDeathEvent event, Player player, int experience) {
+		
+		ExperienceManager manager = new ExperienceManager(player);   
+		int current = manager.getCurrentExp();
+		int after = Math.max(current - experience, 0);
+		int level = manager.getLevelForExp(after);
+		
+		// Calculate the correct amount of experience left
+		event.setKeepLevel(false);
+		event.setNewLevel(level);
+		event.setNewExp(after - manager.getXpForLevel(level));
+		event.setNewTotalExp(Math.max(player.getTotalExperience() - experience, 0));
+	}
+	
 	private Configuration getConfiguration(LivingEntity entity, Player killer) {
 		
 		boolean hasKiller = (killer != null);
 		
+		// Get the correct configuration
 		if (hasKiller)
 			return getConfiguration(killer);
+		else if (entity instanceof Player)
+			return getConfiguration((Player) entity);
 		else
 			return getConfiguration(entity.getWorld());
-		
 	}
 	
 	private Action getAction(Configuration config, LivingEntity entity, Player killer) {
-		
-		Integer id = entity.getEntityId();
-		MobQuery query = MobQuery.fromExact(entity, spawnReasonLookup.get(id), killer != null);
-		
-		// Report this problem
-		if (config == null) {
-			if (hasDebugger())
-				debugger.printDebug(this, "No config found for mob %d, query: %s", id, query);
+				
+		if (entity instanceof Player) {
 			
-			// No action could be found
-			return null;
-		}
+			Player entityPlayer = (Player) entity;
+			PlayerQuery query = PlayerQuery.fromExact(
+					entityPlayer.getName(), 
+					playerGroups.getPlayerGroups(entityPlayer), 
+					entityPlayer.getLastDamageCause().getCause(),
+					killer != null);
+			
+			if (config != null) {
+				return config.getPlayerDeathDrop().get(query);
+				
+			} else {
+				// Report this problem
+				if (hasDebugger())
+					debugger.printDebug(this, "No config found for player %d, query: %s", entityPlayer.getName(), query);
+				return null;
+			}
+			
+		} else {
 		
-		return config.getExperienceDrop().get(query);
+			Integer id = entity.getEntityId();
+			MobQuery query = MobQuery.fromExact(entity, spawnReasonLookup.get(id), killer != null);
+			
+			if (config != null) {
+				return config.getExperienceDrop().get(query);
+				
+			} else {
+				// Report this problem
+				if (hasDebugger())
+					debugger.printDebug(this, "No config found for mob %d, query: %s", id, query);
+				return null;
+			}
+		}
 	}
 	
-	private void handleEntityDeath(EntityDeathEvent event, LivingEntity entity, Player killer) {
+	private Collection<ResourceHolder> handleEntityDeath(EntityDeathEvent event, LivingEntity entity, Player killer) {
 		
 		boolean hasKiller = (killer != null);
 		Integer id = entity.getEntityId();
@@ -236,7 +316,10 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 		// Values that are either precomputed, or computed on the spot
 		Configuration config = null;
 		Action action = null;
+		
+		// Resources generated and given
 		List<ResourceHolder> generated = null;
+		Collection<ResourceHolder> result = null;
 		
 		// Retrieve reward from lookup
 		if (scheduledRewards.containsKey(id)) {
@@ -275,13 +358,13 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 			// Spawn the experience ourself
 			event.setDroppedExp(0);
 			
-			Collection<ResourceHolder> result = action.rewardAnyone(rewards, entity.getWorld(), generated, entity.getLocation());
+			result = action.rewardAnyone(rewards, entity.getWorld(), generated, entity.getLocation());
 			config.getMessageQueue().enqueue(null, action, channels.getFormatter(null, result));
 			
 			if (hasDebugger())
 				debugger.printDebug(this, "Entity %d: Changed experience drop to %s.", 
 						id, StringUtils.join(result, ", "));
-		
+
 		} else if (config.isDefaultRewardsDisabled() && hasKiller) {
 			
 			// Disable all mob XP
@@ -307,7 +390,18 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 		}
 		
 		// Remove it from the lookup
-		spawnReasonLookup.remove(id);
+		if (!(entity instanceof Player)) {
+			spawnReasonLookup.remove(id);
+		}
+	
+		// Set the experience dropped
+		if (result == null) {
+			result = Lists.newArrayList(
+				(ResourceHolder) new ExperienceHolder(event.getDroppedExp())
+			);
+		}
+		
+		return null;
 	}
 	
 	// Determine if a debugger is attached and is listening
