@@ -24,6 +24,7 @@ import java.util.Random;
 
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
@@ -90,6 +91,7 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 			report.reportError(debugger, this, e, event);
 		}
 	}
+	
 	
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
 	public void onEntityDamageByEntityEvent(EntityDamageByEntityEvent event) {
@@ -186,9 +188,9 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 		LivingEntity entity = event.getEntity();
 		Player killer = entity.getKiller();
 		
- 		try {
+		try {
 			// Only drop experience from mobs
-			if (entity != null) {
+			if (entity != null && isMob(entity)) {
 				handleEntityDeath(event, entity, killer);
 			}
 		
@@ -311,5 +313,14 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 	// Determine if a debugger is attached and is listening
 	private boolean hasDebugger() {
 		return debugger != null && debugger.isDebugEnabled();
+	}
+	
+	private boolean isMob(LivingEntity entity) {
+		
+		EntityType type = entity.getType();
+		
+		// Exclude players
+		return type != null &&
+			   type != EntityType.PLAYER;
 	}
 }
