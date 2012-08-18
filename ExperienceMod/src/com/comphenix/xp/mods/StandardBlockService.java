@@ -21,8 +21,8 @@ public class StandardBlockService implements BlockService {
 
 		// Crafting, smelting and potion check
 		boolean isCraftResult = event.getSlotType() == SlotType.RESULT;
-		boolean isPotionResult = event.getSlot() < 3;
-
+		boolean isPotionResult = event.getRawSlot() < 3;
+		
 		InventoryType type = event.getInventory().getType();
 		ItemStack toCraft = event.getCurrentItem();
 		

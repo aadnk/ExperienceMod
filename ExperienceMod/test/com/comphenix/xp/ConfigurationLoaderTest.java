@@ -31,7 +31,7 @@ public class ConfigurationLoaderTest implements Debugger {
 
 		// Now, get the two configurations
 		Configuration world = presets.getConfiguration(null, "world");
-		Configuration nether = presets.getConfiguration(null, "world_nether");
+		Configuration nether = presets.getConfiguration(null, "world_creative_flat");
 		
 		// They should be different
 		assertNotSame(world, nether);

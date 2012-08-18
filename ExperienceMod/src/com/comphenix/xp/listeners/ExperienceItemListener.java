@@ -372,9 +372,10 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 				}
 				
 				// Nothing do do
-				if (action == null)
+				if (action == null) {
+					debugger.printDebug(this, "Action not found: %s", toCraft);
 					return;
-				else
+				} else
 					action.setDebugger(debugger);
 				
 				// Simple enough
@@ -412,6 +413,10 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 					
 					if (hasDebugger())
 						debugger.printDebug(this, "Added potion marker. New durability: %s", marker.toDurability());
+					
+				} else {
+					if (hasDebugger())
+						debugger.printDebug(this, "Cannot reward potion %s twice.", stack);
 				}
 			}
 			

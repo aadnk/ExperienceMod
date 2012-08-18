@@ -109,7 +109,7 @@ public class ItemDurabilityParser extends TextParser<Integer> {
 			if (isItem(itemID, Material.POTION)) {
 				// Let the caller figure this out. The token are to be processed further,
 				// so we'll keep it in.
-				return null; 
+				throw new ParsingException("This is a potion.");
 			}
 			
 			// ToDo: Make it possible to use named durabilities without the correct item ID
