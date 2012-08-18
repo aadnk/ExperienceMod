@@ -389,6 +389,6 @@ public class MobQuery implements Query {
 	
 	@Override
 	public Types getQueryType() {
-		return Types.Mobs;
+		return Types.MOBS;
 	}
 }

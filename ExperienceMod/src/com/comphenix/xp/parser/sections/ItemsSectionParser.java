@@ -84,11 +84,11 @@ public class ItemsSectionParser extends SectionParser<ItemsSectionResult> {
 
 					// Handle the special case of potion queries
 					switch (queryType) {
-					case Items:
+					case ITEMS:
 						loadActionOnItem(itemSection, action, item, result.getActionReward(type), queryType);
 						break;
 						
-					case Potions:
+					case POTIONS:
 						loadActionOnItem(itemSection, action, item, result.getComplexReward(type), queryType);
 						break;
 						

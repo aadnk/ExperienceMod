@@ -24,11 +24,11 @@ package com.comphenix.xp.lookup;
  */
 public interface Query {
 	public enum Types {
-		Items,
-		Potions,
-		Mobs,
-		Configurations, 
-		Players
+		ITEMS,
+		POTIONS,
+		MOBS,
+		CONFIGURATIONS, 
+		PLAYERS
 	}
 	
 	public Types getQueryType();

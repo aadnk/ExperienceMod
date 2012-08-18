@@ -190,7 +190,7 @@ public class PlayerQuery implements Query {
 	
 	@Override
 	public Types getQueryType() {
-		return Types.Players;
+		return Types.PLAYERS;
 	}
 
 	@Override

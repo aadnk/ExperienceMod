@@ -127,6 +127,6 @@ public class PresetQuery implements Query {
 	
 	@Override
 	public Types getQueryType() {
-		return Types.Configurations;
+		return Types.CONFIGURATIONS;
 	}
 }
