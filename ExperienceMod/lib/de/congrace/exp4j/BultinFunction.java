@@ -26,6 +26,10 @@ public class BultinFunction extends CustomFunction {
 		SQRT(1),
 		TAN(1),
 		TANH(1),
+		LERP(3),
+		NORM(3),
+		MAX(2),
+		MIN(2),
 		ROUND(1);
 		
 		final int argCount;
@@ -103,6 +107,14 @@ public class BultinFunction extends CustomFunction {
 			return Math.log(args[0]);
 		case POW:
 			return Math.pow(args[0], args[1]);
+		case MAX:
+			return Math.max(args[0], args[1]);
+		case MIN:
+			return Math.min(args[0], args[1]);
+		case LERP:
+			return lerp(args[0], args[1], args[2]);
+		case NORM:
+			return norm(args[0], args[1], args[2]);
 		case ROUND:
 			return Math.round(args[0]);
 		case SIN:
@@ -119,6 +131,14 @@ public class BultinFunction extends CustomFunction {
 			throw new IllegalStateException("Illegal function name detected.");
 		}
 	}
+
+    private static double lerp(double start, double stop, double amount) {
+        return start + (stop - start) * amount;
+    }
+    
+    private static double norm(double start, double stop, double value) {
+        return (value - start) / (stop - start);
+    }
 	
 	public StandardFunctions getStandard() {
 		return standard;
