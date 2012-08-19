@@ -6,7 +6,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import com.comphenix.xp.SampleRange;
 import com.comphenix.xp.lookup.LevelingRate;
 import com.comphenix.xp.parser.ParsingException;
-import com.comphenix.xp.parser.RangeParser;
+import com.comphenix.xp.parser.text.StringRangeParser;
 
 import de.congrace.exp4j.Calculable;
 import de.congrace.exp4j.CustomFunction;
@@ -21,8 +21,7 @@ public class LevelsSectionParser extends SectionParser<LevelingRate> {
 	public LevelingRate parse(ConfigurationSection input, String sectionName) throws ParsingException {
 
 		LevelingRate levels = new LevelingRate();
-		
-		RangeParser rangeParser = new RangeParser();
+		StringRangeParser rangeParser = new StringRangeParser();
 		
 		if (input == null)
 			throw new NullArgumentException("input");
@@ -40,7 +39,7 @@ public class LevelsSectionParser extends SectionParser<LevelingRate> {
 		for (String key : input.getKeys(false)) {
 			try {
 				
-				SampleRange levelRange = rangeParser.parseString(key, null);
+				SampleRange levelRange = rangeParser.parse(key, null);
 				
 				if (levelRange != null) {
 					parseValue(levelRange, levels, input.get(key));

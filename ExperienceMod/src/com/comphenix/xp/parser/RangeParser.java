@@ -1,13 +1,12 @@
 package com.comphenix.xp.parser;
 
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.commons.lang.NullArgumentException;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.comphenix.xp.SampleRange;
+import com.comphenix.xp.parser.text.StringRangeParser;
 
 /**
  * Responsible for reading ranges. 
@@ -16,8 +15,20 @@ import com.comphenix.xp.SampleRange;
  */
 public class RangeParser extends ConfigurationParser<SampleRange> {
 	
-	private Pattern matchRange = Pattern.compile("\\s*\\[?([^\\[\\],-]+)[,-]?([^\\[\\],-]+)?\\]?\\s*");
+	protected TextParser<SampleRange> textParser;
 	
+	public RangeParser() {
+		this(new StringRangeParser());
+	}
+	
+	/**
+	 * Constructs a range parser with a specified text parser.
+	 * @param textParser - text parser to use.
+	 */
+	public RangeParser(TextParser<SampleRange> textParser) {
+		this.textParser = textParser;
+	}
+
 	@Override
 	public SampleRange parse(ConfigurationSection input, String key) throws ParsingException {
 
@@ -91,7 +102,7 @@ public class RangeParser extends ConfigurationParser<SampleRange> {
 			
 		} else if (root instanceof String) { 
 			// Parse it as a string
-			return parseString((String) root, defaultValue);
+			return textParser.parse((String) root, defaultValue);
 		}
 		
 		// Backwards compatibility
@@ -100,29 +111,6 @@ public class RangeParser extends ConfigurationParser<SampleRange> {
 		} else {
 			return defaultValue;
 		}
-	}
-	
-	public SampleRange parseString(String text, SampleRange defaultValue) {
-		
-		// Try a simple "-" syntax
-		Matcher match = matchRange.matcher(text);
-		
-		// Construct the range from the captured groups
-		if (match.matches()) {
-			if (match.groupCount() == 1 || match.group(2) == null) {
-				return new SampleRange(
-						tryParse(match.group(1))
-				);
-			} else {
-				return new SampleRange(
-						tryParse(match.group(1)),
-						tryParse(match.group(2))
-				); 
-			}
-		}
-		
-		// No match
-		return defaultValue;
 	}
 
 	private double tryParse(Object obj) {
