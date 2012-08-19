@@ -20,7 +20,7 @@ package de.congrace.exp4j;
  */
 public abstract class CustomFunction {
 	// Had to remove the final flag
-	int argc;
+	protected int argc;
 
 	final String name;
 

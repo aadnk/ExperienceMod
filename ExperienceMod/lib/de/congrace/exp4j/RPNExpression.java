@@ -57,4 +57,17 @@ class RPNExpression implements Calculable {
 	public double calculate() {
 		return calculate(null);
 	}
+
+	@Override
+	public boolean containsVariable(String name) {
+		// Check the token stream
+		for (Token token : tokens) {
+			if (token instanceof VariableToken && token.getValue().equals(name)) {
+				// This variable is mentioned
+				return true;
+			}
+		}
+		
+		return false;
+	}
 }

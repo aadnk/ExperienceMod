@@ -23,7 +23,7 @@ public interface Calculable {
 	 * @return the result of the calculation
 	 */
 	public double calculate(double... variableValues);
-
+	
 	/**
 	 * return the expression in reverse polish postfix notation
 	 * 
@@ -40,4 +40,11 @@ public interface Calculable {
 	 *            the value of the variable
 	 */
 	public void setVariable(String name, double value);
+	
+	/**
+	 * Determines if the given variable exists.
+	 * @param name - name of the variable.
+	 * @return TRUE if it does, FALSE otherwise.
+	 */
+	public boolean containsVariable(String name);
 }
