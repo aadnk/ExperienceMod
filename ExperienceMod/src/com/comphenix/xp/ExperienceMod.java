@@ -45,6 +45,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.comphenix.xp.commands.CommandExperienceMod;
 import com.comphenix.xp.commands.CommandSpawnExp;
+import com.comphenix.xp.expressions.ParameterProviderSet;
+import com.comphenix.xp.expressions.StandardPlayerService;
 import com.comphenix.xp.extra.Permissions;
 import com.comphenix.xp.extra.Service;
 import com.comphenix.xp.extra.ServiceProvider;
@@ -105,6 +107,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	private ChannelProvider channelProvider;
 	private CustomBlockProviders customProvider;
 	private HistoryProviders historyProviders;
+	private ParameterProviderSet parameterProviders;
 	
 	private GlobalSettings globalSettings;
 	private ConfigurationLoader configLoader;
@@ -176,8 +179,13 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			customProvider = new CustomBlockProviders();
 			customProvider.register(new StandardBlockService());
 			
+			// Initialize parameter providers
+			parameterProviders = new ParameterProviderSet();
+			parameterProviders.registerPlayer(new StandardPlayerService(rewardProvider));
+			
 			// Initialize configuration loader
-			configLoader = new ConfigurationLoader(getDataFolder(), this, rewardProvider, channelProvider);
+			configLoader = new ConfigurationLoader(getDataFolder(), this, 
+								rewardProvider, channelProvider, parameterProviders);
 		
 			// Initialize error reporter
 			report.setErrorCount(0);
@@ -186,6 +194,10 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			report.addGlobalParameter("historyProvider", historyProviders);
 			report.addGlobalParameter("channelProvider", channelProvider);
 			report.addGlobalParameter("customProvider", customProvider);
+			report.addGlobalParameter("playerProviders", parameterProviders.getPlayerParameters());
+			report.addGlobalParameter("entityProviders", parameterProviders.getEntityParameters());
+			report.addGlobalParameter("blockProviders", parameterProviders.getBlockParameters());
+			report.addGlobalParameter("itemProviders", parameterProviders.getItemParameters());
 			
 		} catch (Exception e) {
 			// Well, this is bad.
@@ -651,6 +663,22 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		this.historyProviders = historyProviders;
 	}
 	
+	/**
+	 * Gets the registry of parameter providers.
+	 * @return Registry of parameter providers.
+	 */
+	public ParameterProviderSet getParameterProviders() {
+		return parameterProviders;
+	}
+
+	/**
+	 * Sets the registry of parameter providers.
+	 * @param parameterProviders - new registry of the parameter providers.
+	 */
+	public void setParameterProviders(ParameterProviderSet parameterProviders) {
+		this.parameterProviders = parameterProviders;
+	}
+
 	public ItemRewardListener getItemListener() {
 		return itemListener;
 	}

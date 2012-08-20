@@ -24,6 +24,7 @@ import java.util.Map;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
+import com.comphenix.xp.expressions.ParameterProviderSet;
 import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.parser.text.ItemNameParser;
 import com.comphenix.xp.parser.text.ItemParser;
@@ -40,6 +41,7 @@ public class ConfigurationLoader {
 	private Debugger logger;
 	private RewardProvider rewardProvider;
 	private ChannelProvider channelProvider;
+	private ParameterProviderSet parameterProviders;
 	
 	// Registry of action types
 	private ActionTypes actionTypes = ActionTypes.Default();
@@ -50,11 +52,14 @@ public class ConfigurationLoader {
 	private MobMatcher mobMatcher = new MobMatcher();
 	private MobParser mobParser = new MobParser(mobMatcher);
 	
-	public ConfigurationLoader(File rootPath, Debugger logger, RewardProvider rewardProvider, ChannelProvider channelProvider) {
+	public ConfigurationLoader(File rootPath, Debugger logger, RewardProvider rewardProvider, 
+							   ChannelProvider channelProvider, ParameterProviderSet parameterProviders) {
+		
 		this.rootPath = rootPath;
 		this.logger = logger;
 		this.rewardProvider = rewardProvider;
 		this.channelProvider = channelProvider;
+		this.parameterProviders = parameterProviders;
 		this.configurationFiles = new HashMap<File, Configuration>();
 	}
 	
@@ -158,6 +163,7 @@ public class ConfigurationLoader {
 
 		Configuration config = new Configuration(logger, rewardProvider, channelProvider);
 		
+		config.setParameterProviders(parameterProviders);
 		config.setItemParser(itemParser);
 		config.setMobParser(mobParser);
 		config.setActionTypes(actionTypes);
@@ -173,6 +179,7 @@ public class ConfigurationLoader {
 			Configuration config = new Configuration(logger, rewardProvider, channelProvider);
 			
 			// Load from YAML
+			config.setParameterProviders(parameterProviders);
 			config.setItemParser(itemParser);
 			config.setMobParser(mobParser);
 			config.setActionTypes(actionTypes);

@@ -28,6 +28,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import com.comphenix.xp.expressions.ParameterProviderSet;
 import com.comphenix.xp.listeners.ErrorReporting;
 import com.comphenix.xp.listeners.PlayerCleanupListener;
 import com.comphenix.xp.lookup.*;
@@ -79,6 +80,7 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 	
 	private RewardProvider rewardProvider;
 	private ChannelProvider channelProvider;
+	private ParameterProviderSet parameterProviders;
 	private MessagePlayerQueue messageQueue;
 
 	private LevelingRate levelingRate;
@@ -127,6 +129,7 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		this.economyDropItem = other.economyDropItem;
 		this.scanRadiusSetting = other.scanRadiusSetting;
 		
+		this.parameterProviders = other.parameterProviders;
 		this.rewardProvider = other.rewardProvider;
 		this.channelProvider = other.channelProvider;
 		this.actionParser = other.actionParser;
@@ -248,6 +251,7 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 			copy.messageQueue = config.messageQueue;
 			copy.rewardProvider = config.rewardProvider;
 			copy.channelProvider = config.channelProvider;
+			copy.parameterProviders = config.parameterProviders;
 			copy.economyItemWorth = config.economyItemWorth;
 			copy.economyDropItem = config.economyDropItem;
 			copy.scanRadiusSetting = config.scanRadiusSetting;
@@ -277,7 +281,7 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 			multiplier = config.getInt(MULTIPLIER_SETTING, 1);
 				
 		// Initialize parsers
-		MobSectionParser mobsParser = new MobSectionParser(actionParser, mobParser, multiplier);
+		MobSectionParser mobsParser = new MobSectionParser(actionParser, mobParser, parameterProviders, multiplier);
 		PlayerDeathSectionParser playerDeathParser = new PlayerDeathSectionParser(actionParser, playerParser, multiplier);
 		ItemsSectionParser itemsParser = new ItemsSectionParser(itemParser, actionParser, actionTypes, multiplier);
 		PlayerSectionParser playerParser = new PlayerSectionParser(actionParser, multiplier);
@@ -729,6 +733,14 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 
 	public void setPlayerParser(PlayerParser playerParser) {
 		this.playerParser = playerParser;
+	}
+	
+	public ParameterProviderSet getParameterProviders() {
+		return parameterProviders;
+	}
+
+	public void setParameterProviders(ParameterProviderSet parameterProviders) {
+		this.parameterProviders = parameterProviders;
 	}
 
 	// Let the message queue know

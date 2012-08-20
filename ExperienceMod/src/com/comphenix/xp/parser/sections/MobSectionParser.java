@@ -4,6 +4,7 @@ import org.apache.commons.lang.NullArgumentException;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.comphenix.xp.Action;
+import com.comphenix.xp.expressions.ParameterProviderSet;
 import com.comphenix.xp.lookup.MobQuery;
 import com.comphenix.xp.lookup.MobTree;
 import com.comphenix.xp.parser.ActionParser;
@@ -15,13 +16,17 @@ public class MobSectionParser extends SectionParser<MobTree> {
 	// Mob variables
 	public static String[] NAMED_PARAMETERS = {};
 
+	protected ParameterProviderSet parameterProviders;
 	protected ActionParser actionParser;
 	protected MobParser mobParser;
 	protected double multiplier;
 	
-	public MobSectionParser(ActionParser actionParser, MobParser mobParser, double multiplier) {
+	public MobSectionParser(ActionParser actionParser, MobParser mobParser, 
+							ParameterProviderSet parameterProviders, double multiplier) {
+		
 		this.actionParser = actionParser;
 		this.mobParser = mobParser;
+		this.parameterProviders = parameterProviders;
 		this.multiplier = multiplier;
 	}
 
