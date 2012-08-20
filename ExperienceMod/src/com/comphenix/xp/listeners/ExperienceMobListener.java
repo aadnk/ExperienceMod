@@ -41,7 +41,6 @@ import com.comphenix.xp.Debugger;
 import com.comphenix.xp.Presets;
 import com.comphenix.xp.SampleRange;
 import com.comphenix.xp.expressions.NamedParameter;
-import com.comphenix.xp.expressions.PlayerParameter;
 import com.comphenix.xp.extra.Permissions;
 import com.comphenix.xp.lookup.MobQuery;
 import com.comphenix.xp.lookup.PlayerQuery;
@@ -176,7 +175,9 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 		
 		// Get player-specific parameters
 		if (entity instanceof Player) {
-			params = PlayerParameter.getAllParameters((Player) entity, rewards);
+			params = config.getParameterProviders().getParameters(action, (Player) entity);
+		} else {
+			params = config.getParameterProviders().getParameters(action, entity);
 		}
 			
 		// Generate some rewards

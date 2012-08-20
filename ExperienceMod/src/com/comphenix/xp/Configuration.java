@@ -281,10 +281,14 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 			multiplier = config.getInt(MULTIPLIER_SETTING, 1);
 				
 		// Initialize parsers
-		MobSectionParser mobsParser = new MobSectionParser(actionParser, mobParser, parameterProviders, multiplier);
-		PlayerDeathSectionParser playerDeathParser = new PlayerDeathSectionParser(actionParser, playerParser, multiplier);
-		ItemsSectionParser itemsParser = new ItemsSectionParser(itemParser, actionParser, actionTypes, multiplier);
-		PlayerSectionParser playerParser = new PlayerSectionParser(actionParser, multiplier);
+		MobSectionParser mobsParser = new MobSectionParser(
+				actionParser, mobParser, parameterProviders, multiplier);
+		PlayerDeathSectionParser playerDeathParser = new PlayerDeathSectionParser(
+				actionParser, playerParser, parameterProviders, multiplier);
+		ItemsSectionParser itemsParser = new ItemsSectionParser(
+				itemParser, actionParser, actionTypes, parameterProviders, multiplier);
+		PlayerSectionParser playerParser = new PlayerSectionParser(
+				actionParser, parameterProviders, multiplier);
 		LevelsSectionParser levelsParser = new LevelsSectionParser();
 		
 		// Set debugger

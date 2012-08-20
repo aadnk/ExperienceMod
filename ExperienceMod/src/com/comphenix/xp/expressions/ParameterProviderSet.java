@@ -1,29 +1,26 @@
 package com.comphenix.xp.expressions;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 import com.comphenix.xp.Action;
-import com.comphenix.xp.extra.ServiceProvider;
 
 public class ParameterProviderSet {
 
-	private ServiceProvider<ParameterService<Player>> playerParameters;
-	private ServiceProvider<ParameterService<Entity>> entityParameters;
-	private ServiceProvider<ParameterService<Block>> blockParameters;
-	private ServiceProvider<ParameterService<Item>> itemParameters;
+	private ParameterProvider<Player> playerParameters;
+	private ParameterProvider<Entity> entityParameters;
+	private ParameterProvider<Block> blockParameters;
+	private ParameterProvider<ItemStack> itemParameters;
 	
 	public ParameterProviderSet() {
-		playerParameters = new ServiceProvider<ParameterService<Player>>("");
-		entityParameters = new ServiceProvider<ParameterService<Entity>>("");
-		blockParameters = new ServiceProvider<ParameterService<Block>>("");
-		itemParameters = new ServiceProvider<ParameterService<Item>>("");
+		playerParameters = new ParameterProvider<Player>("");
+		entityParameters = new ParameterProvider<Entity>("");
+		blockParameters = new ParameterProvider<Block>("");
+		itemParameters = new ParameterProvider<ItemStack>("");
 	}
 	
 	/**
@@ -33,7 +30,7 @@ public class ParameterProviderSet {
 	 * @return Every registered named parameter.
 	 */
 	public Collection<NamedParameter> getParameters(Action action, Player player) {
-		return getParameters(playerParameters, action, player);
+		return playerParameters.getParameters(action, player);
 	}
 	
 	/**
@@ -43,7 +40,7 @@ public class ParameterProviderSet {
 	 * @return Every registered named parameter.
 	 */
 	public Collection<NamedParameter> getParameters(Action action, Entity entity) {
-		return getParameters(entityParameters, action, entity);
+		return entityParameters.getParameters(action, entity);
 	}
 	
 	/**
@@ -53,7 +50,7 @@ public class ParameterProviderSet {
 	 * @return Every registered named parameter.
 	 */
 	public Collection<NamedParameter> getParameters(Action action, Block block) {
-		return getParameters(blockParameters, action, block);
+		return blockParameters.getParameters(action, block);
 	}
 
 	/**
@@ -62,43 +59,8 @@ public class ParameterProviderSet {
 	 * @param item - the item that is the target if this action (like being crafted).
 	 * @return Every registered named parameter.
 	 */
-	public Collection<NamedParameter> getParameters(Action action, Item item) {
-		return getParameters(itemParameters, action, item);
-	}
-	
-	// Generics didn't fail us this time. Yay!
-	private <TResult> Collection<NamedParameter> getParameters(
-			ServiceProvider<ParameterService<TResult>> serviceProvider, Action action, TResult target) {
-		
-		Collection<NamedParameter> result = new ArrayList<NamedParameter>();
-		
-		// Retrieve the named parameters in every registered service
-		for (ParameterService<TResult> service : serviceProvider.getRegisteredServices()) {
-			Collection<NamedParameter> sublist = service.getParameters(action, target);
-			
-			if (sublist != null && !sublist.isEmpty()) {
-				result.addAll(sublist);
-			}
-		}
-		
-		return result;
-	}
-	
-	// Another helper function
-	private <TResult> Collection<String> getParameterNames(ServiceProvider<ParameterService<TResult>> serviceProvider) {
-		
-		Collection<String> result = new ArrayList<String>();
-		
-		// Retrieve the named parameters in every registered service
-		for (ParameterService<TResult> service : serviceProvider.getRegisteredServices()) {
-			String[] sublist = service.getParameterNames();
-			
-			if (sublist != null && sublist.length > 0) {
-				result.addAll(Arrays.asList(sublist));
-			}
-		}
-		
-		return result;
+	public Collection<NamedParameter> getParameters(Action action, ItemStack item) {
+		return itemParameters.getParameters(action, item);
 	}
 	
 	/**
@@ -129,7 +91,7 @@ public class ParameterProviderSet {
 	 * Registers an item parameter service.
 	 * @param service - the service to register.
 	 */
-	public void registerItem(ParameterService<Item> service) {
+	public void registerItem(ParameterService<ItemStack> service) {
 		itemParameters.register(service);
 	}
 
@@ -155,19 +117,35 @@ public class ParameterProviderSet {
 		itemParameters.enableAll();
 	}
 	
-	public ServiceProvider<ParameterService<Player>> getPlayerParameters() {
+	/**
+	 * Get the player parameter provider.
+	 * @return Player parameter provider.
+	 */
+	public ParameterProvider<Player> getPlayerParameters() {
 		return playerParameters;
 	}
 
-	public ServiceProvider<ParameterService<Entity>> getEntityParameters() {
+	/**
+	 * Get the entity parameter provider.
+	 * @return Entity parameter provider.
+	 */
+	public ParameterProvider<Entity> getEntityParameters() {
 		return entityParameters;
 	}
 
-	public ServiceProvider<ParameterService<Block>> getBlockParameters() {
+	/**
+	 * Get the block parameter provider.
+	 * @return Block parameter provider.
+	 */
+	public ParameterProvider<Block> getBlockParameters() {
 		return blockParameters;
 	}
 
-	public ServiceProvider<ParameterService<Item>> getItemParameters() {
+	/**
+	 * Get the item parameter provider.
+	 * @return Item parameter provider.
+	 */
+	public ParameterProvider<ItemStack> getItemParameters() {
 		return itemParameters;
 	}
 }

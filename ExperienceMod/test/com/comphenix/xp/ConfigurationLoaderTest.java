@@ -7,6 +7,8 @@ import java.io.File;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.Test;
 
+import com.comphenix.xp.expressions.ParameterProviderSet;
+import com.comphenix.xp.expressions.StandardPlayerService;
 import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.rewards.RewardProvider;
@@ -22,9 +24,12 @@ public class ConfigurationLoaderTest implements Debugger {
 		RewardProvider provider = new RewardProvider();
 		provider.register(new RewardExperience());
 		provider.register(new RewardVirtual());
+		
+		ParameterProviderSet parameterProviders = new ParameterProviderSet();
+		parameterProviders.registerPlayer(new StandardPlayerService(provider));
 
 		File root = new File(path);
-		ConfigurationLoader loader = new ConfigurationLoader(root, this, provider, new ChannelProvider());
+		ConfigurationLoader loader = new ConfigurationLoader(root, this, provider, new ChannelProvider(), parameterProviders);
 		
 		YamlConfiguration presetConfig = YamlConfiguration.loadConfiguration(new File(root, "presets.yml"));
 		Presets presets = new Presets(presetConfig, loader, 10, this, null);
@@ -33,8 +38,7 @@ public class ConfigurationLoaderTest implements Debugger {
 		Configuration world = presets.getConfiguration(null, "world");
 		Configuration nether = presets.getConfiguration(null, "world_creative_flat");
 		
-		// They should be different
-		assertNotSame(world, nether);
+		assertSame(world, nether);
 	}
 
 	@Override

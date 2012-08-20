@@ -11,6 +11,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.junit.Test;
 
+import com.comphenix.xp.expressions.ParameterProviderSet;
 import com.comphenix.xp.lookup.MobQuery;
 import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.parser.ActionParser;
@@ -107,6 +108,7 @@ public class ConfigurationTest {
 		Configuration config = new Configuration(debugger, provider, new ChannelProvider());
 		ItemNameParser nameParser = new ItemNameParser();
 		
+		config.setParameterProviders(new ParameterProviderSet());
 		config.setPlayerParser(new PlayerParser());
 		config.setItemParser(new ItemParser(nameParser));
 		config.setMobParser(new MobParser(new MobMatcher()));

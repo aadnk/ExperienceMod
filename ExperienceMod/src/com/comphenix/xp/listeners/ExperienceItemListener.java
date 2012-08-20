@@ -39,7 +39,8 @@ import com.comphenix.xp.Configuration;
 import com.comphenix.xp.Debugger;
 import com.comphenix.xp.PlayerScheduler;
 import com.comphenix.xp.Presets;
-import com.comphenix.xp.expressions.PlayerParameter;
+import com.comphenix.xp.expressions.NamedParameter;
+import com.comphenix.xp.expressions.ParameterProviderSet;
 import com.comphenix.xp.extra.Permissions;
 import com.comphenix.xp.lookup.ItemQuery;
 import com.comphenix.xp.lookup.ItemTree;
@@ -127,10 +128,9 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 		// Has an action been set?
 		if (action != null) {
 			RewardProvider rewards = config.getRewardProvider();
+			Collection<NamedParameter> params = config.getParameterProviders().getParameters(action, player);
 			
-			List<ResourceHolder> generated = action.generateRewards(
-					PlayerParameter.getAllParameters(player, rewards), 
-					rewards, random);
+			List<ResourceHolder> generated = action.generateRewards(params, rewards, random);
 			
 			// Check and see if the player is broke
 			if (!action.canRewardPlayer(rewards, player, generated)) {
@@ -369,6 +369,7 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 			if (count > 0) {
 				
 				Action action = getAction(toCraft, tree);
+				ItemStack current = response.getOverridableCurrentItem(event);
 				
 				// Some cruft here - the stack is only divided when the user has no cursor items
 				if (partialResults && event.isRightClick() && !ItemQuery.hasItems(toStore)) {
@@ -383,8 +384,7 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 					action.setDebugger(debugger);
 				
 				// Simple enough
-				if (rewardAction.canPerform(player, action, count)) {
-					ItemStack current = response.getOverridableCurrentItem(event);
+				if (rewardAction.canPerform(player, current, action, count)) {
 					rewardAction.performAction(player, current, action, count);
 					
 				} else {
@@ -425,8 +425,8 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 			}
 			
 			@Override
-			public boolean canPerform(Player player, Action action, int count) {
-				return fundamental.canPerform(player, action, count);
+			public boolean canPerform(Player player, ItemStack stack, Action action, int count) {
+				return fundamental.canPerform(player, stack, action, count);
 			}
 		};	
 	}
@@ -436,13 +436,15 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 		final RewardProvider rewardsProvider = config.getRewardProvider();
 		final ChannelProvider channelsProvider = config.getChannelProvider();
 		final MessagePlayerQueue messageQueue = config.getMessageQueue();
+		final ParameterProviderSet parameterProviders = config.getParameterProviders();
 		
 		// Create a rewardable future action handler
 		return new RewardableAction() {
 			private List<ResourceHolder> generated;
 			
-			public void generateRewards(Action action, int count) {
-				generated = action.generateRewards(null, rewardsProvider, random, count);
+			public void generateRewards(ItemStack stack, Action action, int count) {
+				Collection<NamedParameter> params = parameterProviders.getParameters(action, stack);
+				generated = action.generateRewards(params, rewardsProvider, random, count);
 			}
 			
 			@Override
@@ -450,7 +452,7 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 
 				// Just in case
 				if (generated == null)
-					generateRewards(action, count);
+					generateRewards(stack, action, count);
 				
 				// Give the experience straight to the user
 				Collection<ResourceHolder> result = action.rewardPlayer(rewardsProvider, player, generated);
@@ -466,9 +468,9 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 			}
 
 			@Override
-			public boolean canPerform(Player player, Action action, int count) {
+			public boolean canPerform(Player player, ItemStack stack, Action action, int count) {
 				if (generated == null)
-					generateRewards(action, count);
+					generateRewards(stack, action, count);
 				return action.canRewardPlayer(rewardsProvider, player, generated);
 			}
 		};
@@ -544,7 +546,7 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 						action.setDebugger(debugger);
 					
 					// See if the event must be cancelled
-					if (!rewardAction.canPerform(player, action, newItemsCount)) {
+					if (!rewardAction.canPerform(player, last, action, newItemsCount)) {
 						// A big stinky hack in a hack
 						cancel.run();
 					} else {

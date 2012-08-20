@@ -38,6 +38,7 @@ import com.comphenix.xp.Action;
 import com.comphenix.xp.Configuration;
 import com.comphenix.xp.Debugger;
 import com.comphenix.xp.Presets;
+import com.comphenix.xp.expressions.NamedParameter;
 import com.comphenix.xp.extra.Permissions;
 import com.comphenix.xp.history.HistoryProviders;
 import com.comphenix.xp.lookup.ItemQuery;
@@ -103,12 +104,13 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 				Action action = getBlockBonusAction(config.getSimpleBlockReward(), retrieveKey, block);
 				RewardProvider rewards = config.getRewardProvider();
 				ChannelProvider channels = config.getChannelProvider();
+				Collection<NamedParameter> params = config.getParameterProviders().getParameters(action, block);
 				
 				// Guard
 				if (action == null)
 					return;
 				
-				List<ResourceHolder> generated = action.generateRewards(null, rewards, random);
+				List<ResourceHolder> generated = action.generateRewards(params, rewards, random);
 				
 				if (!action.canRewardPlayer(rewards, player, generated)) {
 					if (hasDebugger())
@@ -143,13 +145,14 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 				Action action = getBlockBonusAction(config.getSimpleBonusReward(), retrieveKey, block);
 				RewardProvider rewards = config.getRewardProvider();
 				ChannelProvider channels = config.getChannelProvider();
+				Collection<NamedParameter> params = config.getParameterProviders().getParameters(action, block);
 				
 				// Guard
 				if (action == null)
 					return;
 				
 				// What we will award
-				List<ResourceHolder> generated = action.generateRewards(null, rewards, random);
+				List<ResourceHolder> generated = action.generateRewards(params, rewards, random);
 				
 				if (!action.canRewardPlayer(rewards, player, generated)) {
 					if (hasDebugger())
@@ -244,7 +247,9 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 				Action action = placeReward.get(retrieveKey);
 				RewardProvider rewards = config.getRewardProvider();
 				ChannelProvider channels = config.getChannelProvider();
-				List<ResourceHolder> generated = action.generateRewards(null, rewards, random);
+				Collection<NamedParameter> params = config.getParameterProviders().getParameters(action, block);
+				
+				List<ResourceHolder> generated = action.generateRewards(params, rewards, random);
 				
 				// Make sure the action is legal
 				if (!action.canRewardPlayer(rewards, player, generated)) {

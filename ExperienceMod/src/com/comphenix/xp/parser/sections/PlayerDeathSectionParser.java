@@ -4,6 +4,7 @@ import org.apache.commons.lang.NullArgumentException;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.comphenix.xp.Action;
+import com.comphenix.xp.expressions.ParameterProviderSet;
 import com.comphenix.xp.lookup.PlayerQuery;
 import com.comphenix.xp.lookup.PlayerTree;
 import com.comphenix.xp.parser.ActionParser;
@@ -12,16 +13,17 @@ import com.comphenix.xp.parser.text.PlayerParser;
 
 public class PlayerDeathSectionParser extends SectionParser<PlayerTree> {
 
-	// Player variables
-	public static String[] NAMED_PARAMETERS = {"TOTAL_EXPERIENCE", "LEVEL_EXPERIENCE", "EXPERIENCE", "CURRENCY"};
-	
+	protected ParameterProviderSet parameterProviders;
 	protected ActionParser actionParser;
 	protected PlayerParser playerParser;
 	protected double multiplier;
 	
-	public PlayerDeathSectionParser(ActionParser actionParser, PlayerParser playerParser, double multiplier) {
+	public PlayerDeathSectionParser(ActionParser actionParser, PlayerParser playerParser, 
+									ParameterProviderSet parameterProviders, double multiplier) {
+		
 		this.actionParser = actionParser;
 		this.playerParser = playerParser;
+		this.parameterProviders = parameterProviders;
 		this.multiplier = multiplier;
 	}
 
@@ -29,7 +31,9 @@ public class PlayerDeathSectionParser extends SectionParser<PlayerTree> {
 	public PlayerTree parse(ConfigurationSection input, String sectionName) throws ParsingException {
 
 		PlayerTree playerDeathDrop = new PlayerTree(multiplier);
-		ActionParser parser = actionParser.createView(NAMED_PARAMETERS);
+		
+		String[] names = parameterProviders.getPlayerParameters().getParameterNames();
+		ActionParser parser = actionParser.createView(names);
 
 		if (input == null)
 			throw new NullArgumentException("input");

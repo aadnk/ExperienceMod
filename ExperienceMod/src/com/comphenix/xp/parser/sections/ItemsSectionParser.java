@@ -8,6 +8,7 @@ import org.bukkit.configuration.ConfigurationSection;
 
 import com.comphenix.xp.Action;
 import com.comphenix.xp.ActionTypes;
+import com.comphenix.xp.expressions.ParameterProviderSet;
 import com.comphenix.xp.lookup.ItemTree;
 import com.comphenix.xp.lookup.PotionTree;
 import com.comphenix.xp.lookup.Query;
@@ -19,20 +20,19 @@ import com.comphenix.xp.parser.text.ItemParser;
 
 public class ItemsSectionParser extends SectionParser<ItemsSectionResult> {
 
-	// Items and block variables
-	public static String[] NAMED_PARAMETERS = {};
-	
 	protected ItemParser itemParser;
 	protected ActionParser actionParser;
 	protected ActionTypes actionTypes;
+	protected ParameterProviderSet parameterProviders;
 	protected double multiplier;
 	
-	public ItemsSectionParser(ItemParser itemParser, ActionParser actionParser, 
-							  ActionTypes types, double multiplier) {
+	public ItemsSectionParser(ItemParser itemParser, ActionParser actionParser, ActionTypes types, 
+							  ParameterProviderSet parameterProviders, double multiplier) {
 		
 		this.itemParser = itemParser;
 		this.actionParser = actionParser;
 		this.actionTypes = types;
+		this.parameterProviders = parameterProviders;
 		this.multiplier = multiplier;
 	}
 
@@ -43,8 +43,11 @@ public class ItemsSectionParser extends SectionParser<ItemsSectionResult> {
 		if (input == null)
 			throw new NullArgumentException("input");
 		
-		// Create a parser with the given named parameters
-		ActionParser parser = actionParser.createView(NAMED_PARAMETERS);
+		// Create parsers with the given named parameters
+		String[] blockNames = parameterProviders.getBlockParameters().getParameterNames();
+		String[] itemNames = parameterProviders.getItemParameters().getParameterNames();
+		ActionParser actionBlockParser = actionParser.createView(blockNames);
+		ActionParser actionItemParser = actionParser.createView(itemNames);
 		
 		Map<Integer, ItemTree> actionRewards = new HashMap<Integer, ItemTree>();
 		Map<Integer, PotionTree> complexRewards = new HashMap<Integer, PotionTree>();
@@ -87,6 +90,9 @@ public class ItemsSectionParser extends SectionParser<ItemsSectionResult> {
 								"Unrecogized action %s.", action);
 						}
 					}
+					
+					// Select the correct parser for the job
+					ActionParser parser = actionTypes.isItemAction(action) ? actionItemParser : actionBlockParser;
 
 					// Handle the special case of potion queries
 					switch (queryType) {

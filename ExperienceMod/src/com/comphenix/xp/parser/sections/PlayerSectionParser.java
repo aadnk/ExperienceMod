@@ -4,20 +4,20 @@ import org.apache.commons.lang.NullArgumentException;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.comphenix.xp.Action;
+import com.comphenix.xp.expressions.ParameterProviderSet;
 import com.comphenix.xp.lookup.PlayerRewards;
 import com.comphenix.xp.parser.ActionParser;
 import com.comphenix.xp.parser.ParsingException;
 
 public class PlayerSectionParser extends SectionParser<PlayerRewards> {
 
-	// Player variables
-	public static String[] NAMED_PARAMETERS = {"TOTAL_EXPERIENCE", "LEVEL_EXPERIENCE", "EXPERIENCE", "CURRENCY"};
-	
 	protected ActionParser actionParser;
+	protected ParameterProviderSet parameterProviders;
 	protected double multiplier;
 	
-	public PlayerSectionParser(ActionParser actionParser, double multiplier) {
+	public PlayerSectionParser(ActionParser actionParser, ParameterProviderSet parameterProviders, double multiplier) {
 		this.actionParser = actionParser;
+		this.parameterProviders = parameterProviders;
 		this.multiplier = multiplier;
 	}
 
@@ -25,7 +25,9 @@ public class PlayerSectionParser extends SectionParser<PlayerRewards> {
 	public PlayerRewards parse(ConfigurationSection input, String sectionName) throws ParsingException {
 
 		PlayerRewards playerRewards = new PlayerRewards(multiplier);
-		ActionParser parser = actionParser.createView(NAMED_PARAMETERS);
+		
+		String[] names = parameterProviders.getPlayerParameters().getParameterNames();
+		ActionParser parser = actionParser.createView(names);
 		
 		if (input == null)
 			throw new NullArgumentException("input");
