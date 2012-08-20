@@ -37,7 +37,7 @@ public class RangeExpression extends VariableFunction {
 
 	@Override
 	public double apply(Random rnd, Collection<NamedParameter> params) throws Exception {
-		return range.sampleInt(rnd);
+		return range.multiply(multiplier).sampleInt(rnd);
 	}
 
 	@Override

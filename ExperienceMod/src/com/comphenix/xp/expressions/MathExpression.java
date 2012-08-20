@@ -1,9 +1,9 @@
 package com.comphenix.xp.expressions;
 
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
-import java.util.Set;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
@@ -26,7 +26,7 @@ public class MathExpression extends VariableFunction {
 	protected RandomFunctions iunif;
 	
 	// Variables we will calculate
-	protected Set<String> variablesPresent;
+	protected Map<String, Boolean> variablesPresent;
 	
 	// The function to use
 	protected Calculable function;
@@ -50,12 +50,12 @@ public class MathExpression extends VariableFunction {
 
 			// Default value
 			multiplier = 1;
-			variablesPresent = new HashSet<String>();
+			variablesPresent = new HashMap<String, Boolean>();
 			
 			// Add parameters that are present
 			for (String param : parameters) {
-				if (function.containsVariable(param))
-					variablesPresent.add(param);
+				variablesPresent.put(param, function.containsVariable(param));
+				function.setVariable(param, VARIABLE_NOT_FOUND);
 			}
 			
 		} catch (UnknownFunctionException e) {
@@ -82,11 +82,11 @@ public class MathExpression extends VariableFunction {
 		// Don't forget to use the random number generator we got
 		dunif.setRandom(random);
 		iunif.setRandom(random);
-
+		
 		// Apply all the parameters that exists
 		if (params != null) {
 			for (NamedParameter param : params) {
-				if (variablesPresent.contains(param.getName())) {
+				if (variablesPresent.get(param.getName())) {
 					function.setVariable(param.getName(), param.call());
 				} else {
 					function.setVariable(param.getName(), VARIABLE_NOT_FOUND);
@@ -95,7 +95,7 @@ public class MathExpression extends VariableFunction {
 		}
 		
 		// Right, do our thing
-		return function.calculate();
+		return function.calculate() * multiplier;
 	}
 
 	@Override

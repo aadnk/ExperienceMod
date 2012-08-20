@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Random;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.builder.ToStringBuilder;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -177,7 +176,7 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 		
 		// Get player-specific parameters
 		if (entity instanceof Player) {
-			PlayerParameter.getAllParameters((Player) entity, rewards);
+			params = PlayerParameter.getAllParameters((Player) entity, rewards);
 		}
 			
 		// Generate some rewards
@@ -190,7 +189,7 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 		scheduledRewards.put(entity.getEntityId(), future);
 		
 		// Could we reward the player if this mob was killed?
-		if (!action.canRewardPlayer(rewards, killer, generated)) {
+		if (killer != null && !action.canRewardPlayer(rewards, killer, generated)) {
 			future.generated = null;
 			return false;
 		}
@@ -354,7 +353,7 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 		scheduledRewards.remove(id);
 		
 		if (hasDebugger()) {
-			debugger.printDebug(this, "Generated: %s", ToStringBuilder.reflectionToString(generated));
+			debugger.printDebug(this, "Generated: %s", StringUtils.join(generated, ", "));
 		}
 			
 		// Make sure the reward has been changed
