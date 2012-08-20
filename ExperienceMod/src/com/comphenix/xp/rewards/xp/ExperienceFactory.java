@@ -1,20 +1,21 @@
 package com.comphenix.xp.rewards.xp;
 
 import com.comphenix.xp.SampleRange;
+import com.comphenix.xp.expressions.VariableFunction;
 import com.comphenix.xp.rewards.ResourceFactory;
 import com.comphenix.xp.rewards.ResourceHolder;
 
 public class ExperienceFactory extends GenericFactory {
 	
-	public ExperienceFactory(SampleRange range) {
+	public ExperienceFactory(VariableFunction range) {
 		this(range, 1);
 	}
 	
 	public ExperienceFactory(double value) {
-		this(new SampleRange(value));
+		this(VariableFunction.fromRange(new SampleRange(value)));
 	}
 
-	private ExperienceFactory(SampleRange range, double newMultiplier) {
+	private ExperienceFactory(VariableFunction range, double newMultiplier) {
 		super(range, newMultiplier);
 	}
 	

@@ -455,7 +455,7 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 			
 			ResourceFactory factory = action.getReward("EXPERIENCE");
 				
-			if (factory != null && (factory.getMinimum(1).getAmount() < 0))
+			if (factory != null && (factory.getMinimum(null, 1).getAmount() < 0))
 				return true;
 		}
 		

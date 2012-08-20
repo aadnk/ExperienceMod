@@ -42,7 +42,7 @@ public class RewardVirtual implements RewardService {
 	private double searchRadius = 20;
 	private LevelingRate levelingRate;
 	
-	private ResourcesParser parser = new ExperienceParser();
+	private ResourcesParser parser = new ExperienceParser(null);
 	
 	@Override
 	public void reward(Player player, ResourceHolder resource) {
@@ -124,8 +124,8 @@ public class RewardVirtual implements RewardService {
 	}
 	
 	@Override
-	public ResourcesParser getResourcesParser() {
-		return parser;
+	public ResourcesParser getResourcesParser(String[] namedParameters) {
+		return parser.withParameters(namedParameters);
 	}
 
 	public double getSearchRadius() {

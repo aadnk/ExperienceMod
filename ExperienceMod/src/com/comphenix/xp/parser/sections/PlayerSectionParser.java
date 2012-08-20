@@ -10,6 +10,9 @@ import com.comphenix.xp.parser.ParsingException;
 
 public class PlayerSectionParser extends SectionParser<PlayerRewards> {
 
+	// Player variables
+	public static String[] NAMED_PARAMETERS = {"TOTAL_EXPERIENCE", "LEVEL_EXPERIENCE", "EXPERIENCE", "CURRENCY"};
+	
 	protected ActionParser actionParser;
 	protected double multiplier;
 	
@@ -22,6 +25,7 @@ public class PlayerSectionParser extends SectionParser<PlayerRewards> {
 	public PlayerRewards parse(ConfigurationSection input, String sectionName) throws ParsingException {
 
 		PlayerRewards playerRewards = new PlayerRewards(multiplier);
+		ActionParser parser = actionParser.createView(NAMED_PARAMETERS);
 		
 		if (input == null)
 			throw new NullArgumentException("input");
@@ -39,7 +43,7 @@ public class PlayerSectionParser extends SectionParser<PlayerRewards> {
 		for (String key : input.getKeys(false)) {
 			
 			try {
-				Action value = actionParser.parse(input, key);
+				Action value = parser.parse(input, key);
 				
 				if (value != null)
 					playerRewards.put(key, value);

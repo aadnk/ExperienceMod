@@ -1,58 +1,65 @@
 package com.comphenix.xp.rewards.xp;
 
+import java.util.Collection;
 import java.util.Random;
 
 import org.apache.commons.lang.NullArgumentException;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 
-import com.comphenix.xp.SampleRange;
+import com.comphenix.xp.expressions.NamedParameter;
+import com.comphenix.xp.expressions.VariableFunction;
+import com.comphenix.xp.extra.ConstantRandom;
 import com.comphenix.xp.rewards.ResourceFactory;
 import com.comphenix.xp.rewards.ResourceHolder;
 
 public abstract class GenericFactory implements ResourceFactory {
-	protected SampleRange range;
-	protected double multiplier;
-	
-	public GenericFactory(SampleRange range, double multiplier) {
+	protected VariableFunction range;
+
+	public GenericFactory(VariableFunction range, double multiplier) {
 		if (range == null)
 			throw new NullArgumentException("range");
 		
-		this.range = range;
-		this.multiplier = multiplier;
+		this.range = range.withMultiplier(range.getMultiplier() * multiplier);
 	}
 	
 	@Override
-	public ResourceHolder getResource(Random rnd) {
-		return getResource(rnd, 1);
+	public ResourceHolder getResource(Collection<NamedParameter> params, Random rnd) {
+		return getResource(params, rnd, 1);
 	}
 	
 	@Override
-	public ResourceHolder getResource(Random rnd, int count) {
-
-		final int resource = getRange().sampleInt(rnd) * count;
+	public ResourceHolder getResource(Collection<NamedParameter> params, Random rnd, int count) {
 		
-		// Doesn't have to be more complicated than this
-		return constructFactory(resource);
+		try {
+			int resource = (int) (getRange().apply(rnd, params) * count);
+			
+			// Doesn't have to be more complicated than this
+			return constructFactory(resource);
+			
+		} catch (Exception e) {
+			// Might occur if, for instance, someone divides by zero
+			throw new RuntimeException("Calculation error.", e);
+		}
 	}
 	
 	@Override
-	public ResourceHolder getMinimum(int count) {
-		return constructFactory(getRange().getMinimum() * count);
+	public ResourceHolder getMinimum(Collection<NamedParameter> params, int count) {
+		return getResource(params, ConstantRandom.MINIMUM, count);
 	}
 
 	@Override
-	public ResourceHolder getMaximum(int count) {
-		return constructFactory(getRange().getMinimum() * count);
+	public ResourceHolder getMaximum(Collection<NamedParameter> params, int count) {
+		return getResource(params, ConstantRandom.MAXIMUM, count);
 	}
 
-	public SampleRange getRange() {
-		return range.multiply(multiplier);
+	public VariableFunction getRange() {
+		return range;
 	}
 	
 	@Override
 	public double getMultiplier() {
-		return multiplier;
+		return range.getMultiplier();
 	}
 	
 	/**
@@ -66,7 +73,6 @@ public abstract class GenericFactory implements ResourceFactory {
 	public int hashCode() {
 		return new HashCodeBuilder(17, 31).
 	            append(range).
-	            append(multiplier).
 	            toHashCode();
 	}
 
@@ -82,7 +88,6 @@ public abstract class GenericFactory implements ResourceFactory {
         GenericFactory other = (GenericFactory) obj;
         return new EqualsBuilder().
             append(range, other.range).
-            append(multiplier, other.multiplier).
             isEquals();
 	}
 }

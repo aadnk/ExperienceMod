@@ -6,7 +6,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.MemoryConfiguration;
 import org.junit.Test;
 
-import com.comphenix.xp.SampleRange;
+import com.comphenix.xp.expressions.RangeExpression;
 import com.google.common.collect.Lists;
 
 public class RangeParserTest {
@@ -22,9 +22,9 @@ public class RangeParserTest {
 		ConfigurationSection doubleValue = createWithKey(key, 6.5);
 		
 		try {
-			assertEquals(new SampleRange(12), parser.parse(listValue, key));
-			assertEquals(new SampleRange(5, 10), parser.parse(textValue, key));
-			assertEquals(new SampleRange(6.5), parser.parse(doubleValue, key));
+			assertEquals(new RangeExpression(12), parser.parse(listValue, key));
+			assertEquals(new RangeExpression(5, 10), parser.parse(textValue, key));
+			assertEquals(new RangeExpression(6.5), parser.parse(doubleValue, key));
 			
 		} catch (ParsingException e) {
 			// None of these should throw an exception

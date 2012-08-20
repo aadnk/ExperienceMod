@@ -41,6 +41,8 @@ import com.comphenix.xp.Configuration;
 import com.comphenix.xp.Debugger;
 import com.comphenix.xp.Presets;
 import com.comphenix.xp.SampleRange;
+import com.comphenix.xp.expressions.NamedParameter;
+import com.comphenix.xp.expressions.PlayerParameter;
 import com.comphenix.xp.extra.Permissions;
 import com.comphenix.xp.lookup.MobQuery;
 import com.comphenix.xp.lookup.PlayerQuery;
@@ -157,6 +159,7 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 	private boolean onFutureKillEvent(LivingEntity entity, Player killer) {
 		
 		Configuration config = getConfiguration(entity, killer);
+		Collection<NamedParameter> params = null;
 		
 		// Warn, but allow
 		if (config == null) {
@@ -172,8 +175,13 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 			return true;
 		}
 		
+		// Get player-specific parameters
+		if (entity instanceof Player) {
+			PlayerParameter.getAllParameters((Player) entity, rewards);
+		}
+			
 		// Generate some rewards
-		List<ResourceHolder> generated = action.generateRewards(rewards, random);
+		List<ResourceHolder> generated = action.generateRewards(params, rewards, random);
 		
 		FutureReward future = new FutureReward();
 		future.action = action;
@@ -319,42 +327,34 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 		// Values that are either precomputed, or computed on the spot
 		Configuration config = null;
 		Action action = null;
+		FutureReward future = null;
 		
 		// Resources generated and given
 		List<ResourceHolder> generated = null;
 		Collection<ResourceHolder> result = null;
 		
-		// Retrieve reward from lookup
-		if (scheduledRewards.containsKey(id)) {
-		
-			FutureReward future = scheduledRewards.get(id);
-			
-			if (future != null) {
-				action = future.action;
-				generated = future.generated;
-				config = future.config;
-			}
-		
-			// And we're done with this mob
-			scheduledRewards.remove(id);
-			
-		} else {
-			config = getConfiguration(entity, killer);
-			
-			// Make sure the configuration was found
-			if (config != null) {
-				action = getAction(config, entity, killer);
-				RewardProvider rewards = config.getRewardProvider();
-				
-				// And that the action was found
-				if (action != null)
-					generated = action.generateRewards(rewards, random);
-			}
+		// Simplify by adding the reward to the lookup regardless
+		if (!scheduledRewards.containsKey(id)) {
+			// We'll just generate the reward then
+			onFutureKillEvent(entity, killer);
 		}
 		
-		if (hasDebugger())
-			debugger.printDebug(this, "Generated: %s", ToStringBuilder.reflectionToString(generated));
+		// Retrieve reward from lookup
+		future = scheduledRewards.get(id);
 		
+		if (future != null) {
+			action = future.action;
+			generated = future.generated;
+			config = future.config;
+		}
+	
+		// And we're done with this mob
+		scheduledRewards.remove(id);
+		
+		if (hasDebugger()) {
+			debugger.printDebug(this, "Generated: %s", ToStringBuilder.reflectionToString(generated));
+		}
+			
 		// Make sure the reward has been changed
 		if (generated != null) {
 			

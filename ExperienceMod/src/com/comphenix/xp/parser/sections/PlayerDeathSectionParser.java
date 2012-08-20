@@ -12,6 +12,9 @@ import com.comphenix.xp.parser.text.PlayerParser;
 
 public class PlayerDeathSectionParser extends SectionParser<PlayerTree> {
 
+	// Player variables
+	public static String[] NAMED_PARAMETERS = {"TOTAL_EXPERIENCE", "LEVEL_EXPERIENCE", "EXPERIENCE", "CURRENCY"};
+	
 	protected ActionParser actionParser;
 	protected PlayerParser playerParser;
 	protected double multiplier;
@@ -26,6 +29,7 @@ public class PlayerDeathSectionParser extends SectionParser<PlayerTree> {
 	public PlayerTree parse(ConfigurationSection input, String sectionName) throws ParsingException {
 
 		PlayerTree playerDeathDrop = new PlayerTree(multiplier);
+		ActionParser parser = actionParser.createView(NAMED_PARAMETERS);
 
 		if (input == null)
 			throw new NullArgumentException("input");
@@ -42,7 +46,7 @@ public class PlayerDeathSectionParser extends SectionParser<PlayerTree> {
 		// Parse every sub-section
 		for (String key : input.getKeys(false)) {
 			try {
-				Action value = actionParser.parse(input, key);
+				Action value = parser.parse(input, key);
 				PlayerQuery query = playerParser.parse(key);
 	
 				if (value != null)
@@ -53,7 +57,7 @@ public class PlayerDeathSectionParser extends SectionParser<PlayerTree> {
 			} catch (ParsingException e) {
 				if (isCollectExceptions()) {
 					// For now, record it
-					debugger.printWarning(this, "Unable to parse entity %s: %s", key, e.getMessage());
+					debugger.printWarning(this, "Unable to parse entity %s: %s", key, e.toString());
 				} else {
 					// Just invoke the error
 					throw e;

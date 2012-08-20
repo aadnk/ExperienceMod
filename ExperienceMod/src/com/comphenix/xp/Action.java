@@ -31,6 +31,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
+import com.comphenix.xp.expressions.NamedParameter;
 import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.messages.ChannelService;
 import com.comphenix.xp.messages.Message;
@@ -121,24 +122,26 @@ public class Action {
 	
 	/**
 	 * Generates a list of resources, in the same order as each associated reward factory.
+	 * @param params - parameters to use when calculating the reward.
 	 * @param provider - provider of reward services.
 	 * @param rnd - random number generator.
 	 * @return A list of resources in a specific order.
 	 */
-	public List<ResourceHolder> generateRewards(RewardProvider provider, Random rnd) {
+	public List<ResourceHolder> generateRewards(Collection<NamedParameter> params, RewardProvider provider, Random rnd) {
 		
 		// Reward the player or anyone once
-		return generateRewards(provider, rnd, 1);
+		return generateRewards(params, provider, rnd, 1);
 	}
 	
 	/**
 	 * Generates a list of resources, in the same order as each associated reward factory.
+	 * @param params - parameters to use when calculating the reward.
 	 * @param provider - provider of reward services.
 	 * @param rnd - random number generator.
 	 * @param count - number of times to reward this action.
 	 * @return A list of resources in a specific order.
 	 */
-	public List<ResourceHolder> generateRewards(RewardProvider provider, Random rnd, int count) {
+	public List<ResourceHolder> generateRewards(Collection<NamedParameter> params, RewardProvider provider, Random rnd, int count) {
 		
 		List<ResourceHolder> result = new ArrayList<ResourceHolder>(rewards.size());
 		
@@ -149,7 +152,7 @@ public class Action {
 		
 		// Generate every reward in "insertion" order
 		for (ResourceFactory factory : rewards.values()) {
-			result.add(factory.getResource(rnd, count));
+			result.add(factory.getResource(params, rnd, count));
 		}
 		
 		return result;

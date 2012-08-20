@@ -4,11 +4,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import net.milkbowl.vault.economy.Economy;
-
 import org.bukkit.entity.Player;
 
+import com.comphenix.xp.rewards.RewardProvider;
+import com.comphenix.xp.rewards.RewardTypes;
 import com.comphenix.xp.rewards.xp.ExperienceManager;
+import com.comphenix.xp.rewards.xp.RewardEconomy;
 
 public class PlayerParameter extends NamedParameter {
 
@@ -25,11 +26,10 @@ public class PlayerParameter extends NamedParameter {
 	}
 	
 	protected PlayerAttributes attribute;
-	
 	protected Player player;
-	protected Economy economy;
+	protected RewardEconomy economy;
 	
-	public PlayerParameter(PlayerAttributes attribute, Player player, Economy economy) {
+	public PlayerParameter(PlayerAttributes attribute, Player player, RewardEconomy economy) {
 		super(attribute.name());
 		this.attribute = attribute;
 		this.player = player;
@@ -39,10 +39,12 @@ public class PlayerParameter extends NamedParameter {
 	/**
 	 * Retrieves every player attribute from the given player and economy API.
 	 * @param player - player to use.
-	 * @param economy - economy API that will retrieve the player's currency.
+	 * @param provider - reward provider that will be used to access currency information.
 	 * @return Every relevant player parameter.
 	 */
-	public static Collection<NamedParameter> getAllParameters(Player player, Economy economy) {
+	public static Collection<NamedParameter> getAllParameters(Player player, RewardProvider provider) {
+
+		RewardEconomy economy = (RewardEconomy) provider.getByEnum(RewardTypes.ECONOMY);
 		List<NamedParameter> parameters = new ArrayList<NamedParameter>();
 		
 		// Create parameters of every type
@@ -67,7 +69,7 @@ public class PlayerParameter extends NamedParameter {
 			return (double) (player.getExp() * manager.getXpNeededToLevelUp(player.getLevel()) );
 		case CURRENCY:
 			if (economy != null) 
-				return economy.getBalance(player.getName());
+				return economy.getBalance(player);
 			else
 				return 0.0; // Default
 		default:

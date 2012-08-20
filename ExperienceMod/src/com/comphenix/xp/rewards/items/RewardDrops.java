@@ -79,8 +79,8 @@ public class RewardDrops implements RewardService {
 	}
 
 	@Override
-	public ResourcesParser getResourcesParser() {
-		return itemsParser;
+	public ResourcesParser getResourcesParser(String[] namedParameters) {
+		return itemsParser.withParameters(namedParameters);
 	}
 
 	public ItemNameParser getItemNameParser() {
@@ -88,7 +88,7 @@ public class RewardDrops implements RewardService {
 	}
 	
 	public void setItemNameParser(ItemNameParser nameParser) {
-		this.itemsParser = new ItemsParser(nameParser);
+		this.itemsParser = new ItemsParser(nameParser, null);
 		this.itemNameParser = nameParser;
 	}
 

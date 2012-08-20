@@ -3,8 +3,8 @@ package com.comphenix.xp.expressions;
 import java.util.Collection;
 import java.util.Random;
 
-import javax.annotation.Nullable;
 import com.comphenix.xp.SampleRange;
+import com.comphenix.xp.lookup.Multipliable;
 import com.comphenix.xp.parser.ParsingException;
 
 /**
@@ -12,7 +12,7 @@ import com.comphenix.xp.parser.ParsingException;
  * 
  * @author Kristian
  */
-public abstract class VariableFunction {
+public abstract class VariableFunction implements Multipliable<VariableFunction> {
 	
 	/**
 	 * Constructs a variable function that ignores any parameters and simply uses the given range to compute a number.
@@ -20,14 +20,7 @@ public abstract class VariableFunction {
 	 * @return Function that computes the value from a range.
 	 */
 	public static VariableFunction fromRange(SampleRange range) {
-		final SampleRange rangeCopy = range;
-		
-		// Construct the function
-		return new VariableFunction() {
-			public double apply(Random rnd, @Nullable Collection<NamedParameter> arg0) {
-				return rangeCopy.sampleInt(rnd);
-			}
-		};
+		return new RangeExpression(range, 1);
 	}
 	
 	/**

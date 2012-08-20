@@ -70,9 +70,10 @@ public interface RewardService extends Service {
 	
 	/**
 	 * Retrieves the standard or custom resource parser associated with this reward.
+	 * @param namedParameters - the named parameters that are permitted for complex expressions.
 	 * @return Resource parser.
 	 */
-	public ResourcesParser getResourcesParser();
+	public ResourcesParser getResourcesParser(String[] namedParameters);
 	
 	/**
 	 * Clones this object with the settings from the given configuration.

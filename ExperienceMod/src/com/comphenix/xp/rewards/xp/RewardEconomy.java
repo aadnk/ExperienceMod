@@ -56,7 +56,7 @@ public class RewardEconomy implements RewardService {
 	private Integer economyWorth;
 	
 	// A currency parser
-	private ResourcesParser parser = new CurrencyParser();
+	private ResourcesParser parser = new CurrencyParser(null);
 	
 	public RewardEconomy(Economy economy, Debugger debugger, ItemRewardListener listener) {
 		if (economy == null)
@@ -198,8 +198,8 @@ public class RewardEconomy implements RewardService {
 	}
 	
 	@Override
-	public ResourcesParser getResourcesParser() {
-		return parser;
+	public ResourcesParser getResourcesParser(String[] namedParameters) {
+		return parser.withParameters(namedParameters);
 	}
 	
 	/**
@@ -238,6 +238,15 @@ public class RewardEconomy implements RewardService {
 		this.economyWorth = economyWorth;
 	}
 
+	/**
+	 * Determine the amount of currency a given player has access too.
+	 * @param player - the player to check.
+	 * @return The amount of currency belonging to this player.
+	 */
+	public double getBalance(Player player) {
+		return economy.getBalance(player.getName());
+	}
+	
 	@Override
 	public RewardService clone(Configuration config) {
 		RewardEconomy copy = new RewardEconomy(economy, debugger, listener);

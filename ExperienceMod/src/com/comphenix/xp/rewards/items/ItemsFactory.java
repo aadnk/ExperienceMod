@@ -1,6 +1,7 @@
 package com.comphenix.xp.rewards.items;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 
@@ -8,7 +9,9 @@ import org.apache.commons.lang.NullArgumentException;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.inventory.ItemStack;
 
-import com.comphenix.xp.SampleRange;
+import com.comphenix.xp.expressions.NamedParameter;
+import com.comphenix.xp.expressions.VariableFunction;
+import com.comphenix.xp.extra.ConstantRandom;
 import com.comphenix.xp.lookup.ItemQuery;
 import com.comphenix.xp.rewards.ResourceFactory;
 import com.comphenix.xp.rewards.ResourceHolder;
@@ -34,37 +37,50 @@ public class ItemsFactory implements ResourceFactory {
 		this.multiplier = multiplier;
 	}
 	
-	public void addItems(ItemQuery item, SampleRange range) {
+	public void addItems(ItemQuery item, VariableFunction range) {
 		if (range == null)
 			throw new NullArgumentException("range");
 		if (item == null)
 			throw new NullArgumentException("item");
 		if (!item.hasItemID())
 			throw new IllegalArgumentException("Item must have an ID.");
-		if (range.getMaximum() > 64 * MAX_STACKS)
+		if (getMaximum(range) > 64 * MAX_STACKS)
 			throw new IllegalArgumentException(String.format("Range cannot exceed %d.", 64 * MAX_STACKS));
 		
 		entries.add(new Entry(item, range));
 	}
 	
+	private double getMaximum(VariableFunction range) {
+		try {
+			// Estimate the maximum
+			return range.apply(ConstantRandom.MAXIMUM, null);
+		} catch (Exception e) {
+			return 0;
+		}
+	}
+	
 	@Override
-	public ResourceHolder getResource(Random rnd, int count) {
+	public ResourceHolder getResource(Collection<NamedParameter> params, Random rnd, int count) {
 
 		List<ItemStack> stacks = new ArrayList<ItemStack>();
 		
 		// Find the correct item ID and metadata
 		for (Entry entry : entries) {
-			fillInventory(rnd, stacks, entry, count);
+			try {
+				fillInventory(params, rnd, stacks, entry, count);
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
 		}
 		
 		return new ItemsHolder(stacks);
 	}
 	
-	private void fillInventory(Random rnd, List<ItemStack> inventory, Entry entry, int count) {
+	private void fillInventory(Collection<NamedParameter> params, Random rnd, List<ItemStack> inventory, Entry entry, int count) throws Exception {
 		
 		int itemID = RandomSampling.getRandomElement(entry.getItemID());
 		int data = RandomSampling.getRandomElement(entry.getDurability(), 0);
-		int amount = entry.getRange().sampleInt(rnd) * count;
+		int amount = (int) (entry.getRange().apply(rnd, params) * count);
 
 		while (amount > 0) {
 			ItemStack stack = new ItemStack(itemID, 1, (short) data);
@@ -83,16 +99,6 @@ public class ItemsFactory implements ResourceFactory {
 		}
 	}
 	
-	private List<ItemStack> fromEntry(Entry entry) {
-		
-		List<ItemStack> newList = new ArrayList<ItemStack>();
-		
-		// Create list
-		fillInventory(RandomSampling.getThreadRandom(), newList, entry, 1);
-		return newList;
-	}
-	
-	
 	@Override
 	public ResourceFactory withMultiplier(double newMultiplier) {
 		return new ItemsFactory(entries, newMultiplier);
@@ -104,47 +110,21 @@ public class ItemsFactory implements ResourceFactory {
 	}
 
 	@Override
-	public ResourceHolder getResource(Random rnd) {
+	public ResourceHolder getResource(Collection<NamedParameter> params, Random rnd) {
 		// Default value
-		return getResource(rnd, 1);
+		return getResource(params, rnd, 1);
 	}
 	
 	@Override
-	public ResourceHolder getMinimum(int count) {
+	public ResourceHolder getMinimum(Collection<NamedParameter> params, int count) {
 		
-		Entry minimumEntry = null;
-		int minimumRange = Integer.MAX_VALUE;
-		
-		// Find the entry with the lowest resource count. 
-		for (Entry entry : entries) {
-			int range = entry.getRange().getMinimum() * count;
-			
-			if (minimumRange > range) {
-				minimumRange = range;
-				minimumEntry = entry;
-			}
-		}
-		
-		return new ItemsHolder(fromEntry(minimumEntry));
+		return getResource(params, ConstantRandom.MINIMUM, count);
 	}
 
 	@Override
-	public ResourceHolder getMaximum(int count) {
+	public ResourceHolder getMaximum(Collection<NamedParameter> params, int count) {
 
-		Entry maximumValue = null;
-		int maximumRange = Integer.MIN_VALUE;
-		
-		// Find the entry with the highest resource count
-		for (Entry entry : entries) {
-			int range = entry.getRange().getMaximum() * count;
-			
-			if (maximumRange < range) {
-				maximumRange = range;
-				maximumValue = entry;
-			}
-		}
-		
-		return new ItemsHolder(fromEntry(maximumValue));
+		return getResource(params, ConstantRandom.MAXIMUM, count);
 	}
 	
 	@Override
@@ -155,14 +135,14 @@ public class ItemsFactory implements ResourceFactory {
 	// An item and the amount to award
 	private class Entry {
 		private ItemQuery item;
-		private SampleRange range;
+		private VariableFunction range;
 		
-		public Entry(ItemQuery item, SampleRange range) {
+		public Entry(ItemQuery item, VariableFunction range) {
 			this.item = item;
 			this.range = range;
 		}
 
-		public SampleRange getRange() {
+		public VariableFunction getRange() {
 			return range;
 		}
 		

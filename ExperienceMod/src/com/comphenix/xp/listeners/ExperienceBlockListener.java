@@ -108,7 +108,7 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 				if (action == null)
 					return;
 				
-				List<ResourceHolder> generated = action.generateRewards(rewards, random);
+				List<ResourceHolder> generated = action.generateRewards(null, rewards, random);
 				
 				if (!action.canRewardPlayer(rewards, player, generated)) {
 					if (hasDebugger())
@@ -149,7 +149,7 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 					return;
 				
 				// What we will award
-				List<ResourceHolder> generated = action.generateRewards(rewards, random);
+				List<ResourceHolder> generated = action.generateRewards(null, rewards, random);
 				
 				if (!action.canRewardPlayer(rewards, player, generated)) {
 					if (hasDebugger())
@@ -244,7 +244,7 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 				Action action = placeReward.get(retrieveKey);
 				RewardProvider rewards = config.getRewardProvider();
 				ChannelProvider channels = config.getChannelProvider();
-				List<ResourceHolder> generated = action.generateRewards(rewards, random);
+				List<ResourceHolder> generated = action.generateRewards(null, rewards, random);
 				
 				// Make sure the action is legal
 				if (!action.canRewardPlayer(rewards, player, generated)) {

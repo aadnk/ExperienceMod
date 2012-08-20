@@ -19,6 +19,9 @@ import com.comphenix.xp.parser.text.ItemParser;
 
 public class ItemsSectionParser extends SectionParser<ItemsSectionResult> {
 
+	// Items and block variables
+	public static String[] NAMED_PARAMETERS = {};
+	
 	protected ItemParser itemParser;
 	protected ActionParser actionParser;
 	protected ActionTypes actionTypes;
@@ -39,6 +42,9 @@ public class ItemsSectionParser extends SectionParser<ItemsSectionResult> {
 		
 		if (input == null)
 			throw new NullArgumentException("input");
+		
+		// Create a parser with the given named parameters
+		ActionParser parser = actionParser.createView(NAMED_PARAMETERS);
 		
 		Map<Integer, ItemTree> actionRewards = new HashMap<Integer, ItemTree>();
 		Map<Integer, PotionTree> complexRewards = new HashMap<Integer, PotionTree>();
@@ -85,11 +91,11 @@ public class ItemsSectionParser extends SectionParser<ItemsSectionResult> {
 					// Handle the special case of potion queries
 					switch (queryType) {
 					case ITEMS:
-						loadActionOnItem(itemSection, action, item, result.getActionReward(type), queryType);
+						loadActionOnItem(parser, itemSection, action, item, result.getActionReward(type), queryType);
 						break;
 						
 					case POTIONS:
-						loadActionOnItem(itemSection, action, item, result.getComplexReward(type), queryType);
+						loadActionOnItem(parser, itemSection, action, item, result.getComplexReward(type), queryType);
 						break;
 						
 					default:
@@ -114,10 +120,10 @@ public class ItemsSectionParser extends SectionParser<ItemsSectionResult> {
 	// I just wanted handle SearchTree<ItemQuery, Range> and SearchTree<PotionQuery, Range> with the same method, but
 	// apparently you can't simply use SearchTree<Query, Range> or some derivation to match them both. Too bad.
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private void loadActionOnItem(ConfigurationSection config, String key, Query item, 
+	private void loadActionOnItem(ActionParser parser, ConfigurationSection config, String key, Query item, 
 								  SearchTree destination, Query.Types checkType) throws ParsingException  {
 		
-		Action range = actionParser.parse(config, key);
+		Action range = parser.parse(config, key);
 		
 		// Check the query type
 		if (item.getQueryType() != checkType)

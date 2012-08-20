@@ -40,17 +40,25 @@ public class ActionParser extends ConfigurationParser<Action> {
 	private static final String messageTextSetting = "message";
 	private static final String messageChannelSetting = "channels";
 
-	private StringListParser listParser = new StringListParser();
-	private RewardProvider provider;
+	protected StringListParser listParser = new StringListParser();
+	protected RewardProvider provider;
+	
+	// The named parameters to supply the parser
+	protected String[] namedParameters;
 	
 	public ActionParser(RewardProvider provider) {
 		this.provider = provider;
 	}
 	
+	public ActionParser(RewardProvider provider, String[] namedParameters) {
+		this.provider = provider;
+		this.namedParameters = namedParameters;
+	}
+
 	public Action parse(ConfigurationSection input, String key) throws ParsingException {
 		
 		if (input == null)
-			return null;
+			throw ParsingException.fromFormat("Configuration section cannot be null.");
 
 		Action result = new Action();
 		String defaultName = provider.getDefaultName();
@@ -61,7 +69,7 @@ public class ActionParser extends ConfigurationParser<Action> {
 		// See if this is a top level reward
 		if (provider.containsService(defaultName)) {
 			
-			ResourcesParser parser = provider.getDefaultService().getResourcesParser();
+			ResourcesParser parser = provider.getDefaultService().getResourcesParser(namedParameters);
 			
 			if (parser != null) {
 				ResourceFactory factory = parser.parse(input, key);
@@ -93,7 +101,7 @@ public class ActionParser extends ConfigurationParser<Action> {
 				channels = listParser.parseSafe(values, sub);
 				
 			} else if (provider.containsService(enumed)) {
-				ResourcesParser parser = provider.getByName(enumed).getResourcesParser();
+				ResourcesParser parser = provider.getByName(enumed).getResourcesParser(namedParameters);
 				
 				if (parser != null) {
 					ResourceFactory factory = parser.parse(values, sub);
@@ -129,6 +137,19 @@ public class ActionParser extends ConfigurationParser<Action> {
 	 */
 	public ActionParser createView(RewardProvider provider) {
 		return new ActionParser(provider);
+	}
+	
+	/**
+	 * Creates a shallow copy of this parser with the given named parameters.
+	 * @param namedParameters - new named parameters.
+	 * @return Shallow copy of this parser.
+	 */
+	public ActionParser createView(String[] namedParameters) {
+		return new ActionParser(provider, namedParameters);
+	}
+
+	public String[] getNamedParameters() {
+		return namedParameters;
 	}
 	
 	public static int getCurrentID() {

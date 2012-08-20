@@ -4,6 +4,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.comphenix.xp.SampleRange;
+import com.comphenix.xp.expressions.VariableFunction;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.parser.TextParser;
 
@@ -14,7 +15,36 @@ import com.comphenix.xp.parser.TextParser;
  */
 public class StringRangeParser extends TextParser<SampleRange> {
 
-	private Pattern matchRange = Pattern.compile("\\s*\\[?([^\\[\\],-]+)[,-]?([^\\[\\],-]+)?\\]?\\s*");
+	private static Pattern matchRange = Pattern.compile("\\s*\\[?([^\\[\\],-]+)[,-]?([^\\[\\],-]+)?\\]?\\s*");
+	
+	/**
+	 * Converts a string range parser into a variable function parser.
+	 * @param parser - the string range parser to convert.
+	 * @return A variable function parser.
+	 */
+	public static TextParser<VariableFunction> toFunctionParser(TextParser<SampleRange> parser) {
+		
+		// Copy the reference
+		final TextParser<SampleRange> stringParser = parser;
+		
+		// Implement a simple adapter
+		return new TextParser<VariableFunction>() {
+			@Override
+			public VariableFunction parse(String text) throws ParsingException {
+				return VariableFunction.fromRange(stringParser.parse(text));
+			}
+			
+			@Override
+			public VariableFunction parse(String text, VariableFunction defaultValue) {
+				SampleRange result = stringParser.parse(text, null);
+				
+				if (result != null)
+					return VariableFunction.fromRange(result);
+				else
+					return defaultValue;
+			}
+		};
+	}
 	
 	@Override
 	public SampleRange parse(String text) throws ParsingException {
@@ -43,12 +73,12 @@ public class StringRangeParser extends TextParser<SampleRange> {
 		if (match.matches()) {
 			if (match.groupCount() == 1 || match.group(2) == null) {
 				return new SampleRange(
-						tryParse(match.group(1))
+						Double.parseDouble(match.group(1))
 				);
 			} else {
 				return new SampleRange(
-						tryParse(match.group(1)),
-						tryParse(match.group(2))
+						Double.parseDouble(match.group(1)),
+						Double.parseDouble(match.group(2))
 				); 
 			}
 		}

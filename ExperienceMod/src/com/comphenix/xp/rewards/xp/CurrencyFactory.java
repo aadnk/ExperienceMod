@@ -1,6 +1,7 @@
 package com.comphenix.xp.rewards.xp;
 
 import com.comphenix.xp.SampleRange;
+import com.comphenix.xp.expressions.VariableFunction;
 import com.comphenix.xp.rewards.ResourceFactory;
 import com.comphenix.xp.rewards.ResourceHolder;
 
@@ -11,15 +12,15 @@ import com.comphenix.xp.rewards.ResourceHolder;
  */
 public class CurrencyFactory extends GenericFactory {
 
-	public CurrencyFactory(SampleRange range) {
+	public CurrencyFactory(VariableFunction range) {
 		this(range, 1);
 	}
 	
 	public CurrencyFactory(double value) {
-		this(new SampleRange(value));
+		this(VariableFunction.fromRange(new SampleRange(value)));
 	}
 
-	private CurrencyFactory(SampleRange range, double newMultiplier) {
+	private CurrencyFactory(VariableFunction range, double newMultiplier) {
 		super(range, newMultiplier);
 	}
 	

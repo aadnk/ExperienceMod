@@ -36,7 +36,7 @@ import com.comphenix.xp.rewards.RewardTypes;
  */
 public class RewardExperience implements RewardService {
 
-	private ResourcesParser parser = new ExperienceParser();
+	private ResourcesParser parser = new ExperienceParser(null);
 	
 	@Override
 	public boolean canReward(Player player, ResourceHolder resource) {
@@ -89,8 +89,8 @@ public class RewardExperience implements RewardService {
 	}
 	
 	@Override
-	public ResourcesParser getResourcesParser() {
-		return parser;
+	public ResourcesParser getResourcesParser(String[] namedParameters) {
+		return parser.withParameters(namedParameters);
 	}
 	
 	@Override

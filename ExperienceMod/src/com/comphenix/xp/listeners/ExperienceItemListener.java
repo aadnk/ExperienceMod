@@ -39,6 +39,7 @@ import com.comphenix.xp.Configuration;
 import com.comphenix.xp.Debugger;
 import com.comphenix.xp.PlayerScheduler;
 import com.comphenix.xp.Presets;
+import com.comphenix.xp.expressions.PlayerParameter;
 import com.comphenix.xp.extra.Permissions;
 import com.comphenix.xp.lookup.ItemQuery;
 import com.comphenix.xp.lookup.ItemTree;
@@ -126,7 +127,10 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 		// Has an action been set?
 		if (action != null) {
 			RewardProvider rewards = config.getRewardProvider();
-			List<ResourceHolder> generated = action.generateRewards(rewards, random);
+			
+			List<ResourceHolder> generated = action.generateRewards(
+					PlayerParameter.getAllParameters(player, rewards), 
+					rewards, random);
 			
 			// Check and see if the player is broke
 			if (!action.canRewardPlayer(rewards, player, generated)) {
@@ -438,7 +442,7 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 			private List<ResourceHolder> generated;
 			
 			public void generateRewards(Action action, int count) {
-				generated = action.generateRewards(rewardsProvider, random, count);
+				generated = action.generateRewards(null, rewardsProvider, random, count);
 			}
 			
 			@Override

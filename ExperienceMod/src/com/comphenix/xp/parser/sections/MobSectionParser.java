@@ -12,6 +12,9 @@ import com.comphenix.xp.parser.text.MobParser;
 
 public class MobSectionParser extends SectionParser<MobTree> {
 
+	// Mob variables
+	public static String[] NAMED_PARAMETERS = {};
+
 	protected ActionParser actionParser;
 	protected MobParser mobParser;
 	protected double multiplier;
@@ -26,7 +29,8 @@ public class MobSectionParser extends SectionParser<MobTree> {
 	public MobTree parse(ConfigurationSection input, String sectionName) throws ParsingException {
 
 		MobTree experienceDrop = new MobTree(multiplier);
-
+		ActionParser parser = actionParser.createView(NAMED_PARAMETERS);
+		
 		if (input == null)
 			throw new NullArgumentException("input");
 		
@@ -42,7 +46,7 @@ public class MobSectionParser extends SectionParser<MobTree> {
 		// Parse every sub-section
 		for (String key : input.getKeys(false)) {
 			try {
-				Action value = actionParser.parse(input, key);
+				Action value = parser.parse(input, key);
 				MobQuery query = mobParser.parse(key);
 	
 				if (value != null)

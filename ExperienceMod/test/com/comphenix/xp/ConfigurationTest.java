@@ -37,7 +37,7 @@ public class ConfigurationTest {
 		provider.register(new MockRewardable(RewardTypes.EXPERIENCE));
 		provider.register(new MockRewardable(RewardTypes.VIRTUAL));
 		provider.register(new MockRewardable(RewardTypes.ECONOMY));
-		provider.register(new MockRewardable(RewardTypes.DROPS, new ItemsParser(nameParser)));
+		provider.register(new MockRewardable(RewardTypes.DROPS, new ItemsParser(nameParser, null)));
 		provider.setDefaultReward(RewardTypes.EXPERIENCE);
 		String def = "EXPERIENCE";
 		

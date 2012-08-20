@@ -8,6 +8,7 @@ import com.comphenix.xp.lookup.PotionQuery;
 import com.comphenix.xp.lookup.Query;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.parser.RangeParser;
+import com.comphenix.xp.parser.text.ExpressionParser;
 import com.comphenix.xp.parser.text.ItemNameParser;
 import com.comphenix.xp.parser.text.ItemParser;
 import com.comphenix.xp.rewards.ResourceFactory;
@@ -18,12 +19,16 @@ public class ItemsParser extends ResourcesParser {
 	protected RangeParser rangeParser;
 	protected ItemParser itemParser;
 	
-	public ItemsParser(ItemNameParser nameParser) {
+	public ItemsParser(ItemNameParser nameParser, String[] namedParameters) {
 		// Initialize parsers
-		rangeParser = new RangeParser();
-		itemParser = new ItemParser(nameParser);
+		this(new ItemParser(nameParser), namedParameters);
 	}
-	
+
+	public ItemsParser(ItemParser itemParser, String[] namedParameters) {
+		this.rangeParser = new RangeParser(new ExpressionParser(namedParameters));
+		this.itemParser = itemParser;
+	}
+
 	@Override
 	public ResourceFactory parse(ConfigurationSection input, String key) throws ParsingException {
 		
@@ -61,5 +66,10 @@ public class ItemsParser extends ResourcesParser {
 
 	public ItemParser getItemParser() {
 		return itemParser;
+	}
+
+	@Override
+	public ResourcesParser withParameters(String[] namedParameters) {
+		return new ItemsParser(itemParser, namedParameters);
 	}
 }
