@@ -72,13 +72,22 @@ public class ActionParser extends ConfigurationParser<Action> {
 			ResourcesParser parser = provider.getDefaultService().getResourcesParser(namedParameters);
 			
 			if (parser != null) {
-				ResourceFactory factory = parser.parse(input, key, null);
+				try {
+					ResourceFactory factory = parser.parse(input, key);
+					
+					// This is indeed a top level reward
+					if (factory != null) {
+						result.addReward(defaultName, factory);
+						result.setId(currentID++);
+						return result;
+					}
 				
-				// This is indeed a top level reward
-				if (factory != null) {
-					result.addReward(defaultName, factory);
-					result.setId(currentID++);
-					return result;
+				} catch (ParsingException e) {
+					// See if it contains multiple rewards
+					if (!input.isConfigurationSection(key)) {
+						// If not, this error should propagate.
+						throw e;
+					}
 				}
 			}
 		}
@@ -86,8 +95,9 @@ public class ActionParser extends ConfigurationParser<Action> {
 		ConfigurationSection values = input.getConfigurationSection(key);
 		
 		// See if this is a configuration section
-		if (values == null)
+		if (values == null) {
 			return null;
+		}
 		
 		// If not, get sub-rewards
 		for (String sub : values.getKeys(false)) {

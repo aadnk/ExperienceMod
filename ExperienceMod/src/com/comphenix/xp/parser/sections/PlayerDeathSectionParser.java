@@ -56,8 +56,9 @@ public class PlayerDeathSectionParser extends SectionParser<PlayerTree> {
 			
 			} catch (ParsingException e) {
 				if (isCollectExceptions()) {
+					e.printStackTrace();
 					// For now, record it
-					debugger.printWarning(this, "Unable to parse entity %s: %s", key, e.toString());
+					debugger.printWarning(this, "Unable to parse entity %s: %s", key, e.getMessage());
 				} else {
 					// Just invoke the error
 					throw e;

@@ -59,11 +59,11 @@ public class MathExpression extends VariableFunction {
 			}
 			
 		} catch (UnknownFunctionException e) {
-			throw new ParsingException("Unknown function encountered in math expression..", e);
+			throw new ParsingException(e.getMessage(), e);
 		} catch (UnparsableExpressionException e) {
-			throw new ParsingException("Unable to parse math expression.", e);
+			throw new ParsingException(e.getMessage(), e);
 		} catch (InvalidCustomFunctionException e) {
-			throw new ParsingException("Invalid function detected.", e);
+			throw new ParsingException(e.getMessage(), e);
 		}
 	}
 	

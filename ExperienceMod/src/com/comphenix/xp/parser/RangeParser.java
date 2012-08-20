@@ -36,24 +36,23 @@ public class RangeParser extends ConfigurationParser<VariableFunction> {
 
 		VariableFunction result = null;
 		
-		if (key.equals("?")) {
+		if (key.equals("Player")) {
 			result = null;
 		}
 		
 		try {
-			result = parse(input, key, null, false);
+			result = parse(input, key, null, true);
 		} catch (Exception e) {
-			e.printStackTrace();
 			// Convert to parsing exception
 			throw new ParsingException(
-					String.format("Cannot parse range from key %s: %s", key, e.getMessage()), e);
+					String.format("Range error: %s", e.getMessage()), e);
 		}
 		
 		// Turn default value into an exception
 		if (result != null)
 			return result;
 		else
-			throw ParsingException.fromFormat("Cannot parse range from key %s.", key );
+			throw ParsingException.fromFormat("Range error at key %s.", key );
 	}
 	
 	@Override
@@ -92,7 +91,7 @@ public class RangeParser extends ConfigurationParser<VariableFunction> {
 					return defaultValue;
 				else
 					// Make errors more descriptive
-					throw new Exception("Too many elements in range - must be one or two.");
+					throw new ParsingException("Too many elements in range - must be one or two.");
 			
 			} catch (Exception e) {
 				// Parsing error
@@ -105,7 +104,7 @@ public class RangeParser extends ConfigurationParser<VariableFunction> {
 		} else if (root instanceof String) { 
 			// Parse it as a string
 			try {
-				return textParser.parse((String) root, defaultValue);
+				return textParser.parse((String) root);
 				
 			} catch (Exception e) {
 				// Error here too
