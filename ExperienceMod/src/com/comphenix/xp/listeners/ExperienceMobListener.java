@@ -346,6 +346,8 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 			action = future.action;
 			generated = future.generated;
 			config = future.config;
+		} else {
+			config = getConfiguration(entity, killer);
 		}
 	
 		// And we're done with this mob

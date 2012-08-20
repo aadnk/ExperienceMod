@@ -36,6 +36,10 @@ public class RangeParser extends ConfigurationParser<VariableFunction> {
 
 		VariableFunction result = null;
 		
+		if (key.equals("?")) {
+			result = null;
+		}
+		
 		try {
 			result = parse(input, key, null, false);
 		} catch (Exception e) {
@@ -52,13 +56,7 @@ public class RangeParser extends ConfigurationParser<VariableFunction> {
 			throw ParsingException.fromFormat("Cannot parse range from key %s.", key );
 	}
 	
-	/**
-	 * Transform a configuration object, represented by a key, into a range. 
-	 * @param input - the configuration section in which the key to the object is stored.
-	 * @param key - the key of the object.
-	 * @param defaultValue - value to return if parsing failed.
-	 * @return A range from the given configuration object, or defaultValue if failed.
-	 */
+	@Override
 	public VariableFunction parse(ConfigurationSection input, String key, VariableFunction defaultValue) {
 		
 		try {
@@ -106,7 +104,16 @@ public class RangeParser extends ConfigurationParser<VariableFunction> {
 			
 		} else if (root instanceof String) { 
 			// Parse it as a string
-			return textParser.parse((String) root, defaultValue);
+			try {
+				return textParser.parse((String) root, defaultValue);
+				
+			} catch (Exception e) {
+				// Error here too
+				if (throwException)
+					throw e;
+				else
+					return defaultValue;
+			}
 			
 		} else {
 			// Backwards compatibility

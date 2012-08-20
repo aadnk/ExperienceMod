@@ -72,7 +72,7 @@ public class ActionParser extends ConfigurationParser<Action> {
 			ResourcesParser parser = provider.getDefaultService().getResourcesParser(namedParameters);
 			
 			if (parser != null) {
-				ResourceFactory factory = parser.parse(input, key);
+				ResourceFactory factory = parser.parse(input, key, null);
 				
 				// This is indeed a top level reward
 				if (factory != null) {

@@ -35,4 +35,21 @@ public abstract class ConfigurationParser<TOutput> {
 	 * @throws ParsingException An error occurred during the parsing.
 	 */
 	public abstract TOutput parse(ConfigurationSection input, String key) throws ParsingException;
+
+	/**
+	 * Transforms a configuration object, represented by a key, into an object. 
+	 * @param input - the configuration section in which the object is stored.
+	 * @param key - the key of the configuration object.
+	 * @param defaultValue - value to return if the parsing failed.
+	 * @return A transformed object, or default value if the parsing failed.
+	 */
+	public TOutput parse(ConfigurationSection input, String key, TOutput defaultValue) {
+		
+		// Convert exceptions into default values
+		try {
+			return parse(input, key);
+		} catch (ParsingException e) {
+			return defaultValue;
+		}
+	}
 }
