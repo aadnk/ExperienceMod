@@ -257,13 +257,13 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 				copy.maximumBookcaseCount = config.maximumBookcaseCount;
 			if (config.scanRadiusSetting != DEFAULT_SCAN_RADIUS)
 				copy.scanRadiusSetting = config.scanRadiusSetting;
-			if ((config.getMessageQueue().getMessageDelay() / 1000) != DEFAULT_MESSAGE_RATE) 
-				copy.messageQueue = config.messageQueue;
 			if (config.economyItemWorth != DEFAULT_ECONOMY_WORTH)
 				copy.economyItemWorth = config.economyItemWorth;
 			if (!ObjectUtils.equals(config.economyDropItem, DEFAULT_ECONOMY_DROP))
 				copy.economyDropItem = config.economyDropItem;
-				
+			if (copy.messageQueue == null || !isStandardQueue(config.messageQueue)) 
+				copy.messageQueue = config.messageQueue;	
+			
 			copy.rewardProvider = config.rewardProvider;
 			copy.channelProvider = config.channelProvider;
 			copy.parameterProviders = config.parameterProviders;
@@ -280,6 +280,11 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		return new Configuration(copy, copy.multiplier);
 	}
 
+	// See if this is a default message queue
+	private static boolean isStandardQueue(MessagePlayerQueue queue) {
+		return queue != null && (queue.getMessageDelay() / 1000) != DEFAULT_MESSAGE_RATE;
+	}
+	
 	/**
 	 * Initialize configuration from a configuration section.
 	 * @param config - configuration section to load from.
