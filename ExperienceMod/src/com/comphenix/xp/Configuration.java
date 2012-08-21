@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.commons.lang.ObjectUtils;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -49,7 +50,7 @@ import com.comphenix.xp.rewards.RewardTypes;
 public class Configuration implements PlayerCleanupListener, Multipliable<Configuration> {
 			
 	private static final String MULTIPLIER_SETTING = "multiplier";
-	private static final String DEFAULT_REWARDS_SETTING = "default rewards disabled";
+	private static final String DISABLE_REWARDS_SETTING = "default rewards disabled";
 	private static final String REWARD_TYPE_SETTING = "reward type";
 	
 	private static final String ECONOMY_DROPS_SETTING = "economy drop";
@@ -62,6 +63,9 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 	private static final String MAXIMUM_ENCHANT_LEVEL_SETTING = "maximum enchant level";
 	private static final String MAXIMUM_BOOKCASE_COUNT_SETTING = "maximum bookcase count";
 	
+	public static final int DEFAULT_ECONOMY_WORTH = 1;
+	public static final ItemStack DEFAULT_ECONOMY_DROP = null;
+	public static final boolean DEFAULT_DISABLE_REWARDS = false;
 	public static final double DEFAULT_SCAN_RADIUS = 20;
 	public static final int DEFAULT_MESSAGE_RATE = 5;
 	public static final int DEFAULT_MAXIMUM_ENCHANT_LEVEL = 30;
@@ -244,17 +248,25 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 			mergeActions(copy.actionRewards, config.actionRewards);
 			mergeActions(copy.complexRewards, config.complexRewards);
 			
-			// This will be the last set value
-			copy.defaultRewardsDisabled = config.defaultRewardsDisabled;
-			copy.maximumEnchantLevel = config.maximumEnchantLevel;
-			copy.maximumBookcaseCount = config.maximumBookcaseCount;
-			copy.messageQueue = config.messageQueue;
+			// This will be the last set non-standard value
+			if (config.defaultRewardsDisabled != DEFAULT_DISABLE_REWARDS)
+				copy.defaultRewardsDisabled = config.defaultRewardsDisabled;
+			if (config.maximumEnchantLevel != DEFAULT_MAXIMUM_ENCHANT_LEVEL)
+				copy.maximumEnchantLevel = config.maximumEnchantLevel;
+			if (config.maximumBookcaseCount != DEFAULT_MAXIMUM_BOOKCASE_COUNT)
+				copy.maximumBookcaseCount = config.maximumBookcaseCount;
+			if (config.scanRadiusSetting != DEFAULT_SCAN_RADIUS)
+				copy.scanRadiusSetting = config.scanRadiusSetting;
+			if ((config.getMessageQueue().getMessageDelay() / 1000) != DEFAULT_MESSAGE_RATE) 
+				copy.messageQueue = config.messageQueue;
+			if (config.economyItemWorth != DEFAULT_ECONOMY_WORTH)
+				copy.economyItemWorth = config.economyItemWorth;
+			if (!ObjectUtils.equals(config.economyDropItem, DEFAULT_ECONOMY_DROP))
+				copy.economyDropItem = config.economyDropItem;
+				
 			copy.rewardProvider = config.rewardProvider;
 			copy.channelProvider = config.channelProvider;
 			copy.parameterProviders = config.parameterProviders;
-			copy.economyItemWorth = config.economyItemWorth;
-			copy.economyDropItem = config.economyDropItem;
-			copy.scanRadiusSetting = config.scanRadiusSetting;
 			copy.itemParser = config.itemParser;
 			copy.mobParser = config.mobParser;
 			copy.actionParser = config.actionParser;
@@ -309,12 +321,12 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		}
 		
 		// Whether or not to remove all default XP drops
-		defaultRewardsDisabled = config.getBoolean(DEFAULT_REWARDS_SETTING, true);
+		defaultRewardsDisabled = config.getBoolean(DISABLE_REWARDS_SETTING, DEFAULT_DISABLE_REWARDS);
 		scanRadiusSetting = readDouble(config, VIRTUAL_SCAN_RADIUS_SETTING, DEFAULT_SCAN_RADIUS);
 		
 		// Economy item settings
-		economyItemWorth = config.getInt(ECONOMY_WORTH_SETTING, 1);
-		economyDropItem = null;
+		economyItemWorth = config.getInt(ECONOMY_WORTH_SETTING, DEFAULT_ECONOMY_WORTH);
+		economyDropItem = DEFAULT_ECONOMY_DROP;
 
 		// Economy drop item
 		try {
