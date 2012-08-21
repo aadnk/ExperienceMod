@@ -73,6 +73,11 @@ public abstract class SearchTree<TKey, TValue> {
 		currentID = highest + 1;
 	}
 	
+	/**
+	 * Retrieves an element by a query.
+	 * @param element - the query to use.
+	 * @return The retrieved element.
+	 */
 	public TValue get(TKey element) {
 		
 		Integer id = getID(element);
@@ -80,12 +85,32 @@ public abstract class SearchTree<TKey, TValue> {
 		return get(id);
 	}
 	
+	/**
+	 * Retrieves an element by ID.
+	 * @param id - the ID of the element to retrieve.
+	 * @return The retrieved element.
+	 */
 	public TValue get(Integer id) {
 		
 		if (id != null)
 			return flatten.get(id);
 		else
 			return null;
+	}
+	
+	/**
+	 * Retrieves the number of specified parameters by this element.
+	 * @param id - the element's ID.
+	 * @return The number of parameters.
+	 * @throws IllegalArgumentException - if no element by that ID can be found.
+	 */
+	public int getParamCount(Integer id) {
+		Integer params = paramCount.get(id);
+		
+		if (params != null)
+			return params;
+		else
+			throw new IllegalArgumentException("Cannot find ID " + id);
 	}
 	
 	public List<TValue> getAllRanked(TKey element) {
@@ -101,11 +126,17 @@ public abstract class SearchTree<TKey, TValue> {
 	public List<Integer> getAllRankedID(TKey element) {
 		
 		Set<Integer> candidates = getFromParameters(element);
-		List<Integer> indexes = new ArrayList<Integer>(candidates);
+		List<Integer> indexes = new ArrayList<Integer>(candidates.size());
 
-		// Filter out nulls after sorting
+		for (Integer candidate : candidates) {
+			if (candidate != null) {
+				indexes.add(candidate);
+			}
+		}
+		
+		// Sort list and return
 		Collections.sort(indexes, comparer);
-		return Lists.newArrayList(Iterables.filter(indexes, Predicates.notNull()));
+		return indexes;
 	}
 	
 	private Integer getID(TKey element) {
@@ -116,7 +147,7 @@ public abstract class SearchTree<TKey, TValue> {
 		if (candidates == null || candidates.size() == 0)
 			return null;
 		
-		// Return the most specified element
+		// Return the most recent element
 		return Collections.min(candidates, comparer);
 	}
 	
@@ -141,24 +172,15 @@ public abstract class SearchTree<TKey, TValue> {
 	}
 	
 	/**
-	 * Compares values (referenced by ID) by priority. The the most specified, 
-	 * and if identical, newest value is put at the beginning.
+	 * Compares values (referenced by ID) by priority. The newest elements are put first.
 	 */
 	protected class ValueComparer implements Comparator<Integer> {
 
 		@Override
 		public int compare(Integer a, Integer b) {
 
-			Integer countA = paramCount.get(a);
-			Integer countB = paramCount.get(b);
-			int comparison = compareObjects(countB, countA, false);
-			
-			// Compare mainly by specificity
-			if (comparison != 0)
-				return comparison;
-			else
-				// Higher before lower
-				return compareObjects(b, a, false);
+			// Higher before lower
+			return compareObjects(b, a, false);
 		}
 		
 		// Taken from Apache Commons 2.6  (ObjectUtils.compare)
