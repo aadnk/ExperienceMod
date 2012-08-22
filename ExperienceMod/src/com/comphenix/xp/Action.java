@@ -32,21 +32,17 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 import com.comphenix.xp.expressions.NamedParameter;
-import com.comphenix.xp.messages.ChannelProvider;
-import com.comphenix.xp.messages.ChannelService;
-import com.comphenix.xp.messages.Message;
-import com.comphenix.xp.messages.MessageFormatter;
+import com.comphenix.xp.messages.*;
 import com.comphenix.xp.parser.Utility;
-import com.comphenix.xp.rewards.ResourceFactory;
-import com.comphenix.xp.rewards.ResourceHolder;
-import com.comphenix.xp.rewards.RewardProvider;
-import com.comphenix.xp.rewards.RewardTypes;
-import com.comphenix.xp.rewards.RewardService;
+import com.comphenix.xp.rewards.*;
 
 public class Action {
 
 	public static final Action Default = new Action();
 
+	private double inheritMultiplier;
+	private boolean inherit;
+	
 	private int id;
 	private Message message;
 	private Map<String, ResourceFactory> rewards;
@@ -56,6 +52,7 @@ public class Action {
 	public Action() {
 		// Default constructor
 		rewards = new LinkedHashMap<String, ResourceFactory>();;
+		inheritMultiplier = 1;
 	}
 	
 	public Action(String rewardType, ResourceFactory reward) {
@@ -431,7 +428,66 @@ public class Action {
 			copy.put(entry.getKey(), old.withMultiplier(old.getMultiplier() * multiply));
 		}
 		
-		return new Action(message, copy, debugger, id);
+		// Copy everything
+		Action action = new Action(message, copy, debugger, id);
+		action.setInheritMultiplier(inheritMultiplier);
+		action.setInheritance(inherit);
+		return action;
+	}
+	
+	/**
+	 * Inherit traits from the previous action into the current action, returning a new action with the result.
+	 * @param previous - the previous action to inherit from.
+	 * @return A new action with the traits of this and the previois action.
+	 */
+	public Action inheritAction(Action previous) {
+		
+		// Scale the previous action
+		Action scaled = previous.multiply(getInheritMultiplier());
+		Action current = multiply(1);
+		
+		// Find any rewards that are not overwritten
+		Collection<String> rewards = scaled.getRewardNames();
+		rewards.removeAll(getRewardNames());
+		
+		// Copy over
+		for (String reward : rewards) {
+			current.addReward(reward, scaled.getReward(reward));
+		}
+	
+		return current;
+	}
+	
+	/**
+	 * Retrieves the resource multiplier to use during inheritance, if any.
+	 * @return The resource multiplier.
+	 */
+	public double getInheritMultiplier() {
+		return inheritMultiplier;
+	}
+	
+	/**
+	 * Sets the resource multiplier to use during inheritance, if any.
+	 * @param inheritMultiplier - The new resource multiplier.
+	 */
+	public void setInheritMultiplier(double inheritMultiplier) {
+		this.inheritMultiplier = inheritMultiplier;
+	}
+
+	/**
+	 * Whether or not this action should inherit rewards from any previous actions.
+	 * @return TRUE if inheritance is enabled, FALSE otherwise.
+	 */
+	public boolean hasInheritance() {
+		return inherit;
+	}
+	
+	/**
+	 * Sets whether or not this action should inherit rewards from any previous actions.
+	 * @param value - TRUE to use inheritance.
+	 */
+	public void setInheritance(boolean value) {
+		this.inherit = value;
 	}
 	
 	@Override
@@ -452,6 +508,8 @@ public class Action {
         return new EqualsBuilder().
             append(message, other.message).
             append(rewards, other.rewards).
+            append(inherit, other.inherit).
+            append(inheritMultiplier, other.inheritMultiplier).
             append(id, other.id).
             isEquals();
 	}

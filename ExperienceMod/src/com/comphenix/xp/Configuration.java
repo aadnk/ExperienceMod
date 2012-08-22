@@ -36,6 +36,7 @@ import com.comphenix.xp.lookup.*;
 import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.messages.MessagePlayerQueue;
 import com.comphenix.xp.parser.ActionParser;
+import com.comphenix.xp.parser.DoubleParser;
 import com.comphenix.xp.parser.StringListParser;
 import com.comphenix.xp.parser.Utility;
 import com.comphenix.xp.parser.ParsingException;
@@ -105,6 +106,8 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 	private PlayerTree playerDeathDrop;
 	private MobTree experienceDrop;
 	private PlayerRewards playerRewards;
+	
+	private DoubleParser doubleParser = new DoubleParser();
 	
 	private ItemParser itemParser;
 	private MobParser mobParser;
@@ -292,10 +295,7 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 	public void loadFromConfig(ConfigurationSection config) {
 		
 		// Load scalar values first
-		if (config.isDouble(MULTIPLIER_SETTING))
-			multiplier = config.getDouble(MULTIPLIER_SETTING, 1);
-		else
-			multiplier = config.getInt(MULTIPLIER_SETTING, 1);
+		multiplier = doubleParser.parse(config, MULTIPLIER_SETTING, 1.0);
 				
 		// Initialize parsers
 		MobSectionParser mobsParser = new MobSectionParser(
@@ -327,7 +327,7 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		
 		// Whether or not to remove all default XP drops
 		defaultRewardsDisabled = config.getBoolean(DISABLE_REWARDS_SETTING, DEFAULT_DISABLE_REWARDS);
-		scanRadiusSetting = readDouble(config, VIRTUAL_SCAN_RADIUS_SETTING, DEFAULT_SCAN_RADIUS);
+		scanRadiusSetting = doubleParser.parse(config, VIRTUAL_SCAN_RADIUS_SETTING, DEFAULT_SCAN_RADIUS);
 		
 		// Economy item settings
 		economyItemWorth = config.getInt(ECONOMY_WORTH_SETTING, DEFAULT_ECONOMY_WORTH);
@@ -390,7 +390,7 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 	private void loadRate(ConfigurationSection config) {
 		
 		// Load the message queue
-		double rate = readDouble(config, MESSAGE_MAX_RATE_SETTING, DEFAULT_MESSAGE_RATE);
+		double rate = doubleParser.parse(config, MESSAGE_MAX_RATE_SETTING, (double) DEFAULT_MESSAGE_RATE);
 		long converted = 0;
 		
 		// Make sure the rate is valid
@@ -499,22 +499,6 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		}
 	}
 
-	/**
-	 * Reads a double or integer from the configuration section.
-	 * @param config - configuration section to read from.
-	 * @param key - the key to read.
-	 * @return The double, or NULL if none were found.
-	 */
-	private double readDouble(ConfigurationSection config, String key, double defaultValue) {
-		
-		if (config.isDouble(key))
-			return config.getDouble(key);
-		else if (config.isInt(key)) 
-			return (double) config.getInt(key);
-		else 
-			return defaultValue;
-	}
-	
 	/**
 	 * Whether or not this configuration is associated with a specified preset.
 	 * @return TRUE if it is, FALSE otherwise. 

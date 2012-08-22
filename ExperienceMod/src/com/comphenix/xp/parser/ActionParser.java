@@ -18,6 +18,7 @@
 package com.comphenix.xp.parser;
 
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import org.bukkit.configuration.ConfigurationSection;
 
@@ -37,11 +38,15 @@ public class ActionParser extends ConfigurationParser<Action> {
 	// The current global action ID
 	private static int currentID;
 	
-	private static final String messageTextSetting = "message";
-	private static final String messageChannelSetting = "channels";
-
+	private static final String MESSAGE_TEXT_SETTING = "message";
+	private static final String MESSAGE_CHANNEL_SETTING = "channels";
+	private static final String MULTIPLIER_SETTING = "multiplier";
+	private static final String INHERIT_SETTING = "inherit";
+	
 	protected StringListParser listParser = new StringListParser();
+	protected DoubleParser doubleParser = new DoubleParser();
 	protected RewardProvider provider;
+	protected Callable<Action> previousAction;
 	
 	// The named parameters to supply the parser
 	protected String[] namedParameters;
@@ -65,6 +70,7 @@ public class ActionParser extends ConfigurationParser<Action> {
 		
 		String text = null;
 		List<String> channels = null;
+		boolean seenInherit = false;
 		
 		// See if this is a top level reward
 		if (provider.containsService(defaultName)) {
@@ -98,16 +104,16 @@ public class ActionParser extends ConfigurationParser<Action> {
 		if (values == null) {
 			return null;
 		}
-		
-		// If not, get sub-rewards
+
+		// Next, get sub-rewards
 		for (String sub : values.getKeys(false)) {
 			
 			String enumed = Utility.getEnumName(sub);
 			
-			if (sub.equalsIgnoreCase(messageTextSetting)) {
+			if (sub.equalsIgnoreCase(MESSAGE_TEXT_SETTING)) {
 				text = values.getString(sub);
 				
-			} else if (sub.equalsIgnoreCase(messageChannelSetting)) {
+			} else if (sub.equalsIgnoreCase(MESSAGE_CHANNEL_SETTING)) {
 				channels = listParser.parseSafe(values, sub);
 				
 			} else if (provider.containsService(enumed)) {
@@ -122,6 +128,27 @@ public class ActionParser extends ConfigurationParser<Action> {
 					// This is bad
 					throw ParsingException.fromFormat("Parser in %s cannot be NULL.", sub);
 				}
+
+			} else if (sub.equalsIgnoreCase(MULTIPLIER_SETTING)) {
+				
+				result.setInheritMultiplier(doubleParser.parse(values, sub));
+				
+				// Assume inheritance if not otherwise specified
+				if (!seenInherit) {
+					result.setInheritance(true);
+				}
+				
+			} else if (sub.equalsIgnoreCase(INHERIT_SETTING)) {
+				
+				Object value = values.get(sub);
+				
+				// Handle the inheritance field
+				if (value instanceof Boolean) {
+					result.setInheritance((Boolean) value);
+					seenInherit = true;
+				} else {
+					throw ParsingException.fromFormat("The value %s is not a boolean. Must be TRUE/FALSE:", value);
+				}
 				
 			} else {
 				throw ParsingException.fromFormat("Unrecognized reward %s.", sub);
@@ -134,6 +161,11 @@ public class ActionParser extends ConfigurationParser<Action> {
 			message.setText(text);
 			message.setChannels(channels);
 			result.setMessage(message);
+		}
+		
+		// Apply this multiplier to the action itself
+		if (result.getInheritMultiplier() != 1) {
+			result = result.multiply(result.getInheritMultiplier());
 		}
 		
 		result.setId(currentID++);
@@ -156,6 +188,24 @@ public class ActionParser extends ConfigurationParser<Action> {
 	 */
 	public ActionParser createView(String[] namedParameters) {
 		return new ActionParser(provider, namedParameters);
+	}
+
+	/**
+	 * A function that retrieves the previous action, if any, that matches this 
+	 * action by its query.
+	 * @return Previous action.
+	 */
+	public Callable<Action> getPreviousAction() {
+		return previousAction;
+	}
+
+	/**
+	 * Sets a function that retrieves the previous action, if any, that matches 
+	 * this action by its query.
+	 * @param previousAction - the function.
+	 */
+	public void setPreviousAction(Callable<Action> previousAction) {
+		this.previousAction = previousAction;
 	}
 
 	public String[] getNamedParameters() {

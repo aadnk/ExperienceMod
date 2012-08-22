@@ -27,29 +27,48 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.common.base.Function;
-import com.google.common.base.Predicates;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
 public abstract class SearchTree<TKey, TValue> {
 
-	protected Map<Integer, TValue> flatten = new HashMap<Integer, TValue>();
-	protected Map<Integer, Integer> paramCount = new HashMap<Integer, Integer>();
-	protected int currentID;
+	/**
+	 * Contains an entry in the search tree.
+	 * 
+	 * @author Kristian
+	 */
+	protected class SearchEntry {
+		public TKey key;
+		public TValue value;
+		public int paramCount;
+		
+		// Simple constructor
+		public SearchEntry(TKey key, TValue value) {
+			this.key = key;
+			this.value = value;
+		}
+		
+		public SearchEntry(SearchEntry other) {
+			this.key = other.key;
+			this.value = other.value;
+			this.paramCount = other.paramCount;
+		}
+	}
 	
+	protected Map<Integer, SearchEntry> flatten = new HashMap<Integer, SearchEntry>();
+		
+	protected int currentID;
 	protected ValueComparer comparer = new ValueComparer(); 
 	
 	public Integer put(TKey element, TValue value) {
 		
 		Integer id = getNextID();
+		SearchEntry entry = new SearchEntry(element, value);
 		
 		// Save value
-		flatten.put(id, value);
+		flatten.put(id, entry);
 		
 		// Extract parameters
-		Integer count = putFromParameters(element, id);
-		
-		paramCount.put(id, count);
+		entry.paramCount = putFromParameters(element, id);
 		return id;
 	}
 	
@@ -59,14 +78,12 @@ public abstract class SearchTree<TKey, TValue> {
 		int highest = offset;
 		
 		// Insert everything from flatten
-		for (Map.Entry<Integer, TValue> entry : other.flatten.entrySet()) {
-			flatten.put(entry.getKey() + offset, entry.getValue());
-			highest = Math.max(highest, entry.getKey() + offset);
+		for (Integer id : other.flatten.keySet()) {
+			SearchEntry entry = new SearchEntry(other.flatten.get(id));
+			
+			flatten.put(id + offset, entry);
+			highest = Math.max(highest, id + offset);
 		}
-		
-		// And from parameter count
-		for (Map.Entry<Integer, Integer> entry : other.paramCount.entrySet())
-			paramCount.put(entry.getKey() + offset, entry.getValue());
 		
 		// Make sure the parameters are updated too
 		putAllParameters(other, offset);
@@ -92,8 +109,8 @@ public abstract class SearchTree<TKey, TValue> {
 	 */
 	public TValue get(Integer id) {
 		
-		if (id != null)
-			return flatten.get(id);
+		if (id != null && flatten.containsKey(id))
+			return flatten.get(id).value;
 		else
 			return null;
 	}
@@ -105,10 +122,10 @@ public abstract class SearchTree<TKey, TValue> {
 	 * @throws IllegalArgumentException - if no element by that ID can be found.
 	 */
 	public int getParamCount(Integer id) {
-		Integer params = paramCount.get(id);
+		SearchEntry entry = flatten.get(id);
 		
-		if (params != null)
-			return params;
+		if (entry != null)
+			return entry.paramCount;
 		else
 			throw new IllegalArgumentException("Cannot find ID " + id);
 	}
@@ -118,11 +135,16 @@ public abstract class SearchTree<TKey, TValue> {
 		// YES! LINQ, only slightly more painful.
 		return Lists.transform(getAllRankedID(element), new Function<Integer, TValue>() {
 			public TValue apply(Integer id) {
-				return flatten.get(id);
+				return get(id);
 			}
 		});
 	}
 	
+	/**
+	 * Retrieves every possible matching action in ID form.
+	 * @param element - the query to match with.
+	 * @return List of IDs.
+	 */
 	public List<Integer> getAllRankedID(TKey element) {
 		
 		Set<Integer> candidates = getFromParameters(element);
@@ -139,7 +161,7 @@ public abstract class SearchTree<TKey, TValue> {
 		return indexes;
 	}
 	
-	private Integer getID(TKey element) {
+	protected Integer getID(TKey element) {
 		
 		Set<Integer> candidates = getFromParameters(element);
 
@@ -149,6 +171,7 @@ public abstract class SearchTree<TKey, TValue> {
 		
 		// Return the most recent element
 		return Collections.min(candidates, comparer);
+
 	}
 	
 	public boolean containsKey(TKey element) {
@@ -160,7 +183,28 @@ public abstract class SearchTree<TKey, TValue> {
 	 * @return Every stored value.
 	 */
 	public Collection<TValue> getValues() {
-		return flatten.values();
+		List<TValue> values = new ArrayList<TValue>();
+		
+		// Simple enumeration
+		for (SearchEntry entry : flatten.values()) {
+			values.add(entry.value);
+		}
+		
+		return values;
+	}
+	
+	/**
+	 * Returns a list of every stored key in this search tree.
+	 * @return Every stored value.
+	 */
+	public Collection<TKey> getKeys() {
+		List<TKey> values = new ArrayList<TKey>();
+		
+		for (SearchEntry entry : flatten.values()) {
+			values.add(entry.key);
+		}
+		
+		return values;
 	}
 	
 	protected abstract void putAllParameters(SearchTree<TKey, TValue> other, Integer offset);

@@ -34,7 +34,6 @@ public abstract class ActionTree<TKey> extends SearchTree<TKey, Action>{
 	public ActionTree(ActionTree<TKey> other, double multiplier) {
 		this.multiplier = multiplier;
 		this.flatten = other.flatten;
-		this.paramCount = other.paramCount;
 		this.currentID = other.currentID;
 	}
 	
@@ -50,6 +49,38 @@ public abstract class ActionTree<TKey> extends SearchTree<TKey, Action>{
 			return source.multiply(multiplier);
 		else
 			return source;
+	}
+	
+	@Override
+	public Action get(TKey element) {
+		List<Integer> ids = getAllRankedID(element);
+		List<Action> train = new ArrayList<Action>();
+		Action result = null;
+		
+		// Figure out how long the inheritance train is
+		for (int i = 0; i < ids.size(); i++) {
+			Action current = get(ids.get(i));
+			
+			if (current != null) {
+				train.add(current);
+				
+				// That was the last in the chain
+				if (!current.hasInheritance())
+					break;
+			}
+		}
+
+		// We'll process everything starting at the last inserted element
+		for (int i = train.size() - 1; i >= 0; i--) {
+			Action action = train.get(i);
+
+			if (result == null)
+				result = action;
+			else if (action.hasInheritance())
+				result = action.inheritAction(result);
+		}
+		
+		return result;
 	}
 	
 	/**
@@ -68,7 +99,7 @@ public abstract class ActionTree<TKey> extends SearchTree<TKey, Action>{
 		
 		return scaledValues;
 	}
-	
+		
 	public double getMultiplier() {
 		return multiplier;
 	}

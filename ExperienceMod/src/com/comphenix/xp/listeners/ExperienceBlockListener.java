@@ -174,7 +174,7 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 		}
 		
 		// No need for more details
-		return tree.get(ids.get(0));
+		return tree.get(key);
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
