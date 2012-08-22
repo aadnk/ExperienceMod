@@ -54,6 +54,21 @@ public class ServiceProvider<TService extends Service> {
 	}
 	
 	/**
+	 * Copy everything from the given provider.
+	 * @param other - the given provider.
+	 */
+	public ServiceProvider(ServiceProvider<TService> other) {
+		this.defaultName = other.defaultName;
+		this.nameLookup = new ConcurrentHashMap<String, TService>(other.nameLookup);
+		this.disabledLookup = Sets.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
+		
+		// Insert all disabled elements
+		for (String disabled : other.disabledLookup) {
+			this.disabledLookup.add(disabled);
+		}
+	}
+	
+	/**
 	 * Returns the currently registered service with this name. The name 
 	 * should conform to the Java ENUM convention.
 	 * @param serviceName - name to search for.
@@ -185,7 +200,7 @@ public class ServiceProvider<TService extends Service> {
 	 */
 	public boolean isEnabled(String name) {
 		if (name == null)
-			throw new NullArgumentException("Service name cannot be null.");
+			throw new NullArgumentException("name");
 		else
 			return !disabledLookup.contains(name);
 	}
@@ -197,7 +212,7 @@ public class ServiceProvider<TService extends Service> {
 	 */
 	public boolean isEnabled(TService service) {
 		if (service == null)
-			throw new NullArgumentException("Service cannot be null.");
+			throw new NullArgumentException("service");
 		
 		return isEnabled(service.getServiceName());
 	}
@@ -209,7 +224,7 @@ public class ServiceProvider<TService extends Service> {
 	 */
 	public void setEnabled(String name, boolean value) {
 		if (name == null)
-			throw new NullArgumentException("Service name cannot be null.");
+			throw new NullArgumentException("name");
 		
 		disabledLookup.remove(name);
 		
@@ -225,7 +240,7 @@ public class ServiceProvider<TService extends Service> {
 	 */
 	public void setEnabled(TService service, boolean value) {
 		if (service == null)
-			throw new NullArgumentException("Service cannot be null.");
+			throw new NullArgumentException("service");
 		
 		setEnabled(service.getServiceName(), value);
 	}
@@ -253,9 +268,9 @@ public class ServiceProvider<TService extends Service> {
 	 */
 	public TService getDefaultService() {
 		TService service = getByName(getDefaultName());
-		
+
 		// Handle disabled services
-		if (isEnabled(service))
+		if (service != null && isEnabled(service))
 			return service;
 		else
 			return Iterables.getFirst(getEnabledServices(), null);

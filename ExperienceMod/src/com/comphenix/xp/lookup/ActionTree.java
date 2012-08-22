@@ -79,7 +79,7 @@ public abstract class ActionTree<TKey> extends SearchTree<TKey, Action>{
 			else if (action.hasInheritance())
 				result = action.inheritAction(result);
 		}
-		
+
 		return result;
 	}
 	

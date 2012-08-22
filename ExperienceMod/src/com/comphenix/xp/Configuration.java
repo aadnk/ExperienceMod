@@ -23,8 +23,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
-import org.apache.commons.lang.ObjectUtils;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -76,12 +76,12 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 	private Debugger logger;
 	
 	private double multiplier;
-	private boolean defaultRewardsDisabled;
+	private boolean defaultRewardsDisabled = DEFAULT_DISABLE_REWARDS;
 	private boolean preset;
 	
-	private ItemStack economyDropItem;
-	private Integer economyItemWorth;
-	private double scanRadiusSetting;
+	private ItemStack economyDropItem = DEFAULT_ECONOMY_DROP;
+	private Integer economyItemWorth = DEFAULT_ECONOMY_WORTH;
+	private double scanRadiusSetting = DEFAULT_SCAN_RADIUS;
 	
 	private RewardProvider rewardProvider;
 	private ChannelProvider channelProvider;
@@ -90,8 +90,8 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 
 	private LevelingRate levelingRate;
 	
-	private int maximumEnchantLevel;
-	private int maximumBookcaseCount;
+	private int maximumEnchantLevel = DEFAULT_MAXIMUM_ENCHANT_LEVEL;
+	private int maximumBookcaseCount = DEFAULT_MAXIMUM_BOOKCASE_COUNT;
 	
 	// Global settings
 	private GlobalSettings globalSettings;
@@ -114,6 +114,9 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 	private ActionParser actionParser;
 	private PlayerParser playerParser;
 	
+	// Configuration sections
+	private Set<String> topLevel;
+ 	
 	public Configuration(Debugger debugger, ActionTypes actionTypes) {
 		this.logger = debugger;
 		this.defaultRewardsDisabled = false;
@@ -142,7 +145,7 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		this.actionParser = other.actionParser;
 		this.messageQueue = other.messageQueue;
 		this.initializeReferences();
-		
+
 		// Copy parsers
 		this.itemParser = other.itemParser;
 		this.mobParser = other.mobParser;
@@ -212,6 +215,7 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		}
 		if (messageQueue != null) {
 			messageQueue = messageQueue.createView();
+			messageQueue.setChannelProvider(channelProvider);
 		}
 		if (actionParser != null) {
 			actionParser = actionParser.createView(rewardProvider);
@@ -252,23 +256,26 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 			mergeActions(copy.complexRewards, config.complexRewards);
 			
 			// This will be the last set non-standard value
-			if (config.defaultRewardsDisabled != DEFAULT_DISABLE_REWARDS)
+			if (config.hadConfiguration(DISABLE_REWARDS_SETTING))
 				copy.defaultRewardsDisabled = config.defaultRewardsDisabled;
-			if (config.maximumEnchantLevel != DEFAULT_MAXIMUM_ENCHANT_LEVEL)
+			if (config.hadConfiguration(MAXIMUM_ENCHANT_LEVEL_SETTING))
 				copy.maximumEnchantLevel = config.maximumEnchantLevel;
-			if (config.maximumBookcaseCount != DEFAULT_MAXIMUM_BOOKCASE_COUNT)
+			if (config.hadConfiguration(MAXIMUM_BOOKCASE_COUNT_SETTING))
 				copy.maximumBookcaseCount = config.maximumBookcaseCount;
-			if (config.scanRadiusSetting != DEFAULT_SCAN_RADIUS)
+			if (config.hadConfiguration(VIRTUAL_SCAN_RADIUS_SETTING))
 				copy.scanRadiusSetting = config.scanRadiusSetting;
-			if (config.economyItemWorth != DEFAULT_ECONOMY_WORTH)
+			if (config.hadConfiguration(ECONOMY_WORTH_SETTING))
 				copy.economyItemWorth = config.economyItemWorth;
-			if (!ObjectUtils.equals(config.economyDropItem, DEFAULT_ECONOMY_DROP))
+			if (config.hadConfiguration(ECONOMY_DROPS_SETTING))
 				copy.economyDropItem = config.economyDropItem;
-			if (copy.messageQueue == null || !isStandardQueue(config.messageQueue)) 
-				copy.messageQueue = config.messageQueue;	
 			
-			copy.rewardProvider = config.rewardProvider;
-			copy.channelProvider = config.channelProvider;
+			if (copy.messageQueue == null || config.hadConfiguration(MESSAGE_MAX_RATE_SETTING))
+				copy.messageQueue = config.messageQueue;	
+			if (copy.rewardProvider == null || config.hadConfiguration(REWARD_TYPE_SETTING))
+				copy.rewardProvider = config.rewardProvider;
+			if (copy.channelProvider == null || config.hadConfiguration(DEFAULT_CHANNELS_SETTING))
+				copy.channelProvider = config.channelProvider;
+			
 			copy.parameterProviders = config.parameterProviders;
 			copy.itemParser = config.itemParser;
 			copy.mobParser = config.mobParser;
@@ -283,9 +290,16 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		return new Configuration(copy, copy.multiplier);
 	}
 
-	// See if this is a default message queue
-	private static boolean isStandardQueue(MessagePlayerQueue queue) {
-		return queue != null && (queue.getMessageDelay() / 1000) != DEFAULT_MESSAGE_RATE;
+	/**
+	 * Determine whether or not the given configuration setting was specified.
+	 * @param name - name of the setting.
+	 * @return TRUE if it was, FALSE otherwise.
+	 */
+	protected boolean hadConfiguration(String name) {
+		if (topLevel == null)
+			return false;
+		else
+			return topLevel.contains(name);
 	}
 	
 	/**
@@ -293,6 +307,9 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 	 * @param config - configuration section to load from.
 	 */
 	public void loadFromConfig(ConfigurationSection config) {
+		
+		// Keep track of top-level types
+		topLevel = config.getValues(false).keySet();
 		
 		// Load scalar values first
 		multiplier = doubleParser.parse(config, MULTIPLIER_SETTING, 1.0);
@@ -349,7 +366,7 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		// Default message channels
 		StringListParser listParser = new StringListParser();
 		channelProvider.setDefaultChannels(listParser.parseSafe(config, DEFAULT_CHANNELS_SETTING));
-		
+
 		// Load reward type
 		String defaultReward = loadReward(config.getString(REWARD_TYPE_SETTING, null));
 		

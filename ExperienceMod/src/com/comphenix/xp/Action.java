@@ -122,8 +122,7 @@ public class Action {
 	 * @return
 	 */
 	public boolean hasNothing(ChannelProvider provider) {
-		List<String> channels = getChannels(provider, message);
-		return rewards.isEmpty() && (channels == null || channels.isEmpty());
+		return rewards.isEmpty() && (message == null || getChannels(provider, message) == null);
 	}
 	
 	/**
@@ -336,7 +335,7 @@ public class Action {
 		List<String> channels = getChannels(provider, message);
 		List<String> failures = new ArrayList<String>();
 		ChannelService service = provider.getDefaultService();
-		
+
 		// Guard against NULL messages
 		if (channels != null && service != null) {
 			// Transmit the message on all channels

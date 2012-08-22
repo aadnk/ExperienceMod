@@ -97,7 +97,7 @@ public class MessagePlayerQueue implements PlayerCleanupListener {
 	public MessagePlayerQueue createView() {
 		return new MessagePlayerQueue(messageDelay, channelProvider, debugger);
 	}
-	
+
 	public void onTick() {
 		for (MessageQueue queue : queues.values()) 
 			queue.onTick();

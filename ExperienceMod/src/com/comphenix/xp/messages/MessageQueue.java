@@ -137,7 +137,7 @@ public class MessageQueue {
 
 		// See if we have any messages to transmit
 		if (ordered.size() > 0 && isReady()) {
-		
+			
 			// Always choose the oldest message/composite message
 			Action oldest = ordered.poll();
 			

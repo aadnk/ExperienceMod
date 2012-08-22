@@ -115,7 +115,7 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 					player.getName(), block);
 			
 		} else {
-			Action action = getBlockBonusAction(config.getSimpleBlockReward(), retrieveKey, block);
+			Action action = getBlockBonusAction(tree, retrieveKey, block);
 			RewardProvider rewards = config.getRewardProvider();
 			ChannelProvider channels = config.getChannelProvider();
 			
@@ -138,10 +138,10 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 			
 			// Disable vanilla experience
 			event.setExpToDrop(0);
-			
+
 			Collection<ResourceHolder> result = action.rewardPlayer(rewards, player, generated, block.getLocation());
 			config.getMessageQueue().enqueue(player, action, channels.getFormatter(player, result));
-			
+
 			if (hasDebugger())
 				debugger.printDebug(this, "Block " + description + " by %s: Spawned %s for item %s.", 
 					player.getName(), StringUtils.join(result, ", "), block.getType());
