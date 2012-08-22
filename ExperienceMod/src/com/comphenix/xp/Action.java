@@ -454,6 +454,9 @@ public class Action {
 		Action scaled = previous.multiply(getInheritMultiplier());
 		Action current = multiply(1);
 		
+		// Include the previous multiplier
+		current.setInheritMultiplier(current.getInheritMultiplier() * previous.getInheritMultiplier());
+		
 		// Find any rewards that are not overwritten
 		Collection<String> rewards = scaled.getRewardNames();
 		rewards.removeAll(getRewardNames());

@@ -38,6 +38,7 @@ import com.comphenix.xp.Action;
 import com.comphenix.xp.Configuration;
 import com.comphenix.xp.Debugger;
 import com.comphenix.xp.Presets;
+import com.comphenix.xp.SampleRange;
 import com.comphenix.xp.expressions.NamedParameter;
 import com.comphenix.xp.extra.Permissions;
 import com.comphenix.xp.history.HistoryProviders;
@@ -84,25 +85,49 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 	private void handleBlockBreakEvent(BlockBreakEvent event, Block block, Player player) {
 		
 		ItemStack toolItem = player.getItemInHand();
-
+		Configuration config = null;
+		
 		boolean allowBlockReward = Permissions.hasRewardBlock(player) && !hasSilkTouch(toolItem);
 		boolean allowBonusReward = Permissions.hasRewardBonus(player);
-
+		double multiplier = 1;
+		
+		if (event.getExpToDrop() > 0) {
+			// Increase vanilla reward
+			config = getConfiguration(player);
+			multiplier = config.getMultiplier(); 
+		}
+		
 		// Only without silk touch
 		if (allowBlockReward) {
-			Configuration config = getConfiguration(player);
-			handleBlockReward(event, config, config.getSimpleBlockReward(), "mined");
+			if (config == null)
+				config = getConfiguration(player);
+			
+			multiplier *= handleBlockReward(event, config, config.getSimpleBlockReward(), "mined");
 		}
 		
 		if (allowBonusReward) {
-			Configuration config = getConfiguration(player);
-			handleBlockReward(event, config, config.getSimpleBonusReward(), "destroyed");
+			if (config == null)
+				config = getConfiguration(player);
+			
+			multiplier *= handleBlockReward(event, config, config.getSimpleBonusReward(), "destroyed");
+		}
+		
+		if (multiplier != 1) {
+			SampleRange increase = new SampleRange(event.getExpToDrop() * multiplier);
+			int expChanged = increase.sampleInt(random);
+			
+			event.setExpToDrop(expChanged);
+			
+			if (hasDebugger()) {
+				debugger.printDebug(this, 
+						"Block mined by %s: Set experience to %d.", player.getName(), expChanged);
+			}
 		}
 		
 		// Done
 	}
 	
-	private void handleBlockReward(BlockBreakEvent event, Configuration config, ItemTree tree, String description) {
+	private double handleBlockReward(BlockBreakEvent event, Configuration config, ItemTree tree, String description) {
 		
 		Player player = event.getPlayer();
 		Block block = event.getBlock();
@@ -113,6 +138,7 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 			if (hasDebugger())
 				debugger.printDebug(this, "Cannot find config for player %s in mining %s.", 
 					player.getName(), block);
+			return 1; // Vanilla reward
 			
 		} else {
 			Action action = getBlockBonusAction(tree, retrieveKey, block);
@@ -120,11 +146,16 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 			ChannelProvider channels = config.getChannelProvider();
 			
 			// Guard
-			if (action == null || action.hasNothing(channels))
-				return;
+			if (action == null)
+				return 1; // Vanilla reward
 			
 			Collection<NamedParameter> params = config.getParameterProviders().getParameters(action, block);
 			List<ResourceHolder> generated = action.generateRewards(params, rewards, random);
+			
+			// Could this be an action without rewards?
+			if (generated.size() == 0) {
+				return action.getInheritMultiplier();
+			}
 			
 			if (!action.canRewardPlayer(rewards, player, generated)) {
 				if (hasDebugger())
@@ -133,18 +164,18 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 				
 				if (!Permissions.hasUntouchable(player))
 					event.setCancelled(true);
-				return;
+				return 1;
 			}
 			
-			// Disable vanilla experience
-			event.setExpToDrop(0);
-
 			Collection<ResourceHolder> result = action.rewardPlayer(rewards, player, generated, block.getLocation());
 			config.getMessageQueue().enqueue(player, action, channels.getFormatter(player, result));
 
 			if (hasDebugger())
 				debugger.printDebug(this, "Block " + description + " by %s: Spawned %s for item %s.", 
 					player.getName(), StringUtils.join(result, ", "), block.getType());
+			
+			// Disable vanilla reward
+			return 0;
 		}
 	}
 
@@ -208,7 +239,6 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 			if (config == null) {
 				if (hasDebugger())
 					debugger.printDebug(this, "No config found for block %s.", block);
-				return;
 			}
 				
 			ItemQuery retrieveKey = ItemQuery.fromExact(block);
@@ -221,7 +251,7 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 				Collection<NamedParameter> params = config.getParameterProviders().getParameters(action, block);
 				
 				List<ResourceHolder> generated = action.generateRewards(params, rewards, random);
-				
+
 				// Make sure the action is legal
 				if (!action.canRewardPlayer(rewards, player, generated)) {
 					if (hasDebugger())
@@ -231,7 +261,6 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 					// Events will not be cancelled for untouchables
 					if (!Permissions.hasUntouchable(player))
 						event.setCancelled(true);
-					return;
 				}
 				
 				// Reward and print messages

@@ -166,11 +166,10 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 		
 		// Quickly retrieve the correct action
 		RewardProvider rewards = config.getRewardProvider();
-		ChannelProvider channels = config.getChannelProvider();
 		Action action = getAction(config, entity, killer);
 		
 		// Allow event
-		if (action == null || action.hasNothing(channels)) {
+		if (action == null) {
 			return true;
 		}
 		
@@ -183,7 +182,7 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 			
 		// Generate some rewards
 		List<ResourceHolder> generated = action.generateRewards(params, rewards, random);
-		
+
 		FutureReward future = new FutureReward();
 		future.action = action;
 		future.generated = generated;
@@ -225,20 +224,21 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 	
 	private void handlePlayerDeath(PlayerDeathEvent event, Player player, Collection<ResourceHolder> dropped) {
 
-		// Let us handle the dropped experience
-    	event.setDroppedExp(0);
-		
 		// Permission check
         if(Permissions.hasKeepExp(player)) {
         	
+        	event.setDroppedExp(0);
             event.setKeepLevel(true);
             
             if (hasDebugger())
         		debugger.printDebug(this, "Prevented experience loss for %s.", player.getName());
             
-        } else {
+        } else if (dropped != null && dropped.size() > 0) {
         	int total = 0;     	
         
+        	// Manual dropped amount
+        	event.setDroppedExp(0);
+        	
         	// Subtract the dropped experience
         	for (ResourceHolder holder : dropped) {
         		if (holder instanceof ExperienceHolder) {
@@ -359,7 +359,7 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 		}
 			
 		// Make sure the reward has been changed
-		if (generated != null) {
+		if (generated != null && generated.size() > 0) {
 			
 			ChannelProvider channels = config.getChannelProvider();
 			RewardProvider rewards = config.getRewardProvider();
@@ -380,6 +380,11 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 				debugger.printDebug(this, "Entity %d: Changed experience drop to %s.", 
 						id, StringUtils.join(result, ", "));
 
+		} else if (action != null && action.getInheritMultiplier() != 1) {
+			
+			// Inherit experience action
+			handleMultiplier(event, id, config.getMultiplier() * action.getInheritMultiplier());
+			
 		} else if (config.isDefaultRewardsDisabled() && hasKiller) {
 			
 			// Disable all mob XP
@@ -390,18 +395,7 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 
 		} else if (!config.isDefaultRewardsDisabled() && hasKiller) {
 			
-			int expDropped = event.getDroppedExp();
-			
-			// Alter the default experience drop too
-			if (config.getMultiplier() != 1) {
-				SampleRange increase = new SampleRange(expDropped * config.getMultiplier());
-				int expChanged = increase.sampleInt(random);
-				
-				event.setDroppedExp(expChanged);
-				
-				if (hasDebugger())
-					debugger.printDebug(this, "Entity %d: Changed experience drop to %d exp.", id, expChanged);
-			}
+			handleMultiplier(event, id, config.getMultiplier());
 		}
 		
 		// Remove it from the lookup
@@ -417,6 +411,23 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 		}
 		
 		return null;
+	}
+	
+	private void handleMultiplier(EntityDeathEvent event, int entityID, double multiplier) {
+		
+		int expDropped = event.getDroppedExp();
+		
+		// Alter the default experience drop too
+		if (multiplier != 1) {
+			SampleRange increase = new SampleRange(expDropped * multiplier);
+			int expChanged = increase.sampleInt(random);
+			
+			event.setDroppedExp(expChanged);
+			
+			if (hasDebugger())
+				debugger.printDebug(this, "Entity %d: Changed experience drop to %d exp.", 
+						entityID, expChanged);
+		}
 	}
 	
 	// Determine if a debugger is attached and is listening
