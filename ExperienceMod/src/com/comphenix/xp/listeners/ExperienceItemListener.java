@@ -126,7 +126,7 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 		}
 		
 		// Has an action been set?
-		if (action != null) {
+		if (action != null && !action.hasNothing(channels)) {
 			RewardProvider rewards = config.getRewardProvider();
 			Collection<NamedParameter> params = config.getParameterProviders().getParameters(action, player);
 			

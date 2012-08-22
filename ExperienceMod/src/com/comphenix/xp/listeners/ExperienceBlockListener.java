@@ -114,17 +114,16 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 				debugger.printDebug(this, "Cannot find config for player %s in mining %s.", 
 					player.getName(), block);
 			
-		} else if (tree.containsKey(retrieveKey)) {
-
+		} else {
 			Action action = getBlockBonusAction(config.getSimpleBlockReward(), retrieveKey, block);
 			RewardProvider rewards = config.getRewardProvider();
 			ChannelProvider channels = config.getChannelProvider();
-			Collection<NamedParameter> params = config.getParameterProviders().getParameters(action, block);
 			
 			// Guard
-			if (action == null)
+			if (action == null || action.hasNothing(channels))
 				return;
 			
+			Collection<NamedParameter> params = config.getParameterProviders().getParameters(action, block);
 			List<ResourceHolder> generated = action.generateRewards(params, rewards, random);
 			
 			if (!action.canRewardPlayer(rewards, player, generated)) {

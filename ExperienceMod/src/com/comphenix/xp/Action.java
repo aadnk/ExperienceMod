@@ -118,6 +118,15 @@ public class Action {
 	}
 	
 	/**
+	 * Determines if the given action has any rewards or messages.
+	 * @return
+	 */
+	public boolean hasNothing(ChannelProvider provider) {
+		List<String> channels = getChannels(provider, message);
+		return rewards.isEmpty() && (channels == null || channels.isEmpty());
+	}
+	
+	/**
 	 * Generates a list of resources, in the same order as each associated reward factory.
 	 * @param params - parameters to use when calculating the reward.
 	 * @param provider - provider of reward services.
@@ -453,6 +462,11 @@ public class Action {
 		// Copy over
 		for (String reward : rewards) {
 			current.addReward(reward, scaled.getReward(reward));
+		}
+		
+		// And copy the message too, if it hasn't already been set
+		if (current.message == null) {
+			current.message = scaled.message;
 		}
 	
 		return current;

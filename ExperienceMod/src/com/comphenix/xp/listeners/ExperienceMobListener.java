@@ -166,10 +166,11 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 		
 		// Quickly retrieve the correct action
 		RewardProvider rewards = config.getRewardProvider();
+		ChannelProvider channels = config.getChannelProvider();
 		Action action = getAction(config, entity, killer);
 		
 		// Allow event
-		if (action == null) {
+		if (action == null || action.hasNothing(channels)) {
 			return true;
 		}
 		
