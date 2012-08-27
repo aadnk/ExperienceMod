@@ -410,7 +410,7 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 			);
 		}
 		
-		return null;
+		return result;
 	}
 	
 	private void handleMultiplier(EntityDeathEvent event, int entityID, double multiplier) {
