@@ -18,6 +18,7 @@
 package com.comphenix.xp.rewards;
 
 import java.util.HashMap;
+
 import org.apache.commons.lang.NullArgumentException;
 
 import com.comphenix.xp.Configuration;
@@ -45,10 +46,10 @@ public class RewardProvider extends ServiceProvider<RewardService> {
 		this.enumLookup = new HashMap<RewardTypes, RewardService>();
 	}
 	
+	@SuppressWarnings("unchecked")
 	public RewardProvider(RewardProvider reference, Configuration configuration) {
-		super(reference.getDefaultName());
-		this.nameLookup = reference.nameLookup;
-		this.enumLookup = reference.enumLookup;
+		super(reference);
+		this.enumLookup = (HashMap<RewardTypes, RewardService>) reference.enumLookup.clone();
 		this.configuration = configuration;
 	}
 	
@@ -146,7 +147,7 @@ public class RewardProvider extends ServiceProvider<RewardService> {
 			return null;
 		else if (configuration != null)
 			return reward.clone(configuration);
-		else
+		else 
 			return reward;
 	}
 	
@@ -181,7 +182,7 @@ public class RewardProvider extends ServiceProvider<RewardService> {
 	public Configuration getConfiguration() {
 		return configuration;
 	}
-
+	
 	/**
 	 * Sets the configuration containing settings for different reward services.
 	 * @param configuration New configuration.

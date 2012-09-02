@@ -40,7 +40,7 @@ public class PlayerInteractionListener implements PlayerCleanupListener, Listene
 		public ItemQuery block;
 	}
 	
-	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = false)
 	public void onPlayerInteractEvent(PlayerInteractEvent event) {
 		
 		try {
@@ -55,7 +55,7 @@ public class PlayerInteractionListener implements PlayerCleanupListener, Listene
 				ClickEvent click = new ClickEvent();
 				click.block = ItemQuery.fromExact(event.getClickedBlock());
 				click.time = System.currentTimeMillis();
-				
+
 				// Store this block (by copy, so we don't keep chunks in memory)
 				lastRightClicked.put(player.getName(), click);
 			}
@@ -68,14 +68,27 @@ public class PlayerInteractionListener implements PlayerCleanupListener, Listene
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onInventoryCloseEvent(InventoryCloseEvent event) {
 	
+		long current = System.currentTimeMillis();
+		
 		try {
 		
 			HumanEntity player = event.getPlayer();
 			
 			// Make sure this is a valid inventory open event
-			if (player != null && player instanceof Player) {
-				// This information is now outdated
-				lastRightClicked.remove(player.getName());
+			if (player instanceof Player) {
+
+				ClickEvent click = lastRightClicked.get(player.getName());
+				
+				// Ignore very recent close events - they are likely to be wrong
+				if (click != null && (current - click.time) >= 25) {
+
+					// This information is now outdated
+					lastRightClicked.remove(player.getName());	
+					
+				} else {
+					if (debugger != null)
+						debugger.printDebug(this, "Swallowed a close event.");
+				}
 			}
 		
 		} catch (Exception e) {

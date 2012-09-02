@@ -21,6 +21,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.NullArgumentException;
+
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
@@ -72,6 +75,31 @@ public class Utility {
 	 */
 	public static <T> List<T> flatten(List<Set<T>> list) {
 		return Lists.newArrayList(Iterables.concat(list));
+	}
+	
+	/**
+	 * Converts an array into a the equivalent string array by performing 
+	 * toString() on every element.
+	 * @param elements - the array to convert.
+	 * @return The resulting string array.
+	 */
+	public static <T> String[] toStringArray(T[] elements) {
+		if (elements == null)
+			throw new NullArgumentException("elements");
+		else if (elements.length == 0)
+			return ArrayUtils.EMPTY_STRING_ARRAY;
+		
+		String[] copy = new String[elements.length];
+	
+		// Get the string representation
+		for (int i = 0; i < copy.length; i++) {
+			if (elements[i] == null)
+				copy[i] = null;
+			else
+				copy[i] = elements[i].toString();
+		}
+		
+		return copy;
 	}
 	
 	/**

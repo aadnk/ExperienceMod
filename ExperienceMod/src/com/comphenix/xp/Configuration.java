@@ -23,22 +23,27 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import com.comphenix.xp.expressions.ParameterProviderSet;
+import com.comphenix.xp.listeners.ErrorReporting;
 import com.comphenix.xp.listeners.PlayerCleanupListener;
 import com.comphenix.xp.lookup.*;
-import com.comphenix.xp.lookup.Query.Types;
 import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.messages.MessagePlayerQueue;
 import com.comphenix.xp.parser.ActionParser;
+import com.comphenix.xp.parser.DoubleParser;
 import com.comphenix.xp.parser.StringListParser;
 import com.comphenix.xp.parser.Utility;
 import com.comphenix.xp.parser.ParsingException;
+import com.comphenix.xp.parser.sections.*;
 import com.comphenix.xp.parser.text.ItemParser;
 import com.comphenix.xp.parser.text.MobParser;
+import com.comphenix.xp.parser.text.PlayerParser;
 import com.comphenix.xp.rewards.ResourceFactory;
 import com.comphenix.xp.rewards.RewardProvider;
 import com.comphenix.xp.rewards.RewardTypes;
@@ -46,7 +51,7 @@ import com.comphenix.xp.rewards.RewardTypes;
 public class Configuration implements PlayerCleanupListener, Multipliable<Configuration> {
 			
 	private static final String MULTIPLIER_SETTING = "multiplier";
-	private static final String DEFAULT_REWARDS_SETTING = "default rewards disabled";
+	private static final String DISABLE_REWARDS_SETTING = "default rewards disabled";
 	private static final String REWARD_TYPE_SETTING = "reward type";
 	
 	private static final String ECONOMY_DROPS_SETTING = "economy drop";
@@ -56,23 +61,38 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 	private static final String DEFAULT_CHANNELS_SETTING = "default channels";
 	private static final String MESSAGE_MAX_RATE_SETTING = "message max rate";
 	
-	private static final double DEFAULT_SCAN_RADIUS = 20;
-	private static final int DEFAULT_MESSAGE_RATE = 5;
+	private static final String MAXIMUM_ENCHANT_LEVEL_SETTING = "maximum enchant level";
+	private static final String MAXIMUM_BOOKCASE_COUNT_SETTING = "maximum bookcase count";
+	
+	public static final int DEFAULT_ECONOMY_WORTH = 1;
+	public static final ItemStack DEFAULT_ECONOMY_DROP = null;
+	public static final boolean DEFAULT_DISABLE_REWARDS = false;
+	public static final double DEFAULT_SCAN_RADIUS = 20;
+	public static final int DEFAULT_MESSAGE_RATE = 5;
+	public static final int DEFAULT_MAXIMUM_ENCHANT_LEVEL = 30;
+	public static final int DEFAULT_MAXIMUM_BOOKCASE_COUNT = 15;
+	public static final int MAXIMUM_BOOKCASE_COUNT = 255; 
 	
 	private Debugger logger;
 	
 	private double multiplier;
-	private boolean defaultRewardsDisabled;
+	private boolean defaultRewardsDisabled = DEFAULT_DISABLE_REWARDS;
 	private boolean preset;
 	
-	private ItemStack economyDropItem;
-	private Integer economyItemWorth;
-	private double scanRadiusSetting;
+	private ItemStack economyDropItem = DEFAULT_ECONOMY_DROP;
+	private Integer economyItemWorth = DEFAULT_ECONOMY_WORTH;
+	private double scanRadiusSetting = DEFAULT_SCAN_RADIUS;
 	
 	private RewardProvider rewardProvider;
 	private ChannelProvider channelProvider;
+	private ParameterProviderSet parameterProviders;
 	private MessagePlayerQueue messageQueue;
 
+	private LevelingRate levelingRate;
+	
+	private int maximumEnchantLevel = DEFAULT_MAXIMUM_ENCHANT_LEVEL;
+	private int maximumBookcaseCount = DEFAULT_MAXIMUM_BOOKCASE_COUNT;
+	
 	// Global settings
 	private GlobalSettings globalSettings;
 
@@ -83,13 +103,20 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 	private Map<Integer, ItemTree> actionRewards = new HashMap<Integer, ItemTree>();
 	private Map<Integer, PotionTree> complexRewards = new HashMap<Integer, PotionTree>();
 	
+	private PlayerTree playerDeathDrop;
 	private MobTree experienceDrop;
 	private PlayerRewards playerRewards;
+	
+	private DoubleParser doubleParser = new DoubleParser();
 	
 	private ItemParser itemParser;
 	private MobParser mobParser;
 	private ActionParser actionParser;
-
+	private PlayerParser playerParser;
+	
+	// Configuration sections
+	private Set<String> topLevel;
+ 	
 	public Configuration(Debugger debugger, ActionTypes actionTypes) {
 		this.logger = debugger;
 		this.defaultRewardsDisabled = false;
@@ -105,35 +132,33 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		this.multiplier = newMultiplier;
 		this.logger = other.logger;
 		
+		this.maximumEnchantLevel = other.maximumEnchantLevel;
+		this.maximumBookcaseCount = other.maximumBookcaseCount;
 		this.defaultRewardsDisabled = other.defaultRewardsDisabled;
 		this.economyItemWorth = other.economyItemWorth;
 		this.economyDropItem = other.economyDropItem;
 		this.scanRadiusSetting = other.scanRadiusSetting;
 		
-		// Copy providers
-		if (other.rewardProvider != null) {
-			this.rewardProvider = other.rewardProvider.createView(this);
-		}
-		if (other.channelProvider != null) {
-			this.channelProvider = other.channelProvider.createView();
-		}
-		if (other.messageQueue != null) {
-			this.messageQueue = other.messageQueue.createView();
-		}
-		if (other.actionParser != null) {
-			this.actionParser = other.actionParser.createView(rewardProvider);
-		}
-		
+		this.parameterProviders = other.parameterProviders;
+		this.rewardProvider = other.rewardProvider;
+		this.channelProvider = other.channelProvider;
+		this.actionParser = other.actionParser;
+		this.messageQueue = other.messageQueue;
+		this.initializeReferences();
+
 		// Copy parsers
 		this.itemParser = other.itemParser;
 		this.mobParser = other.mobParser;
 		this.actionTypes = other.actionTypes;
+		this.playerParser = other.playerParser;
 		
 		// Copy (shallow) trees
 		this.actionRewards = copyActionsWithMultiplier(other.actionRewards, newMultiplier);
 		this.complexRewards = copyActionsWithMultiplier(other.complexRewards, newMultiplier);
 		this.experienceDrop = other.experienceDrop.withMultiplier(newMultiplier);
+		this.playerDeathDrop = other.playerDeathDrop.withMultiplier(newMultiplier);
 		this.playerRewards = other.playerRewards.withMultiplier(newMultiplier);
+		this.levelingRate = other.levelingRate;
 		this.checkRewards();
 	}
 		
@@ -142,6 +167,7 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		this.rewardProvider = provider;
 		this.channelProvider = channels;
 		this.actionParser = new ActionParser(provider);
+		this.playerParser = new PlayerParser();
 	}
 	
 	// Makes a copy of a action reward tree
@@ -179,6 +205,23 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		}
 	}
 	
+	private void initializeReferences() {
+		
+		if (rewardProvider != null) {
+			rewardProvider = rewardProvider.createView(this);
+		}
+		if (channelProvider != null) {
+			channelProvider = channelProvider.createView();
+		}
+		if (messageQueue != null) {
+			messageQueue = messageQueue.createView();
+			messageQueue.setChannelProvider(channelProvider);
+		}
+		if (actionParser != null) {
+			actionParser = actionParser.createView(rewardProvider);
+		}
+	}
+	
 	/**
 	 * Merge a list of configurations into a new configuration.
 	 * 
@@ -206,21 +249,38 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 			}
 			
 			copy.experienceDrop.putAll(config.experienceDrop);
+			copy.playerDeathDrop.putAll(config.playerDeathDrop);
 			copy.playerRewards.putAll(config.playerRewards);
+			copy.levelingRate.putAll(config.levelingRate);
 			mergeActions(copy.actionRewards, config.actionRewards);
 			mergeActions(copy.complexRewards, config.complexRewards);
 			
-			// This will be the last set value
-			copy.defaultRewardsDisabled = config.defaultRewardsDisabled;
-			copy.messageQueue = config.messageQueue;
-			copy.rewardProvider = config.rewardProvider;
-			copy.channelProvider = config.channelProvider;
-			copy.economyItemWorth = config.economyItemWorth;
-			copy.economyDropItem = config.economyDropItem;
-			copy.scanRadiusSetting = config.scanRadiusSetting;
+			// This will be the last set non-standard value
+			if (config.hadConfiguration(DISABLE_REWARDS_SETTING))
+				copy.defaultRewardsDisabled = config.defaultRewardsDisabled;
+			if (config.hadConfiguration(MAXIMUM_ENCHANT_LEVEL_SETTING))
+				copy.maximumEnchantLevel = config.maximumEnchantLevel;
+			if (config.hadConfiguration(MAXIMUM_BOOKCASE_COUNT_SETTING))
+				copy.maximumBookcaseCount = config.maximumBookcaseCount;
+			if (config.hadConfiguration(VIRTUAL_SCAN_RADIUS_SETTING))
+				copy.scanRadiusSetting = config.scanRadiusSetting;
+			if (config.hadConfiguration(ECONOMY_WORTH_SETTING))
+				copy.economyItemWorth = config.economyItemWorth;
+			if (config.hadConfiguration(ECONOMY_DROPS_SETTING))
+				copy.economyDropItem = config.economyDropItem;
+			
+			if (copy.messageQueue == null || config.hadConfiguration(MESSAGE_MAX_RATE_SETTING))
+				copy.messageQueue = config.messageQueue;	
+			if (copy.rewardProvider == null || config.hadConfiguration(REWARD_TYPE_SETTING))
+				copy.rewardProvider = config.rewardProvider;
+			if (copy.channelProvider == null || config.hadConfiguration(DEFAULT_CHANNELS_SETTING))
+				copy.channelProvider = config.channelProvider;
+			
+			copy.parameterProviders = config.parameterProviders;
 			copy.itemParser = config.itemParser;
 			copy.mobParser = config.mobParser;
 			copy.actionParser = config.actionParser;
+			copy.playerParser = config.playerParser;
 			
 			// Multiply all multipliers
 			copy.multiplier *= config.multiplier; 
@@ -231,26 +291,64 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 	}
 
 	/**
+	 * Determine whether or not the given configuration setting was specified.
+	 * @param name - name of the setting.
+	 * @return TRUE if it was, FALSE otherwise.
+	 */
+	protected boolean hadConfiguration(String name) {
+		if (topLevel == null)
+			return false;
+		else
+			return topLevel.contains(name);
+	}
+	
+	/**
 	 * Initialize configuration from a configuration section.
 	 * @param config - configuration section to load from.
 	 */
 	public void loadFromConfig(ConfigurationSection config) {
 		
-		StringListParser listParser = new StringListParser();
+		// Keep track of top-level types
+		topLevel = config.getValues(false).keySet();
 		
-		// Load scalar values
-		if (config.isDouble(MULTIPLIER_SETTING))
-			multiplier = config.getDouble(MULTIPLIER_SETTING, 1);
-		else
-			multiplier = config.getInt(MULTIPLIER_SETTING, 1);
-
+		// Load scalar values first
+		multiplier = doubleParser.parse(config, MULTIPLIER_SETTING, 1.0);
+				
+		// Initialize parsers
+		MobSectionParser mobsParser = new MobSectionParser(
+				actionParser, mobParser, parameterProviders, multiplier);
+		PlayerDeathSectionParser playerDeathParser = new PlayerDeathSectionParser(
+				actionParser, playerParser, parameterProviders, multiplier);
+		ItemsSectionParser itemsParser = new ItemsSectionParser(
+				itemParser, actionParser, actionTypes, parameterProviders, multiplier);
+		PlayerSectionParser playerParser = new PlayerSectionParser(
+				actionParser, parameterProviders, multiplier);
+		LevelsSectionParser levelsParser = new LevelsSectionParser();
+		
+		// Set debugger
+		mobsParser.setDebugger(logger);
+		itemsParser.setDebugger(logger);
+		playerParser.setDebugger(logger);
+		levelsParser.setDebugger(logger);
+		playerDeathParser.setDebugger(logger);
+		
+		// Enchanting settings
+		maximumEnchantLevel = config.getInt(MAXIMUM_ENCHANT_LEVEL_SETTING, DEFAULT_MAXIMUM_ENCHANT_LEVEL);
+		maximumBookcaseCount = config.getInt(MAXIMUM_BOOKCASE_COUNT_SETTING, DEFAULT_MAXIMUM_BOOKCASE_COUNT);
+		
+		// There's a limit to things
+		if (maximumBookcaseCount > MAXIMUM_BOOKCASE_COUNT) {
+			maximumBookcaseCount = MAXIMUM_BOOKCASE_COUNT;
+			logger.printWarning(this, "Maximum bookcase count cannot exceed 255.");
+		}
+		
 		// Whether or not to remove all default XP drops
-		defaultRewardsDisabled = config.getBoolean(DEFAULT_REWARDS_SETTING, true);
-		scanRadiusSetting = readDouble(config, VIRTUAL_SCAN_RADIUS_SETTING, DEFAULT_SCAN_RADIUS);
+		defaultRewardsDisabled = config.getBoolean(DISABLE_REWARDS_SETTING, DEFAULT_DISABLE_REWARDS);
+		scanRadiusSetting = doubleParser.parse(config, VIRTUAL_SCAN_RADIUS_SETTING, DEFAULT_SCAN_RADIUS);
 		
 		// Economy item settings
-		economyItemWorth = config.getInt(ECONOMY_WORTH_SETTING, 1);
-		economyDropItem = null;
+		economyItemWorth = config.getInt(ECONOMY_WORTH_SETTING, DEFAULT_ECONOMY_WORTH);
+		economyDropItem = DEFAULT_ECONOMY_DROP;
 
 		// Economy drop item
 		try {
@@ -266,8 +364,9 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		}
 		
 		// Default message channels
+		StringListParser listParser = new StringListParser();
 		channelProvider.setDefaultChannels(listParser.parseSafe(config, DEFAULT_CHANNELS_SETTING));
-		
+
 		// Load reward type
 		String defaultReward = loadReward(config.getString(REWARD_TYPE_SETTING, null));
 		
@@ -276,28 +375,39 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 			setDefaultRewardName(defaultReward);
 	
 		loadRate(config);
-		initialize(multiplier);
-
-		// Load mob experience
-		loadMobs(config.getConfigurationSection("mobs"));
-		loadItemActions(config.getConfigurationSection("items"));
-		loadGenericRewards(config.getConfigurationSection("player"));
+		
+		try {
+			// Load mob experience
+			experienceDrop = mobsParser.parse(config, "mobs");
+			
+			// Load player death experience
+			playerDeathDrop = playerDeathParser.parse(config, "player death");
+			
+			// Load items and potions
+			ItemsSectionResult result = itemsParser.parse(config, "items");
+			actionRewards = result.getActionRewards();
+			complexRewards = result.getComplexRewards();
+			
+			// Load player rewards
+			playerRewards = playerParser.parse(config, "player");
+			
+			// Load custom levels
+			levelingRate = levelsParser.parse(config, "levels");
+			
+		} catch (ParsingException e) {
+			// This must be because a debugger isn't attached. Damn it.
+			ErrorReporting.DEFAULT.reportError(logger, this, e);
+		}
+		
+		// Reload providers
+		initializeReferences();
 		checkRewards();
-	}
-	
-	
-	public GlobalSettings getGlobalSettings() {
-		return globalSettings;
-	}
-
-	public void setGlobalSettings(GlobalSettings globalSettings) {
-		this.globalSettings = globalSettings;
 	}
 	
 	private void loadRate(ConfigurationSection config) {
 		
 		// Load the message queue
-		double rate = readDouble(config, MESSAGE_MAX_RATE_SETTING, DEFAULT_MESSAGE_RATE);
+		double rate = doubleParser.parse(config, MESSAGE_MAX_RATE_SETTING, (double) DEFAULT_MESSAGE_RATE);
 		long converted = 0;
 		
 		// Make sure the rate is valid
@@ -316,6 +426,7 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		
 		// Clear previous values
 		experienceDrop = new MobTree(multiplier);
+		playerDeathDrop = new PlayerTree(multiplier);
 		
 		// Initialize all the default rewards
 		for (Integer types : actionTypes.getTypes()) {
@@ -323,7 +434,9 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 			complexRewards.put(types, new PotionTree(multiplier));
 		}
 		
+		playerParser = new PlayerParser();
 		playerRewards = new PlayerRewards(multiplier);
+		this.levelingRate = new LevelingRate();
 		this.multiplier = multiplier;
 	}
 	
@@ -343,7 +456,8 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		}
 		
 		// Copy the content of every special collection
-		actions.addAll(experienceDrop.getValues());		
+		actions.addAll(experienceDrop.getValues());
+		actions.addAll(playerDeathDrop.getValues());
 		actions.addAll(playerRewards.getValues());
 		return actions;
 	}
@@ -383,7 +497,7 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 			
 			ResourceFactory factory = action.getReward("EXPERIENCE");
 				
-			if (factory != null && (factory.getMinimum(1).getAmount() < 0))
+			if (factory != null && (factory.getMinimum(null, 1).getAmount() < 0))
 				return true;
 		}
 		
@@ -401,137 +515,7 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 			return null;
 		}
 	}
-	
-	private void loadMobs(ConfigurationSection config) {
-		// Guard against null
-		if (config == null)
-			return;
-		
-		for (String key : config.getKeys(false)) {
-			try {				
-				Action value = actionParser.parse(config, key);
-				MobQuery query = mobParser.parse(key);
 
-				if (value != null)
-					experienceDrop.put(query, value);
-				else
-					logger.printWarning(this, "Unable to parse range/value on entity %s.", key);
-				
-			} catch (ParsingException ex) {
-				logger.printWarning(this, "Parsing error - %s", ex.getMessage());
-			}
-		}
-	}
-	
-	private void loadItemActions(ConfigurationSection config) {
-		// Guard against null
-		if (config == null)
-			return;
-		
-		for (String key : config.getKeys(false)) {
-			try {
-				Query item = itemParser.parse(key);
-				ConfigurationSection itemSection = config.getConfigurationSection(key);
-				Types queryType = item.getQueryType();
-				
-				// Read the different rewards
-				for (String action : itemSection.getKeys(false)) {
-					
-					Integer type = actionTypes.getType(action);
-					
-					if (type == null) {
-						
-						// Catch some misunderstanding here
-						if (action.equalsIgnoreCase("message") || action.equalsIgnoreCase("channels")) {
-							logger.printWarning(this, 
-								"Message and channel list must be inside an action (block, smelting, ect.).");
-						} else {
-							logger.printWarning(this, 
-								"Unrecogized action %s under item %s.", action, key);
-						}
-						
-						break;
-					}
-					
-					// Handle the special case of potion queries
-					switch (queryType) {
-					case Items:
-						loadActionOnItem(itemSection, action, item, getActionReward(type), queryType);
-						break;
-						
-					case Potions:
-						loadActionOnItem(itemSection, action, item, getComplexReward(type), queryType);
-						break;
-						
-					default:
-						logger.printWarning(this, "The query type %s cannot be used on items.", queryType);
-					}
-					
-				}
-
-			} catch (ParsingException ex) {	
-				logger.printWarning(this, "Cannot parse item %s - %s", key, ex.getMessage());
-			}
-		}
-	}
-	
-	private void loadGenericRewards(ConfigurationSection config) {
-		// Guard against null
-		if (config == null)
-			return;
-		
-		for (String key : config.getKeys(false)) {
-			
-			try {
-				Action value = actionParser.parse(config, key);
-				
-				if (value != null)
-					playerRewards.put(key, value);
-				else
-					logger.printWarning(this, "Unable to parse range on player reward %s.", key);
-				
-				
-			} catch (ParsingException ex) {
-				logger.printWarning(this, "Parsing error - %s", key, ex.getMessage());
-			}
-		}
-	}
-
-	// I just wanted handle SearchTree<ItemQuery, Range> and SearchTree<PotionQuery, Range> with the same method, but
-	// apparently you can't simply use SearchTree<Query, Range> or some derivation to match them both. Too bad.
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private void loadActionOnItem(ConfigurationSection config, String key, Query item, SearchTree destination, Query.Types checkType) throws ParsingException  {
-		
-		Action range = actionParser.parse(config, key);
-		
-		// Check the query type
-		if (item.getQueryType() != checkType)
-			throw new IllegalArgumentException("Cannot load action " + key + " on this item matcher.");
-		
-		// Ignore this type
-		if (range != null) {
-			destination.put(item, range);
-		} else {
-			logger.printWarning(this, "Unable to read range on %s.", key);
-		}
-	}
-
-	/**
-	 * Reads a double or integer from the configuration section.
-	 * @param config - configuration section to read from.
-	 * @param key - the key to read.
-	 * @return The double, or NULL if none were found.
-	 */
-	private double readDouble(ConfigurationSection config, String key, double defaultValue) {
-		
-		if (config.isDouble(key))
-			return config.getDouble(key);
-		else if (config.isInt(key)) 
-			return (double) config.getInt(key);
-		else 
-			return defaultValue;
-	}
-	
 	/**
 	 * Whether or not this configuration is associated with a specified preset.
 	 * @return TRUE if it is, FALSE otherwise. 
@@ -548,6 +532,22 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		preset = value;
 	}
 	
+	public GlobalSettings getGlobalSettings() {
+		return globalSettings;
+	}
+
+	public void setGlobalSettings(GlobalSettings globalSettings) {
+		this.globalSettings = globalSettings;
+	}
+	
+	/**
+	 * Overrides the rate at which players gain levels.
+	 * @return Custom rules for how much experience a player needs to level up.
+	 */
+	public LevelingRate getLevelingRate() {
+		return levelingRate;
+	}
+
 	@Override
 	public Configuration withMultiplier(double newMultiplier) {
 		return new Configuration(this, newMultiplier);
@@ -620,6 +620,14 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		return defaultRewardsDisabled;
 	}
 	
+	public int getMaximumEnchantLevel() {
+		return maximumEnchantLevel;
+	}
+
+	public int getMaximumBookcaseCount() {
+		return maximumBookcaseCount;
+	}
+
 	public PlayerRewards getPlayerRewards() {
 		return playerRewards;
 	}
@@ -689,6 +697,10 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 		return getComplexReward(actionTypes.getType(ActionTypes.BREWING));
 	}
 
+	public double getScanRadiusSetting() {
+		return scanRadiusSetting;
+	}
+
 	/**
 	 * Retrieves the current registered action types.
 	 * @return Registry of action types.
@@ -727,6 +739,30 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 
 	public void setActionParser(ActionParser actionParser) {
 		this.actionParser = actionParser;
+	}
+	
+	public PlayerTree getPlayerDeathDrop() {
+		return playerDeathDrop;
+	}
+
+	public void setPlayerDeathDrop(PlayerTree playerDeathDrop) {
+		this.playerDeathDrop = playerDeathDrop;
+	}
+
+	public PlayerParser getPlayerParser() {
+		return playerParser;
+	}
+
+	public void setPlayerParser(PlayerParser playerParser) {
+		this.playerParser = playerParser;
+	}
+	
+	public ParameterProviderSet getParameterProviders() {
+		return parameterProviders;
+	}
+
+	public void setParameterProviders(ParameterProviderSet parameterProviders) {
+		this.parameterProviders = parameterProviders;
 	}
 
 	// Let the message queue know

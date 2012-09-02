@@ -20,6 +20,7 @@ public class ActionTypes {
 	
 	// Quick lookup of action types
 	private Map<String, Integer> lookup = new HashMap<String, Integer>();
+	private Map<Integer, Boolean> isItemAction = new HashMap<Integer, Boolean>();
 	
 	// Current unique ID
 	private int currentID;
@@ -38,6 +39,11 @@ public class ActionTypes {
 		types.register(SMELTING, "SMELTING_RESULT");
 		types.register(CRAFTING, "CRAFTING_RESULT");
 		types.register(BREWING, "BREWING_RESULT");
+		
+		// Set which are item actions
+		types.setItemAction(SMELTING, true);
+		types.setItemAction(CRAFTING, true);
+		types.setItemAction(BREWING, true);
 		return types;
 	}
 	
@@ -99,5 +105,54 @@ public class ActionTypes {
 			if (it.next().getValue() == id)
 				it.remove();
 		}
+	}
+	
+	/**
+	 * Determines whether or not the given action is handling items.
+	 * @param name - name of the action type.
+	 * @return TRUE if it is, FALSE otherwise.
+	 */
+	public boolean isItemAction(String name) {
+		Integer id = getType(name);
+		
+		// Handle error case too
+		if (id != null)
+			return isItemAction(id);
+		else
+			throw new IllegalArgumentException("Unable to find action " + name + ".");
+	}
+
+	/**
+	 * Determines whether or not the given action is handling items.
+	 * @param id - id of the action type.
+	 * @return TRUE if it is, FALSE otherwise.
+	 */
+	public boolean isItemAction(Integer id) {
+		
+		// Only return true if it's in the list and set to true
+		return Boolean.TRUE.equals(isItemAction.get(id));
+	}
+	
+	/**
+	 * Sets whether or not the given action is handling items.
+	 * @param name - name of the action type.
+	 * @param value - TRUE if this is an item action, FALSE otherwise.
+	 */
+	public void setItemAction(String name, boolean value) {
+		Integer id = getType(name);
+		
+		if (id != null)
+			setItemAction(id, value);
+		else
+			throw new IllegalArgumentException("Unable to find action " + name + ".");
+	}
+
+	/**
+	 * Sets whether or not the given action is handling items.
+	 * @param id - id of the action type.
+	 * @param value - TRUE if this is an item action, FALSE otherwise.
+	 */
+	public void setItemAction(Integer id, boolean value) {
+		isItemAction.put(id, value);
 	}
 }

@@ -42,7 +42,7 @@ public class ChannelProvider extends ServiceProvider<ChannelService> {
 	}
 	
 	public ChannelProvider(ChannelProvider other) {
-		super(other.getDefaultName());
+		super(other);
 		setDefaultChannels(other.getDefaultChannels());
 		setMessageFormatter(other.getMessageFormatter());
 	}

@@ -11,6 +11,7 @@ import java.util.logging.Logger;
 import org.bukkit.GameMode;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Server;
+import org.bukkit.Warning.WarningState;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
 import org.bukkit.command.CommandException;
@@ -453,6 +454,21 @@ public class MockServer implements Server {
 	@Override
 	public boolean useExactLoginLocation() {
 		return false;
+	}
+
+	@Override
+	public String getMotd() {
+		return null;
+	}
+
+	@Override
+	public WarningState getWarningState() {
+		return null;
+	}
+
+	@Override
+	public boolean isPrimaryThread() {
+		return true;
 	}
 
 }

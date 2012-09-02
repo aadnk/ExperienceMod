@@ -24,6 +24,17 @@ public class StringListParser extends ConfigurationParser<List<String>> {
 			throw ParsingException.fromFormat("Unable to parse string list %s.", key);
 	}
 	
+	@Override
+	public List<String> parse(ConfigurationSection config, String key, List<String> defaultValue)  {
+		
+		List<String> result = parseSafe(config, key);
+		
+		if (result != null)
+			return result;
+		else
+			return defaultValue;
+	}
+	
 	public List<String> parseSafe(ConfigurationSection config, String key) {
 		
 		List<String> result = new ArrayList<String>();

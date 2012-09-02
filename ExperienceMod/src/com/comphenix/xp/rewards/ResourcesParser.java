@@ -10,4 +10,10 @@ import com.comphenix.xp.parser.ConfigurationParser;
  */
 public abstract class ResourcesParser extends ConfigurationParser<ResourceFactory> {
 	
+	/**
+	 * Constructs a new resource parser with the given parameters.
+	 * @param namedParameters - new list of named parameters to accept.
+	 * @return New resource parser.
+	 */
+	public abstract ResourcesParser withParameters(String[] namedParameters);
 }

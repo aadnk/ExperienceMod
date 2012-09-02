@@ -360,7 +360,7 @@ public class ItemQuery implements Query {
 		
 	@Override
 	public Types getQueryType() {
-		return Types.Items;
+		return Types.ITEMS;
 	}
 	
 	/**

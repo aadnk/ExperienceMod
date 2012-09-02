@@ -16,7 +16,7 @@ public class MockRewardable implements RewardService {
 	private ResourcesParser parser;
 	
 	public MockRewardable(RewardTypes type) {
-		this(type, new ExperienceParser());
+		this(type, new ExperienceParser(null));
 	}
 	
 	public MockRewardable(RewardTypes type, ResourcesParser parser) {
@@ -57,7 +57,7 @@ public class MockRewardable implements RewardService {
 	}
 
 	@Override
-	public ResourcesParser getResourcesParser() {
-		return parser;
+	public ResourcesParser getResourcesParser(String[] namedParameters) {
+		return parser.withParameters(namedParameters);
 	}
 }

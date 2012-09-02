@@ -55,14 +55,12 @@ public class RewardEconomy implements RewardService {
 	private ItemStack economyItem;
 	private Integer economyWorth;
 	
-	// Ordinary experience parser
-	private ResourcesParser parser = new ExperienceParser();
+	// A currency parser
+	private ResourcesParser parser = new CurrencyParser(null);
 	
 	public RewardEconomy(Economy economy, Debugger debugger, ItemRewardListener listener) {
 		if (economy == null)
 			throw new IllegalArgumentException("Vault (Economy) was not found.");
-		if (debugger == null)
-			throw new NullArgumentException("debugger");
 		if (listener == null)
 			throw new NullArgumentException("listener");
 		
@@ -188,9 +186,10 @@ public class RewardEconomy implements RewardService {
 		int sign = resource.getAmount() < 0 ? -1 : 1;
 		
 		// Make sure it's valid too
-		if (worth < 1)
+		if (worth < 1) {
 			worth = defaultWorth;
-		
+		}
+			
 		// Create the proper amount of items
 		for (; amount > 0; amount -= worth) {
 			Item spawned = world.dropItemNaturally(point, stack);
@@ -199,8 +198,8 @@ public class RewardEconomy implements RewardService {
 	}
 	
 	@Override
-	public ResourcesParser getResourcesParser() {
-		return parser;
+	public ResourcesParser getResourcesParser(String[] namedParameters) {
+		return parser.withParameters(namedParameters);
 	}
 	
 	/**
@@ -239,6 +238,15 @@ public class RewardEconomy implements RewardService {
 		this.economyWorth = economyWorth;
 	}
 
+	/**
+	 * Determine the amount of currency a given player has access too.
+	 * @param player - the player to check.
+	 * @return The amount of currency belonging to this player.
+	 */
+	public double getBalance(Player player) {
+		return economy.getBalance(player.getName());
+	}
+	
 	@Override
 	public RewardService clone(Configuration config) {
 		RewardEconomy copy = new RewardEconomy(economy, debugger, listener);

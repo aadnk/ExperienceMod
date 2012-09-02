@@ -27,29 +27,48 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.common.base.Function;
-import com.google.common.base.Predicates;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
 public abstract class SearchTree<TKey, TValue> {
 
-	protected Map<Integer, TValue> flatten = new HashMap<Integer, TValue>();
-	protected Map<Integer, Integer> paramCount = new HashMap<Integer, Integer>();
-	protected int currentID;
+	/**
+	 * Contains an entry in the search tree.
+	 * 
+	 * @author Kristian
+	 */
+	protected class SearchEntry {
+		public TKey key;
+		public TValue value;
+		public int paramCount;
+		
+		// Simple constructor
+		public SearchEntry(TKey key, TValue value) {
+			this.key = key;
+			this.value = value;
+		}
+		
+		public SearchEntry(SearchEntry other) {
+			this.key = other.key;
+			this.value = other.value;
+			this.paramCount = other.paramCount;
+		}
+	}
 	
+	protected Map<Integer, SearchEntry> flatten = new HashMap<Integer, SearchEntry>();
+		
+	protected int currentID;
 	protected ValueComparer comparer = new ValueComparer(); 
 	
 	public Integer put(TKey element, TValue value) {
 		
 		Integer id = getNextID();
+		SearchEntry entry = new SearchEntry(element, value);
 		
 		// Save value
-		flatten.put(id, value);
+		flatten.put(id, entry);
 		
 		// Extract parameters
-		Integer count = putFromParameters(element, id);
-		
-		paramCount.put(id, count);
+		entry.paramCount = putFromParameters(element, id);
 		return id;
 	}
 	
@@ -59,20 +78,23 @@ public abstract class SearchTree<TKey, TValue> {
 		int highest = offset;
 		
 		// Insert everything from flatten
-		for (Map.Entry<Integer, TValue> entry : other.flatten.entrySet()) {
-			flatten.put(entry.getKey() + offset, entry.getValue());
-			highest = Math.max(highest, entry.getKey() + offset);
+		for (Integer id : other.flatten.keySet()) {
+			SearchEntry entry = new SearchEntry(other.flatten.get(id));
+			
+			flatten.put(id + offset, entry);
+			highest = Math.max(highest, id + offset);
 		}
-		
-		// And from parameter count
-		for (Map.Entry<Integer, Integer> entry : other.paramCount.entrySet())
-			paramCount.put(entry.getKey() + offset, entry.getValue());
 		
 		// Make sure the parameters are updated too
 		putAllParameters(other, offset);
 		currentID = highest + 1;
 	}
 	
+	/**
+	 * Retrieves an element by a query.
+	 * @param element - the query to use.
+	 * @return The retrieved element.
+	 */
 	public TValue get(TKey element) {
 		
 		Integer id = getID(element);
@@ -80,12 +102,32 @@ public abstract class SearchTree<TKey, TValue> {
 		return get(id);
 	}
 	
+	/**
+	 * Retrieves an element by ID.
+	 * @param id - the ID of the element to retrieve.
+	 * @return The retrieved element.
+	 */
 	public TValue get(Integer id) {
 		
-		if (id != null)
-			return flatten.get(id);
+		if (id != null && flatten.containsKey(id))
+			return flatten.get(id).value;
 		else
 			return null;
+	}
+	
+	/**
+	 * Retrieves the number of specified parameters by this element.
+	 * @param id - the element's ID.
+	 * @return The number of parameters.
+	 * @throws IllegalArgumentException - if no element by that ID can be found.
+	 */
+	public int getParamCount(Integer id) {
+		SearchEntry entry = flatten.get(id);
+		
+		if (entry != null)
+			return entry.paramCount;
+		else
+			throw new IllegalArgumentException("Cannot find ID " + id);
 	}
 	
 	public List<TValue> getAllRanked(TKey element) {
@@ -93,22 +135,33 @@ public abstract class SearchTree<TKey, TValue> {
 		// YES! LINQ, only slightly more painful.
 		return Lists.transform(getAllRankedID(element), new Function<Integer, TValue>() {
 			public TValue apply(Integer id) {
-				return flatten.get(id);
+				return get(id);
 			}
 		});
 	}
 	
+	/**
+	 * Retrieves every possible matching action in ID form.
+	 * @param element - the query to match with.
+	 * @return List of IDs.
+	 */
 	public List<Integer> getAllRankedID(TKey element) {
 		
 		Set<Integer> candidates = getFromParameters(element);
-		List<Integer> indexes = new ArrayList<Integer>(candidates);
+		List<Integer> indexes = new ArrayList<Integer>(candidates.size());
 
-		// Filter out nulls after sorting
+		for (Integer candidate : candidates) {
+			if (candidate != null) {
+				indexes.add(candidate);
+			}
+		}
+		
+		// Sort list and return
 		Collections.sort(indexes, comparer);
-		return Lists.newArrayList(Iterables.filter(indexes, Predicates.notNull()));
+		return indexes;
 	}
 	
-	private Integer getID(TKey element) {
+	protected Integer getID(TKey element) {
 		
 		Set<Integer> candidates = getFromParameters(element);
 
@@ -116,8 +169,9 @@ public abstract class SearchTree<TKey, TValue> {
 		if (candidates == null || candidates.size() == 0)
 			return null;
 		
-		// Return the most specified element
+		// Return the most recent element
 		return Collections.min(candidates, comparer);
+
 	}
 	
 	public boolean containsKey(TKey element) {
@@ -129,7 +183,28 @@ public abstract class SearchTree<TKey, TValue> {
 	 * @return Every stored value.
 	 */
 	public Collection<TValue> getValues() {
-		return flatten.values();
+		List<TValue> values = new ArrayList<TValue>();
+		
+		// Simple enumeration
+		for (SearchEntry entry : flatten.values()) {
+			values.add(entry.value);
+		}
+		
+		return values;
+	}
+	
+	/**
+	 * Returns a list of every stored key in this search tree.
+	 * @return Every stored value.
+	 */
+	public Collection<TKey> getKeys() {
+		List<TKey> values = new ArrayList<TKey>();
+		
+		for (SearchEntry entry : flatten.values()) {
+			values.add(entry.key);
+		}
+		
+		return values;
 	}
 	
 	protected abstract void putAllParameters(SearchTree<TKey, TValue> other, Integer offset);
@@ -141,24 +216,15 @@ public abstract class SearchTree<TKey, TValue> {
 	}
 	
 	/**
-	 * Compares values (referenced by ID) by priority. The the most specified, 
-	 * and if identical, newest value is put at the beginning.
+	 * Compares values (referenced by ID) by priority. The newest elements are put first.
 	 */
 	protected class ValueComparer implements Comparator<Integer> {
 
 		@Override
 		public int compare(Integer a, Integer b) {
 
-			Integer countA = paramCount.get(a);
-			Integer countB = paramCount.get(b);
-			int comparison = compareObjects(countB, countA, false);
-			
-			// Compare mainly by specificity
-			if (comparison != 0)
-				return comparison;
-			else
-				// Higher before lower
-				return compareObjects(b, a, false);
+			// Higher before lower
+			return compareObjects(b, a, false);
 		}
 		
 		// Taken from Apache Commons 2.6  (ObjectUtils.compare)

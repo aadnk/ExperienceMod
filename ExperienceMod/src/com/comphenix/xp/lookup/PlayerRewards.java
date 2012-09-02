@@ -71,13 +71,26 @@ public class PlayerRewards implements Multipliable<PlayerRewards> {
 	public void put(String key, Action value) throws ParsingException {
 		
 		Rewards rewardType = Rewards.matchReward(key);
-		
+
 		// Store this reward
 		if (rewardType != null) {
-			if (!values.containsKey(rewardType))
+			
+			if (!values.containsKey(rewardType)) {
+				
+				// Handle inheritance automatically
+				if (value.hasInheritance()) {
+					Action previous = values.get(rewardType);
+					
+					if (previous != null) {
+						value = value.inheritAction(previous);
+					}
+				}
+				
 				values.put(rewardType, value);
-			else
+			} else {
 				throw ParsingException.fromFormat("Duplicate player reward type detected: %s", key);
+			}
+			
 		} else {
 			throw ParsingException.fromFormat("Unrecognized player reward type: %s", key);
 		}
@@ -87,6 +100,17 @@ public class PlayerRewards implements Multipliable<PlayerRewards> {
 		
 		// Copies all set values
 		values.putAll(other.values);
+	}
+	
+	public Action get(String key, Action defaultValue) {
+
+		Rewards rewardType = Rewards.matchReward(key);
+		
+		// Get the reward, if it exists
+		if (rewardType != null && values.containsKey(rewardType)) 
+			return values.get(rewardType);
+		else
+			return defaultValue;
 	}
 	
 	public Action get(Rewards key, Action defaultValue) {

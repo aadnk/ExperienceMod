@@ -45,6 +45,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.comphenix.xp.commands.CommandExperienceMod;
 import com.comphenix.xp.commands.CommandSpawnExp;
+import com.comphenix.xp.expressions.ParameterProviderSet;
+import com.comphenix.xp.expressions.StandardPlayerService;
 import com.comphenix.xp.extra.Permissions;
 import com.comphenix.xp.extra.Service;
 import com.comphenix.xp.extra.ServiceProvider;
@@ -54,6 +56,7 @@ import com.comphenix.xp.history.LogBlockService;
 import com.comphenix.xp.history.MemoryService;
 import com.comphenix.xp.listeners.*;
 import com.comphenix.xp.lookup.*;
+import com.comphenix.xp.messages.ChannelChatService;
 import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.messages.HeroService;
 import com.comphenix.xp.messages.MessageFormatter;
@@ -83,14 +86,17 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	// Scheduling
 	private PlayerScheduler playerScheduler;
 
+	// VAULT only
 	private Economy economy;
 	private Chat chat;
+	private PlayerGroupMembership playerGroups;
 	
 	private ExperienceBlockListener xpBlockListener;
 	private ExperienceItemListener xpItemListener;
 	private ExperienceMobListener xpMobListener;
 	private ExperienceEnhancementsListener xpEnchancer;
 	private ExperienceCleanupListener xpCleanup;
+	private ExperienceLevelListener xpLevel;
 	
 	private ExperienceInformerListener informer;
 	private ItemRewardListener itemListener;
@@ -101,11 +107,12 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	private ChannelProvider channelProvider;
 	private CustomBlockProviders customProvider;
 	private HistoryProviders historyProviders;
+	private ParameterProviderSet parameterProviders;
 	
 	private GlobalSettings globalSettings;
 	private ConfigurationLoader configLoader;
 	private Presets presets;
-
+	
 	// Metrics!
 	private DataCollector dataCollector;
 	private AutoUpdate autoUpdate;
@@ -156,6 +163,11 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 				channelProvider.register(new HeroService());
 				channelProvider.setDefaultName(HeroService.NAME);
 				currentLogger.info("Using HeroChat for channels.");
+			
+			} else if (ChannelChatService.exists()) {
+				channelProvider.register(new ChannelChatService());
+				channelProvider.setDefaultName(ChannelChatService.NAME);
+				currentLogger.info("Using ChannelChat for channels.");
 				
 			} else {
 				channelProvider.register(new StandardService( getServer() ));
@@ -167,8 +179,13 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			customProvider = new CustomBlockProviders();
 			customProvider.register(new StandardBlockService());
 			
+			// Initialize parameter providers
+			parameterProviders = new ParameterProviderSet();
+			parameterProviders.registerPlayer(new StandardPlayerService(rewardProvider));
+			
 			// Initialize configuration loader
-			configLoader = new ConfigurationLoader(getDataFolder(), this, rewardProvider, channelProvider);
+			configLoader = new ConfigurationLoader(getDataFolder(), this, 
+								rewardProvider, channelProvider, parameterProviders);
 		
 			// Initialize error reporter
 			report.setErrorCount(0);
@@ -177,6 +194,10 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			report.addGlobalParameter("historyProvider", historyProviders);
 			report.addGlobalParameter("channelProvider", channelProvider);
 			report.addGlobalParameter("customProvider", customProvider);
+			report.addGlobalParameter("playerProviders", parameterProviders.getPlayerParameters());
+			report.addGlobalParameter("entityProviders", parameterProviders.getEntityParameters());
+			report.addGlobalParameter("blockProviders", parameterProviders.getBlockParameters());
+			report.addGlobalParameter("itemProviders", parameterProviders.getItemParameters());
 			
 		} catch (Exception e) {
 			// Well, this is bad.
@@ -188,6 +209,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	@Override
 	public void onEnable() {
 		try {
+			playerGroups = new PlayerGroupMembership(chat);
 			interactionListener = new PlayerInteractionListener(this);
 			
 			// Commands
@@ -251,6 +273,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 				manager.registerEvents(xpMobListener, this);
 				manager.registerEvents(xpEnchancer, this);
 				manager.registerEvents(xpCleanup, this);
+				manager.registerEvents(xpLevel, this);
 				manager.registerEvents(informer, this);
 			
 			} catch (IOException e) {
@@ -456,7 +479,8 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			loadConfig("config.yml", "Creating default configuration.");
 			
 			// Load it
-			presets = new Presets(presetList, this, chat, configLoader);
+			presets = new Presets(presetList, configLoader, globalSettings.getPresetCacheTimeout(), 
+						 		  this, chat);
 			setPresets(presets);
 			
 			// Vault is required here
@@ -639,6 +663,22 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		this.historyProviders = historyProviders;
 	}
 	
+	/**
+	 * Gets the registry of parameter providers.
+	 * @return Registry of parameter providers.
+	 */
+	public ParameterProviderSet getParameterProviders() {
+		return parameterProviders;
+	}
+
+	/**
+	 * Sets the registry of parameter providers.
+	 * @param parameterProviders - new registry of the parameter providers.
+	 */
+	public void setParameterProviders(ParameterProviderSet parameterProviders) {
+		this.parameterProviders = parameterProviders;
+	}
+
 	public ItemRewardListener getItemListener() {
 		return itemListener;
 	}
@@ -756,14 +796,17 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		if (xpBlockListener == null || xpItemListener == null || xpMobListener == null) {
 			xpItemListener = new ExperienceItemListener(this, playerScheduler, customProvider, presets);
 			xpBlockListener = new ExperienceBlockListener(this, presets, historyProviders);
-			xpMobListener = new ExperienceMobListener(this, presets);
-			xpEnchancer = new ExperienceEnhancementsListener(this);
+			xpMobListener = new ExperienceMobListener(this, playerGroups, presets);
+			xpEnchancer = new ExperienceEnhancementsListener(this, presets);
+			xpLevel = new ExperienceLevelListener(this, presets);
 			xpCleanup = new ExperienceCleanupListener(presets, interactionListener, playerScheduler);
 			
 		} else {
+			xpEnchancer.setPresets(presets);
 			xpItemListener.setPresets(presets);
 			xpBlockListener.setPresets(presets);
 			xpMobListener.setPresets(presets);
+			xpLevel.setPresets(presets);
 			xpCleanup.setPlayerCleanupListeners(presets, interactionListener, playerScheduler);
 		}
 	}

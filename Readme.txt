@@ -27,6 +27,12 @@ FEATURES
     * Prevent experience loss upon death.
     * Reward experience through currency (requires the Vault plugin). 
      * Drop currency items instead of being given currency directly. 
+    * Reward by dropping additional items.
+    * Change the maximum enchanting level from 30 to anything you'd like.
+    * Set the amount of bookcases you need to get the maximum enchanting level.
+    * Set how much experience you need to level up a level. Recreate the 1.2.5 
+      experience system perfectly.
+    * Set the amount of experience dropped when a player kills another player.
     
 TO INSTALL
 
@@ -42,7 +48,7 @@ JAVADOC
 HOW TO COMPILE
 
     If it's not already referenced, include the Bukkit MOD API:
-        bukkit-1.2.5-R4.0.jar
+        bukkit-1.3.1-R2.0.jar
 
 This project can also be found on:
 http://dev.bukkit.org/server-mods/experiencemod/

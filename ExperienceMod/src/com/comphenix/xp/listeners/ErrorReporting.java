@@ -83,7 +83,7 @@ public class ErrorReporting {
 
 		// Helpful message
 		writer.println("[ExperienceMod] INTERNAL ERROR!");
-	    writer.println("If this problem has't already been reported, please open a ticket");
+	    writer.println("If this problem hasn't already been reported, please open a ticket");
 	    writer.println("at " + supportURL + " with the following data:");
 	    
 	    // Now, let us print important exception information
@@ -115,6 +115,12 @@ public class ErrorReporting {
 		// Now, for the sender itself
 		writer.println("Sender:");
 		writer.println(addPrefix(getStringDescription(sender), SECOND_LEVEL_PREFIX));
+		
+		// Add the server version too
+		if (Bukkit.getServer() != null) {
+			writer.println("Server:");
+			writer.println(addPrefix(Bukkit.getServer().getVersion(), SECOND_LEVEL_PREFIX));
+		}
 		
 		// Inform of this occurrence
 		if (debugger != null) {	

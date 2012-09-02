@@ -67,10 +67,10 @@ public interface HistoryService extends Service {
 	/**
 	 * Determines whether or not a block has been placed by a player.
 	 * <p>
-	 * A service should return NULL if it cannot decide on a value, OR report that its return values 
+	 * A service should return NULL if it cannot decide on a value, OR report that its return value is  
 	 * always probabilistic (using {@link #hasFalsePositives()} or {@link #hasFalseNegatives()}).
 	 * @param blockLocation - location of the block in question.
-	 * @return TRUE if the given block was placed by a player, FALSE if it was placed naturally, NULL if uknown.
+	 * @return TRUE if the given block was placed by a player, FALSE if it was placed naturally, NULL if unknown.
 	 */
 	public Boolean hasPlayerHistory(Location blockLocation) throws HistoryException;
 }

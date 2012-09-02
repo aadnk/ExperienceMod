@@ -38,6 +38,8 @@ import com.comphenix.xp.Action;
 import com.comphenix.xp.Configuration;
 import com.comphenix.xp.Debugger;
 import com.comphenix.xp.Presets;
+import com.comphenix.xp.SampleRange;
+import com.comphenix.xp.expressions.NamedParameter;
 import com.comphenix.xp.extra.Permissions;
 import com.comphenix.xp.history.HistoryProviders;
 import com.comphenix.xp.lookup.ItemQuery;
@@ -72,82 +74,111 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 			
 			// See if this deserves more experience
 			if (block != null && player != null) { 
-				handleBlockBreakEvent(block, player);
+				handleBlockBreakEvent(event, block, player);
 			}
 			
 		} catch (Exception e) {
 			report.reportError(debugger, this, e, event);
 		}
 	}
-	
-	private void handleBlockBreakEvent(Block block, Player player) {
+		
+	private void handleBlockBreakEvent(BlockBreakEvent event, Block block, Player player) {
 		
 		ItemStack toolItem = player.getItemInHand();
-		ItemQuery retrieveKey = ItemQuery.fromAny(block);
+		Configuration config = null;
 		
 		boolean allowBlockReward = Permissions.hasRewardBlock(player) && !hasSilkTouch(toolItem);
 		boolean allowBonusReward = Permissions.hasRewardBonus(player);
-
+		double multiplier = 1;
+		
+		if (event.getExpToDrop() > 0) {
+			// Increase vanilla reward
+			config = getConfiguration(player);
+			multiplier = config.getMultiplier(); 
+		}
+		
 		// Only without silk touch
 		if (allowBlockReward) {
-			Configuration config = getConfiguration(player);
-		
-			// No configuration or default configuration found
-			if (config == null) {
-				if (hasDebugger())
-					debugger.printDebug(this, "Cannot find config for player %s in mining %s.", 
-						player.getName(), block);
-				
-			} else if (config.getSimpleBlockReward().containsKey(retrieveKey)) {
-
-				Action action = getBlockBonusAction(config.getSimpleBlockReward(), retrieveKey, block);
-				RewardProvider rewards = config.getRewardProvider();
-				ChannelProvider channels = config.getChannelProvider();
-				
-				// Guard
-				if (action == null)
-					return;
-				
-				Collection<ResourceHolder> result = action.rewardPlayer(rewards, random, player, block.getLocation());
-				config.getMessageQueue().enqueue(player, action, channels.getFormatter(player, result));
-				
-				if (hasDebugger())
-					debugger.printDebug(this, "Block mined by %s: Spawned %s for item %s.", 
-						player.getName(), StringUtils.join(result, ", "), block.getType());
-			}
+			if (config == null)
+				config = getConfiguration(player);
+			
+			multiplier *= handleBlockReward(event, config, config.getSimpleBlockReward(), "mined");
 		}
 		
 		if (allowBonusReward) {
-			Configuration config = getConfiguration(player);
-
-			// No configuration or default configuration found
-			if (config == null) {
-				if (debugger != null)
-					debugger.printDebug(this, "Cannot find config for player %s in mining %s.", 
-						player.getName(), block);
-				
-			} else if (config.getSimpleBonusReward().containsKey(retrieveKey)) {
-				
-				Action action = getBlockBonusAction(config.getSimpleBonusReward(), retrieveKey, block);
-				RewardProvider rewards = config.getRewardProvider();
-				ChannelProvider channels = config.getChannelProvider();
-				
-				// Guard
-				if (action == null)
-					return;
-				
-				Collection<ResourceHolder> result = action.rewardPlayer(rewards, random, player, block.getLocation());
-				config.getMessageQueue().enqueue(player, action, channels.getFormatter(player, result));
-				
-				if (hasDebugger())
-					debugger.printDebug(this, "Block destroyed by %s: Spawned %s for item %s.", 
-						player.getName(), StringUtils.join(result, ", "), block.getType());
+			if (config == null)
+				config = getConfiguration(player);
+			
+			multiplier *= handleBlockReward(event, config, config.getSimpleBonusReward(), "destroyed");
+		}
+		
+		if (multiplier != 1) {
+			SampleRange increase = new SampleRange(event.getExpToDrop() * multiplier);
+			int expChanged = increase.sampleInt(random);
+			
+			event.setExpToDrop(expChanged);
+			
+			if (hasDebugger()) {
+				debugger.printDebug(this, 
+						"Block mined by %s: Set experience to %d.", player.getName(), expChanged);
 			}
 		}
 		
 		// Done
 	}
 	
+	private double handleBlockReward(BlockBreakEvent event, Configuration config, ItemTree tree, String description) {
+		
+		Player player = event.getPlayer();
+		Block block = event.getBlock();
+		ItemQuery retrieveKey = ItemQuery.fromAny(block);
+		
+		// No configuration or default configuration found
+		if (config == null) {
+			if (hasDebugger())
+				debugger.printDebug(this, "Cannot find config for player %s in mining %s.", 
+					player.getName(), block);
+			return 1; // Vanilla reward
+			
+		} else {
+			Action action = getBlockBonusAction(tree, retrieveKey, block);
+			RewardProvider rewards = config.getRewardProvider();
+			ChannelProvider channels = config.getChannelProvider();
+			
+			// Guard
+			if (action == null)
+				return 1; // Vanilla reward
+			
+			Collection<NamedParameter> params = config.getParameterProviders().getParameters(action, block);
+			List<ResourceHolder> generated = action.generateRewards(params, rewards, random);
+			
+			// Could this be an action without rewards?
+			if (generated.size() == 0) {
+				return action.getInheritMultiplier();
+			}
+			
+			if (!action.canRewardPlayer(rewards, player, generated)) {
+				if (hasDebugger())
+					debugger.printDebug(this, "Block " + description + " by %s cancelled: Not enough resources for item %s",
+						player.getName(), block.getType());
+				
+				if (!Permissions.hasUntouchable(player))
+					event.setCancelled(true);
+				return 1;
+			}
+			
+			Collection<ResourceHolder> result = action.rewardPlayer(rewards, player, generated, block.getLocation());
+			config.getMessageQueue().enqueue(player, action, channels.getFormatter(player, result));
+
+			if (hasDebugger())
+				debugger.printDebug(this, "Block " + description + " by %s: Spawned %s for item %s.", 
+					player.getName(), StringUtils.join(result, ", "), block.getType());
+			
+			// Disable vanilla reward
+			return 0;
+		}
+	}
+
 	private Action getBlockBonusAction(ItemTree tree, ItemQuery key, Block block) {
 		
 		List<Integer> ids = tree.getAllRankedID(key);
@@ -173,7 +204,7 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 		}
 		
 		// No need for more details
-		return tree.get(ids.get(0));
+		return tree.get(key);
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -208,7 +239,6 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 			if (config == null) {
 				if (hasDebugger())
 					debugger.printDebug(this, "No config found for block %s.", block);
-				return;
 			}
 				
 			ItemQuery retrieveKey = ItemQuery.fromExact(block);
@@ -218,9 +248,12 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 				Action action = placeReward.get(retrieveKey);
 				RewardProvider rewards = config.getRewardProvider();
 				ChannelProvider channels = config.getChannelProvider();
+				Collection<NamedParameter> params = config.getParameterProviders().getParameters(action, block);
 				
+				List<ResourceHolder> generated = action.generateRewards(params, rewards, random);
+
 				// Make sure the action is legal
-				if (!action.canRewardPlayer(rewards, player, 1)) {
+				if (!action.canRewardPlayer(rewards, player, generated)) {
 					if (hasDebugger())
 						debugger.printDebug(this, "Block place by %s cancelled: Not enough resources for item %s",
 							player.getName(), block.getType());
@@ -228,11 +261,10 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 					// Events will not be cancelled for untouchables
 					if (!Permissions.hasUntouchable(player))
 						event.setCancelled(true);
-					return;
 				}
 				
 				// Reward and print messages
-				Collection<ResourceHolder> result = action.rewardPlayer(rewards, random, player);
+				Collection<ResourceHolder> result = action.rewardPlayer(rewards, player, generated);
 				config.getMessageQueue().enqueue(player, action, channels.getFormatter(player, result));
 				
 				if (hasDebugger())

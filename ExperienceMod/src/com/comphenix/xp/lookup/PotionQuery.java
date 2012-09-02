@@ -254,6 +254,6 @@ public class PotionQuery implements Query {
 
 	@Override
 	public Types getQueryType() {
-		return Types.Potions;
+		return Types.POTIONS;
 	}
 }

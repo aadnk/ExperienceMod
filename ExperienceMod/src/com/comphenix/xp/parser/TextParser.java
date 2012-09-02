@@ -37,6 +37,22 @@ public abstract class TextParser<TResult> {
 	public abstract TResult parse(String text) throws ParsingException;
 	
 	/**
+	 * Transforms the given text into an object. 
+	 * @param text - text to parse.
+	 * @param defaultValue - value to return if unable to parse anything.
+	 * @return Result of the parsing, or default value.
+	 */
+	public TResult parse(String text, TResult defaultValue) {
+		
+		// Simple implementation that should be overriden if more control or efficiency is needed
+		try {
+			return parse(text);
+		} catch (ParsingException e) {
+			return defaultValue;
+		}	
+	}
+	
+	/**
 	 * Transforms the head of the queue into a string of objects. No head is treated as an empty string.
 	 * @param tokens - queue of tokens.
 	 * @return The corresponding string of objects.

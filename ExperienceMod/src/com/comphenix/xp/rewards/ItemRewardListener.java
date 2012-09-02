@@ -56,6 +56,8 @@ public class ItemRewardListener implements Listener {
 			Integer amount = queue.get(id);
 			
 			if (amount != null) {
+				// Add the item count too
+				amount *= item.getItemStack().getAmount();
 				CurrencyHolder currency = new CurrencyHolder(amount);
 				
 				event.setCancelled(true);
