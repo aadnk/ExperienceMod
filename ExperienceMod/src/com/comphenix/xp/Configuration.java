@@ -69,8 +69,8 @@ public class Configuration implements PlayerCleanupListener, Multipliable<Config
 	public static final boolean DEFAULT_DISABLE_REWARDS = false;
 	public static final double DEFAULT_SCAN_RADIUS = 20;
 	public static final int DEFAULT_MESSAGE_RATE = 5;
-	public static final int DEFAULT_MAXIMUM_ENCHANT_LEVEL = 30;
-	public static final int DEFAULT_MAXIMUM_BOOKCASE_COUNT = 15;
+	public static final int DEFAULT_MAXIMUM_ENCHANT_LEVEL = 50;
+	public static final int DEFAULT_MAXIMUM_BOOKCASE_COUNT = 30;
 	public static final int MAXIMUM_BOOKCASE_COUNT = 255; 
 	
 	private Debugger logger;
