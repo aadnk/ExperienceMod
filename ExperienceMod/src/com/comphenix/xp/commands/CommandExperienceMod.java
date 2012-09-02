@@ -126,7 +126,7 @@ public class CommandExperienceMod implements CommandExecutor {
 		} else if (sub.equalsIgnoreCase(SUB_COMMAND_UPDATE)) {
 			
 			// Attempt to update
-			plugin.getAutoUpdate().updatePlugin(sender);
+			plugin.respond(sender, ChatColor.RED + "Update is disabled for Minecraft 1.2.5");
     		return true;
 			
 		} else {

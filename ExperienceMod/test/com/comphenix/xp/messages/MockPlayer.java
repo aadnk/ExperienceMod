@@ -65,8 +65,6 @@ public class MockPlayer implements Player {
 	private Location bedSpawnLocation;
 	private boolean allowFlight;
 	private String rawMessage;
-	private float flyspeed;
-	private float walkSpeed;
 
 	public long getPlayerTime() {
 		return playerTime;
@@ -1078,25 +1076,5 @@ public class MockPlayer implements Player {
 	@Override
 	public boolean isValid() {
 		return true;
-	}
-
-	@Override
-	public float getFlySpeed() {
-		return flyspeed;
-	}
-
-	@Override
-	public float getWalkSpeed() {
-		return walkSpeed;
-	}
-
-	@Override
-	public void setFlySpeed(float flyspeed) throws IllegalArgumentException {
-		this.flyspeed = flyspeed;
-	}
-
-	@Override
-	public void setWalkSpeed(float walkSpeed) throws IllegalArgumentException {
-		this.walkSpeed = walkSpeed;
 	}
 }

@@ -17,6 +17,7 @@ import com.comphenix.xp.ActionTypes;
 import com.comphenix.xp.Configuration;
 import com.comphenix.xp.Debugger;
 import com.comphenix.xp.MockRewardable;
+import com.comphenix.xp.expressions.ParameterProviderSet;
 import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.parser.text.ItemNameParser;
@@ -55,6 +56,7 @@ public class ItemTreeTest {
 		
 		// Load the default configuration
 		configuration = new Configuration(injected, rewards, channels);
+		configuration.setParameterProviders(new ParameterProviderSet());
 		configuration.setItemParser(new ItemParser(new ItemNameParser()));
 		configuration.setMobParser(new MobParser(new MobMatcher()));
 		configuration.setActionTypes(ActionTypes.Default());

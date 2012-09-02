@@ -38,7 +38,6 @@ import com.comphenix.xp.Action;
 import com.comphenix.xp.Configuration;
 import com.comphenix.xp.Debugger;
 import com.comphenix.xp.Presets;
-import com.comphenix.xp.SampleRange;
 import com.comphenix.xp.expressions.NamedParameter;
 import com.comphenix.xp.extra.Permissions;
 import com.comphenix.xp.history.HistoryProviders;
@@ -89,41 +88,22 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 		
 		boolean allowBlockReward = Permissions.hasRewardBlock(player) && !hasSilkTouch(toolItem);
 		boolean allowBonusReward = Permissions.hasRewardBonus(player);
-		double multiplier = 1;
-		
-		if (event.getExpToDrop() > 0) {
-			// Increase vanilla reward
-			config = getConfiguration(player);
-			multiplier = config.getMultiplier(); 
-		}
-		
+
 		// Only without silk touch
 		if (allowBlockReward) {
 			if (config == null)
 				config = getConfiguration(player);
 			
-			multiplier *= handleBlockReward(event, config, config.getSimpleBlockReward(), "mined");
+			handleBlockReward(event, config, config.getSimpleBlockReward(), "mined");
 		}
 		
 		if (allowBonusReward) {
 			if (config == null)
 				config = getConfiguration(player);
 			
-			multiplier *= handleBlockReward(event, config, config.getSimpleBonusReward(), "destroyed");
+			handleBlockReward(event, config, config.getSimpleBonusReward(), "destroyed");
 		}
-		
-		if (multiplier != 1) {
-			SampleRange increase = new SampleRange(event.getExpToDrop() * multiplier);
-			int expChanged = increase.sampleInt(random);
-			
-			event.setExpToDrop(expChanged);
-			
-			if (hasDebugger()) {
-				debugger.printDebug(this, 
-						"Block mined by %s: Set experience to %d.", player.getName(), expChanged);
-			}
-		}
-		
+
 		// Done
 	}
 	
