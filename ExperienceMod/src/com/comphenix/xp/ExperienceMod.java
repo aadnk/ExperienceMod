@@ -115,7 +115,6 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	
 	// Metrics!
 	private DataCollector dataCollector;
-	private AutoUpdate autoUpdate;
 	
 	// Repeating task
 	private static final int TICK_DELAY = 4; // 50 ms * 4 = 200 ms
@@ -457,17 +456,6 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			globalSettings.loadFromConfig(globalConfig);
 			Permissions.setGlobalSettings(globalSettings);
 			
-			if (autoUpdate == null) {
-				try {
-					autoUpdate = new AutoUpdate(this, globalConfig);
-				} catch (Exception e) {
-					throw new FileNotFoundException(e.getMessage());
-				}
-			} else {
-				// Update updater
-				autoUpdate.setConfig(globalConfig);
-			}
-			
 			// Disable stuff
 			disableServices(historyProviders, globalSettings.getDisabledServices());
 			disableServices(channelProvider, globalSettings.getDisabledServices());
@@ -709,14 +697,6 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 
 	public DataCollector getDataCollector() {
 		return dataCollector;
-	}
-
-	/**
-	 * Retrieves the object responsible for notifying of new updates.
-	 * @return The object keeping track of new updates on BukkitDev.
-	 */
-	public AutoUpdate getAutoUpdate() {
-		return autoUpdate;
 	}
 
 	/**
