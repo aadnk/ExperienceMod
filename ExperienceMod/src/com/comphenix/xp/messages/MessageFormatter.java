@@ -25,6 +25,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang.NullArgumentException;
 import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
@@ -91,14 +92,41 @@ public class MessageFormatter {
 	    
 	    // Remember color
 	    matcher.appendTail(output);
-	    return formatColor(output);
+	    return formatUnescape(formatColor(output));
 	}
 	
-	private String formatColor(StringBuffer output) {
+	private String formatColor(StringBuffer input) {
 		
-		// Use the color character instead of ampersand
-		return output.toString().replaceAll("&(?=[0-9a-fxA-FX])", 
-				Character.toString(ChatColor.COLOR_CHAR));
+		// Treat ampersand as a color character
+		return translateAlternateColorCodes('&', input.toString());
+	}
+	
+	private String formatUnescape(String input) {
+		
+		return StringEscapeUtils.unescapeJava(input);
+	}
+	
+	// Don't translate color codes when the ampersand is escaped
+	private static String translateAlternateColorCodes(char altColorChar, String textToTranslate) {
+		
+		boolean hasEscape = false;
+		char[] b = textToTranslate.toCharArray();
+		
+		// Handle Java escaping as well
+		for (int i = 0; i < b.length - 1; i++) {
+			if (!hasEscape && 
+					b[i] == '\\') {
+				hasEscape = true;
+			} else if (!hasEscape && 
+					b[i] == altColorChar && "0123456789AaBbCcDdEeFfKkLlMmNnOoRr".indexOf(b[i + 1]) > -1) {
+				b[i] = ChatColor.COLOR_CHAR;
+				b[i + 1] = Character.toLowerCase(b[i + 1]);
+				
+			} else {
+				hasEscape = false;
+			}
+		}
+		return new String(b);
 	}
 
 	// Convert a list of resources into a Hash Table
