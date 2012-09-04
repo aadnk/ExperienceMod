@@ -8,6 +8,9 @@ import com.comphenix.xp.lookup.Multipliable;
 
 /**
  * Represents a resource holder factory.
+ * <p>
+ * Note that equals() and hashCode() MUST be overwritten for the message sub-system 
+ * to function correctly.
  * 
  * @author Kristian
  */

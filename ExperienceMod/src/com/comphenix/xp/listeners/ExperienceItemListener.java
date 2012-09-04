@@ -144,7 +144,7 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 			}
 			
 			Collection<ResourceHolder> result = action.rewardPlayer(rewards, player, generated);
-			config.getMessageQueue().enqueue(player, action, channels.getFormatter(player, result));
+			config.getMessageQueue().enqueue(player, action, channels.getFormatter(player, result, generated));
 			
 			if (hasDebugger())
 				debugger.printDebug(this, message, player.getName(), result);
@@ -456,7 +456,7 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 				
 				// Give the experience straight to the user
 				Collection<ResourceHolder> result = action.rewardPlayer(rewardsProvider, player, generated);
-				messageQueue.enqueue(player, action, channelsProvider.getFormatter(player, result, count));
+				messageQueue.enqueue(player, action, channelsProvider.getFormatter(player, result, generated, count));
 				
 				// Reset
 				generated = null;

@@ -68,8 +68,6 @@ public class ActionParser extends ConfigurationParser<Action> {
 		Action result = new Action();
 		String defaultName = provider.getDefaultName();
 		
-		String text = null;
-		List<String> channels = null;
 		boolean seenInherit = false;
 		
 		// See if this is a top level reward
@@ -105,25 +103,37 @@ public class ActionParser extends ConfigurationParser<Action> {
 			return null;
 		}
 
+		// Retrieve the message
+		result.setMessage(parseRewardMessage(values, true));
+		
 		// Next, get sub-rewards
 		for (String sub : values.getKeys(false)) {
 			
 			String enumed = Utility.getEnumName(sub);
 			
-			if (sub.equalsIgnoreCase(MESSAGE_TEXT_SETTING)) {
-				text = values.getString(sub);
-				
-			} else if (sub.equalsIgnoreCase(MESSAGE_CHANNEL_SETTING)) {
-				channels = listParser.parseSafe(values, sub);
-				
-			} else if (provider.containsService(enumed)) {
+			if (provider.containsService(enumed)) {
 				ResourcesParser parser = provider.getByName(enumed).getResourcesParser(namedParameters);
 				
 				if (parser != null) {
-					ResourceFactory factory = parser.parse(values, sub);
+					Message rewardMessage = null;
+					ResourceFactory factory = parser.parse(values, sub, null);
+					
+					// Might be because we have a message and channel
+					if (factory == null) {
+						rewardMessage = parseRewardMessage(values, sub, true);
+						factory = parseSection(parser, values, sub);
+					}
 				
-					if (factory != null) 
+					if (factory != null) {
 						result.addReward(sub, factory);
+						result.addMessage(sub, rewardMessage);
+					} else if (rewardMessage != null) {
+						// Why would you add a message to an empty reward? It doesn't make any sense.
+						throw ParsingException.fromFormat("Cannot send a message from the empty reward %s.", sub);
+					} else {
+						throw ParsingException.fromFormat("Range error at key %s.", sub);
+					}
+					
 				} else {
 					// This is bad
 					throw ParsingException.fromFormat("Parser in %s cannot be NULL.", sub);
@@ -155,14 +165,6 @@ public class ActionParser extends ConfigurationParser<Action> {
 			}
 		}
 		
-		// Add message
-		if (text != null) {
-			Message message = new Message();
-			message.setText(text);
-			message.setChannels(channels);
-			result.setMessage(message);
-		}
-		
 		// Apply this multiplier to the action itself
 		if (result.getInheritMultiplier() != 1) {
 			result = result.multiply(result.getInheritMultiplier());
@@ -170,6 +172,97 @@ public class ActionParser extends ConfigurationParser<Action> {
 		
 		result.setId(currentID++);
 		return result;
+	}
+	
+	private ResourceFactory parseSection(ResourcesParser parser, ConfigurationSection input, String key) throws ParsingException {
+		
+		Object element = input.get(key);
+		ResourceFactory result = null;
+		
+		if (element instanceof ConfigurationSection) {
+			
+			input = (ConfigurationSection) element;
+			
+			for (String sub : input.getKeys(false)) {
+				String enumed = Utility.getEnumName(sub);
+				
+				// Parse the default key
+				if (enumed.equalsIgnoreCase("default"))
+					result = parser.parse(input, sub);
+				else
+					throw ParsingException.fromFormat("Unrecognized element %s in reward %s.", sub, key);
+			}
+			
+			return result;
+			
+		} else {
+			throw ParsingException.fromFormat("%s has an invalid reward.", key);
+		}
+ 	}
+	
+	/**
+	 * Parses a message with an optional channel list from the given configuration section.
+	 * <p>
+	 * Note that this function may modify the underlying configuration section if the 
+	 * consumeElements parameter is set to TRUE.
+	 * 
+	 * @param input - the parent configuration section.
+	 * @param key - key to the child configuration section that contains the message.
+	 * @param consumeElements - whether or not to remove successfully read key-value pairs.
+	 * @return The parsed message.
+	 */
+	public Message parseRewardMessage(ConfigurationSection input, String key, boolean consumeElements) {
+		
+		Object root = input.get(key);
+	
+		// Make sure this is a section
+		if (root instanceof ConfigurationSection) {
+			return parseRewardMessage((ConfigurationSection) root, consumeElements);
+		} else {
+			return null;
+		}
+	}
+	
+	/**
+	 * Parses a message with an optional channel list from a configuration section.
+	 * <p>
+	 * Note that this function may modify the underlying configuration section if the 
+	 * consumeElements parameter is set to TRUE.
+	 * 
+	 * @param input - the configuration section to parse from.
+	 * @param consumeElements - whether or not to remove successfully read key-value pairs.
+	 * @return The parsed message.
+	 */
+	public Message parseRewardMessage(ConfigurationSection input, boolean consumeElements) {
+	
+		List<String> channels = null;
+		String text = null;
+		
+		// Next, handle these fields specifically
+		for (String sub : input.getKeys(false).toArray(new String[0])) {
+			String enumed = Utility.getEnumName(sub);
+			
+			// Note that we also remove each element that is found
+			if (enumed.equalsIgnoreCase(MESSAGE_TEXT_SETTING)) {
+				text = input.getString(sub);
+			} else if (enumed.equalsIgnoreCase(MESSAGE_CHANNEL_SETTING)) {
+				channels = listParser.parseSafe(input, sub);
+			} else {
+				continue;
+			}
+			
+			// An element was successfully read. Remove it?
+			if (consumeElements) {
+				input.set(sub, null);
+			}
+		}
+	
+		// Return the constructed message
+		if (text != null) {
+			return new Message(text, channels);
+		} else {
+			return null;
+		}
 	}
 	
 	/**

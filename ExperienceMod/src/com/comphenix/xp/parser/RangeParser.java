@@ -67,9 +67,7 @@ public class RangeParser extends ConfigurationParser<VariableFunction> {
 	}
 	
 	private VariableFunction parse(ConfigurationSection input, String key, VariableFunction defaultValue, boolean throwException) throws Exception {
-		String start = key + ".first";
-		String end = key + ".last";
-		
+
 		Object root = input.get(key);
 		SampleRange result = null;
 		
@@ -114,10 +112,14 @@ public class RangeParser extends ConfigurationParser<VariableFunction> {
 					return defaultValue;
 			}
 			
-		} else {
+		} else if (root instanceof ConfigurationSection) {
+			ConfigurationSection section = (ConfigurationSection) root;
+			Double first = toDouble(section.get("first"));
+			Double last = toDouble(section.get("last"));
+			
 			// Backwards compatibility
-			if (input.contains(start) && input.contains(end)) {
-				result = new SampleRange(input.getDouble(start), input.getDouble(end));
+			if (first != null && last != null && section.getValues(false).size() == 2) {
+				result = new SampleRange(first, last);
 			} else {
 				return defaultValue;
 			}
@@ -125,6 +127,16 @@ public class RangeParser extends ConfigurationParser<VariableFunction> {
 		
 		// Convert to a function at the end
 		return VariableFunction.fromRange(result);
+	}
+	
+	private Double toDouble(Object value) {
+		// Handle integers as well as doubles
+		if (value instanceof Integer)
+			return ((Integer) value).doubleValue();
+		else if (value instanceof Double)
+			return (Double) value;
+		else
+			return null;
 	}
 
 	/**

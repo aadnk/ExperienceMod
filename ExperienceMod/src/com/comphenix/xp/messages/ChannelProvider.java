@@ -51,12 +51,12 @@ public class ChannelProvider extends ServiceProvider<ChannelService> {
 		super(defaultService);
 	}
 	
-	public MessageFormatter getFormatter(Player player, Collection<ResourceHolder> result) {
-		return messageFormatter.createView(player, result);
+	public MessageFormatter getFormatter(Player player, Collection<ResourceHolder> result, List<ResourceHolder> generated) {
+		return messageFormatter.createView(player, result, generated);
 	}
 	
-	public MessageFormatter getFormatter(Player player, Collection<ResourceHolder> result, Integer count) {
-		return messageFormatter.createView(player, result, count);
+	public MessageFormatter getFormatter(Player player, Collection<ResourceHolder> result, List<ResourceHolder> generated, Integer count) {
+		return messageFormatter.createView(player, result, generated, count);
 	}
 	
 	public MessageFormatter getMessageFormatter() {

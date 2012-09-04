@@ -16,8 +16,10 @@ public class MessageFormatterTest {
 		MockPlayer testPlayer = new MockPlayer();
 		testPlayer.setDisplayName("test");
 		
-		MessageFormatter formatter = new MessageFormatter(testPlayer, 
-				Lists.newArrayList((ResourceHolder) new ExperienceHolder(1)));
+		MessageFormatter formatter = new MessageFormatter(
+				testPlayer, 
+				Lists.newArrayList((ResourceHolder) new ExperienceHolder(1)),
+				null);
 		
 		String colored = formatter.formatMessage("&7{player} got {experience}.");
 		String expected = "§7test got 1 experience.";

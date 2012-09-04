@@ -17,8 +17,10 @@
 
 package com.comphenix.xp.messages;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -36,7 +38,9 @@ public class MessageFormatter {
 
 	private Player source;
 	private Integer count;
+	
 	private Collection<ResourceHolder> result;
+	private List<ResourceHolder> generated;
 	
 	private static Pattern parameterPattern = Pattern.compile("\\{\\w+\\}");
 	
@@ -45,13 +49,15 @@ public class MessageFormatter {
 		setCount(1);
 	}
 
-	public MessageFormatter(Player player, Collection<ResourceHolder> result) {
-		this(player, result, 1);
+	public MessageFormatter(Player player, Collection<ResourceHolder> result, List<ResourceHolder> generated) {
+		this(player, result, generated, 1);
 	}
 	
-	public MessageFormatter(Player player, Collection<ResourceHolder> result, Integer count) {
+	public MessageFormatter(Player player, Collection<ResourceHolder> result, 
+							List<ResourceHolder> generated, Integer count) {
 		setSource(player);
 		setResult(result);
+		setGenerated(generated);
 		setCount(count);
 	}
 	
@@ -89,10 +95,10 @@ public class MessageFormatter {
 	    	else 
 	    		matcher.appendReplacement(output, "{CANNOT FIND " + matcher.group() + "}");
 	    }
-	    
-	    // Remember color
-	    matcher.appendTail(output);
-	    return formatUnescape(formatColor(output));
+
+		// Remember color
+		matcher.appendTail(output);
+		return formatUnescape(formatColor(output));
 	}
 	
 	private String formatColor(StringBuffer input) {
@@ -140,18 +146,34 @@ public class MessageFormatter {
 		 return lookup;
 	}
 	
+	/**
+	 * Retrieves the number of times this message has been generated since it was last transmitted.
+	 * @return The number of outstanding messages of this type.
+	 */
 	public Integer getCount() {
 		return count;
 	}
 
+	/**
+	 * Sets the number of times this message has been generated since it was last transmitted.
+	 * @param count - new count.
+	 */
 	public void setCount(Integer count) {
 		this.count = count;
 	}
 
+	/**
+	 * Retrieves the player that caused this message to be sent, or NULL if it was caused by the environment.
+	 * @return The player, if any, that caused the message to be sent.
+	 */
 	public Player getSource() {
 		return source;
 	}
 
+	/**
+	 * Sets the player that caused this message to be sent.
+	 * @param source - the player that caused the message, or NULl it if was the enviornment.
+	 */
 	public void setSource(Player source) {
 		this.source = source;
 	}
@@ -171,7 +193,25 @@ public class MessageFormatter {
 	public void setResult(Collection<ResourceHolder> result) {
 		this.result = result;
 	}
+	
+	/**
+	 * Retrieves the list of resources generated, ordered by reward providers.
+	 * <p>
+	 * This list is the sum of all previous lists.
+	 * @return The current list.
+	 */
+	public List<ResourceHolder> getGenerated() {
+		return generated;
+	}
 
+	/**
+	 * Sets the list of resources generated, ordered by reward providers.
+	 * @param generated - new list of resources.
+	 */
+	public void setGenerated(List<ResourceHolder> generated) {
+		this.generated = generated;
+	}
+	
 	/**
 	 * Adds every parameter in both message formatters. Note that a and b
 	 * must be non-null and have the same player source.
@@ -204,10 +244,11 @@ public class MessageFormatter {
 		return new MessageFormatter(
 				getSource(), 
 				addResults(other),
+				addGenerated(other),
 				getInt(getCount()) + getInt(other.getCount())
 		);
 	}
-	
+		
 	// Merge resources
 	private Collection<ResourceHolder> addResults(MessageFormatter other) {
 		
@@ -226,22 +267,58 @@ public class MessageFormatter {
 		return current.values();
 	}
 	
+	// Merge generated
+	private List<ResourceHolder> addGenerated(MessageFormatter other) {
+		
+		List<ResourceHolder> current = new ArrayList<ResourceHolder>(getGenerated());
+		List<ResourceHolder> adding = other.getGenerated();
+		
+		// Add each resource
+		for (int i = 0; i < adding.size(); i++) {
+			// Elements outside the list are treated as empty
+			if (i < current.size())
+				current.set(i, current.get(i).add(adding.get(i)));
+			else
+				current.add(adding.get(i));
+		}
+		
+		return current;
+	}
+	
 	private static int getInt(Integer value) {
 		return value != null ? value : 0;
 	}
 	
-	// Create a copy of the message formatter with the given parameters
-	public MessageFormatter createView(Player player, Collection<ResourceHolder> result) {
-		return new MessageFormatter(player, result);
+	/**
+	 * Create a copy of the message formatter with the given parameters
+	 * @param player - the player that caused the current action.
+	 * @param result - combined resources after awarding a player.
+	 * @param generated - the generated list of resources, in the same order as the reward providers.
+	 * @return A copy of the current message formatter.
+	 */
+	public MessageFormatter createView(Player player, Collection<ResourceHolder> result, List<ResourceHolder> generated) {
+		return new MessageFormatter(player, result, generated);
 	}
 	
-	// Create a copy of the message formatter with the given parameters
-	public MessageFormatter createView(Player player, Collection<ResourceHolder> result, Integer count) {
-		return new MessageFormatter(player, result, count);
+	/**
+	 * Create a copy of the message formatter with the given parameters
+	 * @param player - the player that caused the current action.
+	 * @param result - combined resources after awarding a player.
+	 * @param generated - the generated list of resources, in the same order as the reward providers.
+	 * @param count - number of times the message has been sent.
+	 * @return A copy of the current message formatter.
+	 */
+	public MessageFormatter createView(Player player, Collection<ResourceHolder> result, List<ResourceHolder> generated, Integer count) {
+		return new MessageFormatter(player, result, generated, count);
 	}
 	
-	// Create a copy of the message formatter with the given parameters
-	public MessageFormatter createView(Collection<ResourceHolder> result) {
-		return createView(null, result);
+	/**
+	 * Create a copy of the message formatter with the given parameters
+	 * @param result - combined resources after awarding a player.
+	 * @param generated - the generated list of resources, in the same order as the reward providers.
+	 * @return A copy of the current message formatter.
+	 */
+	public MessageFormatter createView(Collection<ResourceHolder> result, List<ResourceHolder> generated) {
+		return createView(source, result, generated, count);
 	}
 }

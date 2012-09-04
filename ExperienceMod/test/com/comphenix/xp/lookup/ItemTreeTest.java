@@ -85,17 +85,21 @@ public class ItemTreeTest {
 		Action stoneValue = new Action(def, new ExperienceFactory(1));
 		Action redValue = new Action(def, new ExperienceFactory(5));
 		
-		tree1.put(stoneQuery, stoneValue);
-		tree2.put(universal, universalValue);
+		tree1.put(universal, universalValue);
+		tree2.put(stoneQuery, stoneValue);
 		tree3.put(redWool, redValue);
 		
 		result.putAll(tree1);
 		result.putAll(tree2);
 		result.putAll(tree3);
 		
-		assertEquals(stoneValue, result.get(ItemQuery.fromExact(Material.STONE.getId(), 1)));
-		assertEquals(universalValue, result.get(ItemQuery.fromExact(Material.WOOD.getId(), 0)));
-		assertEquals(redValue, result.get(ItemQuery.fromExact(Material.WOOL.getId(), redColor)));
+		ItemQuery queryStone = ItemQuery.fromExact(Material.STONE.getId(), 1);
+		ItemQuery queryWood = ItemQuery.fromExact(Material.WOOD.getId(), 0);
+		ItemQuery queryWool = ItemQuery.fromExact(Material.WOOL.getId(), redColor);
+		
+		assertEquals(stoneValue, result.get(queryStone));
+		assertEquals(universalValue, result.get(queryWood));
+		assertEquals(redValue, result.get(queryWool));
 	}
 	
 	@Test
