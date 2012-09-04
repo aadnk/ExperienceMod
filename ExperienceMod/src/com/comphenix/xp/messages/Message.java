@@ -39,6 +39,11 @@ public class Message {
 		this.channels = new ArrayList<String>(Arrays.asList(channels));
 	}
 	
+	public Message(String text, List<String> channels) {
+		this.text = text;
+		this.channels = channels;
+	}
+	
 	public String getText() {
 		return text;
 	}

@@ -168,7 +168,7 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 			}
 			
 			Collection<ResourceHolder> result = action.rewardPlayer(rewards, player, generated, block.getLocation());
-			config.getMessageQueue().enqueue(player, action, channels.getFormatter(player, result));
+			config.getMessageQueue().enqueue(player, action, channels.getFormatter(player, result, generated));
 
 			if (hasDebugger())
 				debugger.printDebug(this, "Block " + description + " by %s: Spawned %s for item %s.", 
@@ -265,7 +265,7 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 				
 				// Reward and print messages
 				Collection<ResourceHolder> result = action.rewardPlayer(rewards, player, generated);
-				config.getMessageQueue().enqueue(player, action, channels.getFormatter(player, result));
+				config.getMessageQueue().enqueue(player, action, channels.getFormatter(player, result, generated));
 				
 				if (hasDebugger())
 					debugger.printDebug(this, "Block placed by %s: Spawned %s for item %s.", 

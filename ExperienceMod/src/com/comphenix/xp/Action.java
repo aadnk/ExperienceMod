@@ -18,8 +18,10 @@
 package com.comphenix.xp;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +29,7 @@ import java.util.Random;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -45,13 +48,13 @@ public class Action {
 	
 	private int id;
 	private Message message;
-	private Map<String, ResourceFactory> rewards;
+	private Map<String, MessagedResource> rewards;
 
 	private Debugger debugger;
 	
 	public Action() {
 		// Default constructor
-		rewards = new LinkedHashMap<String, ResourceFactory>();;
+		rewards = new LinkedHashMap<String, MessagedResource>();;
 		inheritMultiplier = 1;
 	}
 	
@@ -60,7 +63,7 @@ public class Action {
 		addReward(rewardType, reward);
 	}
 	
-	private Action(Message message, Map<String, ResourceFactory> rewards, Debugger debugger, int id) {
+	private Action(Message message, Map<String, MessagedResource> rewards, Debugger debugger, int id) {
 		this.message = message;
 		this.rewards = rewards;
 		this.debugger = debugger;
@@ -73,7 +76,32 @@ public class Action {
 	 * @param factory - factory that generates the rewards when they are needed.
 	 */
 	public void addReward(String rewardType, ResourceFactory factory) {
-		rewards.put(Utility.getEnumName(rewardType), factory);
+		getEntry(rewardType, true).setResourceFactory(factory);
+	}
+	
+	/**
+	 * Set (or remove, using NULL) a message that will be sent when the reward is successful.
+	 * @param rewardType - name of the reward.
+	 * @param message - message to send.
+	 */
+	public void addMessage(String rewardType, Message message) {
+		getEntry(rewardType, true).setMessage(message);
+	}
+	
+	/**
+	 * Creates the underlying message-reward entry, if it doesn't already exist.
+	 * @param rewardType - name of the reward.
+	 */
+	private MessagedResource getEntry(String rewardType, boolean createNew) {
+		String enumedReward = Utility.getEnumName(rewardType);
+		MessagedResource resource = rewards.get(enumedReward);
+	
+		if (createNew && resource == null) {
+			resource = new MessagedResource();
+			rewards.put(enumedReward, resource);
+		}
+		
+		return resource;
 	}
 	
 	/**
@@ -90,7 +118,8 @@ public class Action {
 	 * @return Factory that generates rewards of this type.
 	 */
 	public ResourceFactory getReward(String name) {
-		return rewards.get(Utility.getEnumName(name));
+		MessagedResource resource = getEntry(name, false);
+		return resource != null ? resource.getResourceFactory() : null;
 	}
 	
 	/**
@@ -99,7 +128,7 @@ public class Action {
 	 * @return Factory that generates rewards of this type.
 	 */
 	public ResourceFactory getReward(RewardTypes type) {
-		return rewards.get(type.name());
+		return getReward(type.name());
 	}
 	
 	/**
@@ -156,8 +185,9 @@ public class Action {
 		}
 		
 		// Generate every reward in "insertion" order
-		for (ResourceFactory factory : rewards.values()) {
-			result.add(factory.getResource(params, rnd, count));
+		for (MessagedResource factory : rewards.values()) {
+			ResourceFactory generator = factory.getResourceFactory();
+			result.add(generator != null ? generator.getResource(params, rnd, count) : null);
 		}
 		
 		return result;
@@ -176,18 +206,17 @@ public class Action {
 		int index = 0;
 		
 		// Enumerate the list of rewards
-		for (Map.Entry<String, ResourceFactory> entry : rewards.entrySet()) {
+		for (String key : rewards.keySet()) {
 			
 			// Quit if we've exhausted the list
 			if (index >= generatedRewards.size())
 				break;
 			
-			String key = entry.getKey();
 			RewardService manager = provider.getByName(key);
 			ResourceHolder resource = generatedRewards.get(index++);
 			
 			// See if the manager allows this 
-			if (manager != null) {
+			if (manager != null && resource != null) {
 				if (!manager.canReward(player, resource)) {
 					return false;
 				}
@@ -217,17 +246,16 @@ public class Action {
 		int index = 0;
 		
 		// Give every reward
-		for (Map.Entry<String, ResourceFactory> entry : rewards.entrySet()) {
+		for (String key : rewards.keySet()) {
 			
 			// Quit if we've exhausted the list
 			if (index >= generatedRewards.size())
 				break;
 			
-			String key = entry.getKey();
 			RewardService manager = provider.getByName(key);
 			ResourceHolder resource = generatedRewards.get(index++);
 			
-			if (manager != null) {
+			if (manager != null && resource != null) {
 				manager.reward(player, resource);
 				addResource(result, resource);
 			}
@@ -255,17 +283,16 @@ public class Action {
 		int index = 0;
 		
 		// Give every reward
-		for (Map.Entry<String, ResourceFactory> entry : rewards.entrySet()) {
+		for (String key : rewards.keySet()) {
 			
 			// Quit if we've exhausted the list
 			if (index >= generatedRewards.size())
 				break;
 			
-			String key = entry.getKey();
 			RewardService manager = provider.getByName(key);
 			ResourceHolder resource = generatedRewards.get(index++);
 			
-			if (manager != null) {
+			if (manager != null && resource != null) {
 				manager.reward(player, point, resource);
 				addResource(result, resource);
 			}
@@ -293,17 +320,16 @@ public class Action {
 		int index = 0;
 		
 		// Give every reward
-		for (Map.Entry<String, ResourceFactory> entry : rewards.entrySet()) {
+		for (String key : rewards.keySet()) {
 			
 			// Quit if we've exhausted the list
 			if (index >= generatedRewards.size())
 				break;
 			
-			String key = entry.getKey();
 			RewardService manager = provider.getByName(key);
 			ResourceHolder resource = generatedRewards.get(index++);
 			
-			if (manager != null) {
+			if (manager != null && resource != null) {
 				manager.reward(world, point, resource);
 				addResource(result, resource);
 			}
@@ -324,6 +350,16 @@ public class Action {
 	}
 	
 	/**
+	 * Sends a general message informing anyone listening of the resources awarded.
+	 * @param provider - channel provider to use.
+	 * @param formatter - message formatter, complete with all the parameter information.
+	 */
+	public void announceMessages(ChannelProvider provider, MessageFormatter formatter) {
+		// Emote from no one
+		emoteMessages(provider, formatter, null);
+	}
+	
+	/**
 	 * Sends a message from the given player informing anyone listening of 
 	 * the action performed and the resources awarded.
 	 * @param provider - channel provider to use.
@@ -332,21 +368,54 @@ public class Action {
 	 */
 	public void emoteMessages(ChannelProvider provider, MessageFormatter formatter, Player player) {
 	
-		List<String> channels = getChannels(provider, message);
+		List<ResourceHolder> generated = formatter.getGenerated();
+		Iterator<String> rewardKeys = rewards.keySet().iterator();
+
+		if (message != null) {
+			dispatchMessages(provider, formatter, message, player);
+		}
+		
+		// Handle reward specific messages
+		for (int i = 0; i < generated.size() && rewardKeys.hasNext(); i++) {
+			ResourceHolder element = generated.get(i);
+			List<ResourceHolder> elements = Arrays.asList(generated.get(i));
+			
+			Message current = getMessage(rewardKeys.next());
+			
+			// Print the message (and ensure that the amount is greater than zero)
+			if (current != null && element.getAmount() > 0) {
+				dispatchMessages(provider, formatter.createView(elements, null), current, player);
+			}
+		}
+	}
+
+	/**
+	 * Dispatch a given message from a given player to the target channels.
+	 * @param provider - channel provider to use.
+	 * @param formatter - message formatter, complete with all the parameter information.
+	 * @param currentMessage - the message to transmit.
+	 * @param player - the sender, or NULL to simply announce the message.
+	 */
+	private void dispatchMessages(ChannelProvider provider, MessageFormatter formatter, Message currentMessage, Player player) {
+		
+		List<String> channels = getChannels(provider, currentMessage);
 		List<String> failures = new ArrayList<String>();
 		ChannelService service = provider.getDefaultService();
-
-		// Guard against NULL messages
-		if (channels != null && service != null) {
-			// Transmit the message on all channels
+		
+		if (channels != null &&  service != null) {
+			// Like above, only without the player
 			for (String channel : channels) {
-				String text = message.getText();
+				String text = currentMessage.getText();
 				
 				try {
-					if (service.hasChannel(channel))
-						service.emote(channel, formatter.formatMessage(text), player);
-					else
+					if (service.hasChannel(channel)) {
+						if (player == null)
+							service.announce(channel, formatter.formatMessage(text));
+						else
+							service.emote(channel, formatter.formatMessage(text), player);
+					} else {
 						failures.add(channel);
+					}
 					
 				} catch (IllegalArgumentException e) {
 					failures.add(channel);
@@ -354,41 +423,7 @@ public class Action {
 			}
 		}
 		
-		// Print warnings
-		if (debugger != null && !failures.isEmpty()) {
-			debugger.printDebug(this, "Cannot find channels: %s", 
-					StringUtils.join(failures, ", "));
-		}
-	}
-	
-	/**
-	 * Sends a general message informing anyone listening of the resources awarded.
-	 * @param provider - channel provider to use.
-	 * @param formatter - message formatter, complete with all the parameter information.
-	 */
-	public void announceMessages(ChannelProvider provider, MessageFormatter formatter) {
-
-		List<String> channels = getChannels(provider, message);
-		List<String> failures = new ArrayList<String>();
-		ChannelService service = provider.getDefaultService();
-		
-		if (channels != null &&  service != null) {
-			// Like above, only without the player
-			for (String channel : channels) {
-				String text = message.getText();
-				
-				try {
-					if (service.hasChannel(channel))
-						service.announce(channel, formatter.formatMessage(text));
-					else
-						failures.add(channel);
-						
-				} catch (IllegalArgumentException e) {
-					failures.add(channel);
-				}
-			}
-		}
-		
+		// Error!
 		if (debugger != null && !failures.isEmpty()) {
 			debugger.printDebug(this, "Cannot find channels: %s",
 					StringUtils.join(failures, ", "));
@@ -410,6 +445,16 @@ public class Action {
 			return null; 
 	}
 	 
+	/**
+	 * Retrieve the specific reward message.
+	 * @param rewardName - name of the reward.
+	 * @return The reward message, or NULL if it doesn't exist or the reward doesn't exist.
+	 */
+	public Message getMessage(String rewardName) {
+		MessagedResource resource = getEntry(rewardName, false);
+		return resource != null ? resource.getMessage() : null;
+	}
+	
 	public Message getMessage() {
 		return message;
 	}
@@ -428,12 +473,12 @@ public class Action {
 	
 	public Action multiply(double multiply) {
 
-		Map<String, ResourceFactory> copy = new HashMap<String, ResourceFactory>();
+		Map<String, MessagedResource> copy = new HashMap<String, MessagedResource>();
 		
 		// Multiply everything
-		for (Map.Entry<String, ResourceFactory> entry : rewards.entrySet()) {
-			ResourceFactory old = entry.getValue();	
-			copy.put(entry.getKey(), old.withMultiplier(old.getMultiplier() * multiply));
+		for (Map.Entry<String, MessagedResource> entry : rewards.entrySet()) {
+			MessagedResource old = entry.getValue();	
+			copy.put(entry.getKey(), old.multiply(multiply));
 		}
 		
 		// Copy everything
@@ -529,16 +574,16 @@ public class Action {
             append(id, other.id).
             isEquals();
 	}
-
+	
 	@Override
 	public String toString() {
 		
 		List<String> textRewards = new ArrayList<String>();
 		
 		// Build list of rewards
-		for (Map.Entry<String, ResourceFactory> entry : rewards.entrySet()) {
+		for (Map.Entry<String, MessagedResource> entry : rewards.entrySet()) {
 			String key = entry.getKey();
-			ResourceFactory value = entry.getValue();
+			MessagedResource value = entry.getValue();
 			
 			textRewards.add(String.format("%s: %s", key, value));
 		}
@@ -556,5 +601,85 @@ public class Action {
 
 	public void setDebugger(Debugger debugger) {
 		this.debugger = debugger;
+	}
+	
+	
+	/**
+	 * Represents a resource factory that transmits a message when it produced a non-zero resource.
+	 * 
+	 * @author Kristian
+	 */
+	private static class MessagedResource {
+		
+		private ResourceFactory resourceFactory;
+		private Message message;
+		
+		public MessagedResource() { 
+			// Default values
+		}
+		
+		private MessagedResource(ResourceFactory resourceFactory, Message message) {
+			this.resourceFactory = resourceFactory;
+			this.message = message;
+		}
+
+		public ResourceFactory getResourceFactory() {
+			return resourceFactory;
+		}
+		
+		public void setResourceFactory(ResourceFactory resourceFactory) {
+			this.resourceFactory = resourceFactory;
+		}
+		
+		public Message getMessage() {
+			return message;
+		}
+		
+		public void setMessage(Message message) {
+			this.message = message;
+		}
+		
+		private ResourceFactory getMultipliedFactory(double multiply) {
+			if (resourceFactory != null)
+				return resourceFactory.withMultiplier(resourceFactory.getMultiplier() * multiply);
+			else
+				return null;
+		}
+		
+		public MessagedResource multiply(double multiply) {
+			return new MessagedResource(getMultipliedFactory(multiply), message);
+		}
+		
+		@Override
+		public int hashCode() {
+			return new HashCodeBuilder(17, 31).
+		            append(resourceFactory).
+		            append(message).
+		            toHashCode();
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (obj == null)
+	            return false;
+	        if (obj == this)
+	            return true;
+	        if (obj.getClass() != getClass())
+	            return false;
+
+	        MessagedResource other = (MessagedResource) obj;
+	        return new EqualsBuilder().
+	            append(resourceFactory, other.resourceFactory).
+	            append(message, other.message).
+	            isEquals();
+		}
+		
+		@Override
+		public String toString() {
+			if (message == null)
+				return String.format("%s", resourceFactory);
+			else
+				return String.format("%s [%s]", resourceFactory, message);
+		}
 	}
 }
