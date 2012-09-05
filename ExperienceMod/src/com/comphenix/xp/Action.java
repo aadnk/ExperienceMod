@@ -47,7 +47,7 @@ public class Action {
 	private boolean inherit;
 	
 	private int id;
-	private Message message;
+	private List<Message> messages;
 	private Map<String, MessagedResource> rewards;
 
 	private Debugger debugger;
@@ -63,8 +63,8 @@ public class Action {
 		addReward(rewardType, reward);
 	}
 	
-	private Action(Message message, Map<String, MessagedResource> rewards, Debugger debugger, int id) {
-		this.message = message;
+	private Action(List<Message> messages, Map<String, MessagedResource> rewards, Debugger debugger, int id) {
+		this.messages = messages;
 		this.rewards = rewards;
 		this.debugger = debugger;
 		this.id = id;
@@ -80,12 +80,12 @@ public class Action {
 	}
 	
 	/**
-	 * Set (or remove, using NULL) a message that will be sent when the reward is successful.
+	 * Set (or remove, using NULL) a list of messages that will be sent when the reward is successful.
 	 * @param rewardType - name of the reward.
-	 * @param message - message to send.
+	 * @param message - messages to send.
 	 */
-	public void addMessage(String rewardType, Message message) {
-		getEntry(rewardType, true).setMessage(message);
+	public void addMessage(String rewardType, List<Message> messages) {
+		getEntry(rewardType, true).setMessages(messages);
 	}
 	
 	/**
@@ -151,7 +151,7 @@ public class Action {
 	 * @return
 	 */
 	public boolean hasNothing(ChannelProvider provider) {
-		return rewards.isEmpty() && (message == null || getChannels(provider, message) == null);
+		return rewards.isEmpty() && (messages == null || getChannels(provider, messages) == null);
 	}
 	
 	/**
@@ -371,7 +371,8 @@ public class Action {
 		List<ResourceHolder> generated = formatter.getGenerated();
 		Iterator<String> rewardKeys = rewards.keySet().iterator();
 
-		if (message != null) {
+		// Dispatch every listed message
+		for (Message message : messages) {
 			dispatchMessages(provider, formatter, message, player);
 		}
 		
@@ -380,11 +381,13 @@ public class Action {
 			ResourceHolder element = generated.get(i);
 			List<ResourceHolder> elements = Arrays.asList(generated.get(i));
 			
-			Message current = getMessage(rewardKeys.next());
+			List<Message> current = getMessages(rewardKeys.next());
 			
-			// Print the message (and ensure that the amount is greater than zero)
+			// Print the messages (and ensure that the amount is greater than zero)
 			if (current != null && element.getAmount() > 0) {
-				dispatchMessages(provider, formatter.createView(elements, null), current, player);
+				for (Message message : current) {
+					dispatchMessages(provider, formatter.createView(elements, null), message, player);
+				}
 			}
 		}
 	}
@@ -430,6 +433,26 @@ public class Action {
 		}
 	}
 	
+	private List<String> getChannels(ChannelProvider provider, List<Message> messages) {
+		
+		List<String> result = new ArrayList<String>();
+		
+		// Combine every channel into a big list
+		for (Message message : messages) {
+			List<String> channels = getChannels(provider, message);
+			
+			if (channels != null && channels.size() >0) {
+				result.addAll(channels);
+			}
+		}
+		
+		// Return NULL instead of an empty list
+		if (result.size() != 0)
+			return result;
+		else
+			return null;
+	}
+	
 	private List<String> getChannels(ChannelProvider provider, Message message) {
 		
 		// Guard against NULL
@@ -446,21 +469,29 @@ public class Action {
 	}
 	 
 	/**
-	 * Retrieve the specific reward message.
+	 * Retrieve the specific reward messages.
 	 * @param rewardName - name of the reward.
-	 * @return The reward message, or NULL if it doesn't exist or the reward doesn't exist.
+	 * @return The reward messages, or NULL if they don't exist or the reward doesn't exist.
 	 */
-	public Message getMessage(String rewardName) {
+	public List<Message> getMessages(String rewardName) {
 		MessagedResource resource = getEntry(rewardName, false);
-		return resource != null ? resource.getMessage() : null;
+		return resource != null ? resource.getMessages() : null;
 	}
 	
-	public Message getMessage() {
-		return message;
+	/**
+	 * Retrieve the messages that will be sent when the action is performed.
+	 * @return The messages to send when the action triggers.
+	 */
+	public List<Message> getMessages() {
+		return messages;
 	}
-	
-	public void setMessage(Message message) {
-		this.message = message;
+
+	/**
+	 * Sets the messages that will be sent when the action is performed.
+	 * @param messages - Messages to send when the action triggers.
+	 */
+	public void setMessages(List<Message> messages) {
+		this.messages = messages;
 	}
 
 	public int getId() {
@@ -482,7 +513,7 @@ public class Action {
 		}
 		
 		// Copy everything
-		Action action = new Action(message, copy, debugger, id);
+		Action action = new Action(messages, copy, debugger, id);
 		action.setInheritMultiplier(inheritMultiplier);
 		action.setInheritance(inherit);
 		return action;
@@ -512,8 +543,8 @@ public class Action {
 		}
 		
 		// And copy the message too, if it hasn't already been set
-		if (current.message == null) {
-			current.message = scaled.message;
+		if (current.messages == null) {
+			current.messages = scaled.messages;
 		}
 	
 		return current;
@@ -567,7 +598,7 @@ public class Action {
 
         Action other = (Action) obj;
         return new EqualsBuilder().
-            append(message, other.message).
+            append(messages, other.messages).
             append(rewards, other.rewards).
             append(inherit, other.inherit).
             append(inheritMultiplier, other.inheritMultiplier).
@@ -590,7 +621,7 @@ public class Action {
 		
 		return String.format("%s %s (%d)", 
 				StringUtils.join(textRewards, ", "),
-				message,
+				messages,
 				id
 		);
 	}
@@ -612,15 +643,15 @@ public class Action {
 	private static class MessagedResource {
 		
 		private ResourceFactory resourceFactory;
-		private Message message;
+		private List<Message> messages;
 		
 		public MessagedResource() { 
 			// Default values
 		}
 		
-		private MessagedResource(ResourceFactory resourceFactory, Message message) {
+		private MessagedResource(ResourceFactory resourceFactory, List<Message> messages) {
 			this.resourceFactory = resourceFactory;
-			this.message = message;
+			this.messages = messages;
 		}
 
 		public ResourceFactory getResourceFactory() {
@@ -631,12 +662,12 @@ public class Action {
 			this.resourceFactory = resourceFactory;
 		}
 		
-		public Message getMessage() {
-			return message;
+		public List<Message> getMessages() {
+			return messages;
 		}
 		
-		public void setMessage(Message message) {
-			this.message = message;
+		public void setMessages(List<Message> messages) {
+			this.messages = messages;
 		}
 		
 		private ResourceFactory getMultipliedFactory(double multiply) {
@@ -647,14 +678,14 @@ public class Action {
 		}
 		
 		public MessagedResource multiply(double multiply) {
-			return new MessagedResource(getMultipliedFactory(multiply), message);
+			return new MessagedResource(getMultipliedFactory(multiply), messages);
 		}
 		
 		@Override
 		public int hashCode() {
 			return new HashCodeBuilder(17, 31).
 		            append(resourceFactory).
-		            append(message).
+		            append(messages).
 		            toHashCode();
 		}
 
@@ -670,16 +701,16 @@ public class Action {
 	        MessagedResource other = (MessagedResource) obj;
 	        return new EqualsBuilder().
 	            append(resourceFactory, other.resourceFactory).
-	            append(message, other.message).
+	            append(messages, other.messages).
 	            isEquals();
 		}
 		
 		@Override
 		public String toString() {
-			if (message == null)
+			if (messages == null || messages.size() == 0)
 				return String.format("%s", resourceFactory);
 			else
-				return String.format("%s [%s]", resourceFactory, message);
+				return String.format("%s [%s]", resourceFactory, StringUtils.join(messages, ", "));
 		}
 	}
 }
