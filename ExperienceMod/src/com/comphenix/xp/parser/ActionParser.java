@@ -102,6 +102,9 @@ public class ActionParser extends ConfigurationParser<Action> {
 		if (values == null) {
 			return null;
 		}
+		
+		// Clone it
+		values = Utility.cloneSection(values);
 
 		// Retrieve the message
 		result.setMessage(parseRewardMessage(values, true));
@@ -120,6 +123,12 @@ public class ActionParser extends ConfigurationParser<Action> {
 					
 					// Might be because we have a message and channel
 					if (factory == null) {
+						// Copy the reward
+						Object element = values.get(sub);
+						
+						if (element instanceof ConfigurationSection)
+							values.set(sub, Utility.cloneSection((ConfigurationSection) element));
+						
 						rewardMessage = parseRewardMessage(values, sub, true);
 						factory = parseSection(parser, values, sub);
 					}
@@ -139,7 +148,7 @@ public class ActionParser extends ConfigurationParser<Action> {
 					throw ParsingException.fromFormat("Parser in %s cannot be NULL.", sub);
 				}
 
-			} else if (sub.equalsIgnoreCase(MULTIPLIER_SETTING)) {
+			} else if (enumed.equalsIgnoreCase(MULTIPLIER_SETTING)) {
 				
 				result.setInheritMultiplier(doubleParser.parse(values, sub));
 				
@@ -148,7 +157,7 @@ public class ActionParser extends ConfigurationParser<Action> {
 					result.setInheritance(true);
 				}
 				
-			} else if (sub.equalsIgnoreCase(INHERIT_SETTING)) {
+			} else if (enumed.equalsIgnoreCase(INHERIT_SETTING)) {
 				
 				Object value = values.get(sub);
 				
@@ -230,6 +239,7 @@ public class ActionParser extends ConfigurationParser<Action> {
 	 * consumeElements parameter is set to TRUE.
 	 * 
 	 * @param input - the configuration section to parse from.
+	 * @param sub2 
 	 * @param consumeElements - whether or not to remove successfully read key-value pairs.
 	 * @return The parsed message.
 	 */
