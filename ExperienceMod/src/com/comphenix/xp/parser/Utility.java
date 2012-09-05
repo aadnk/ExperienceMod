@@ -23,7 +23,13 @@ import java.util.Set;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.NullArgumentException;
+import org.bukkit.configuration.Configuration;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.MemoryConfiguration;
+import org.bukkit.configuration.MemorySection;
 
+import com.comphenix.xp.reflect.FieldUtils;
+import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
@@ -103,11 +109,61 @@ public class Utility {
 	}
 	
 	/**
+	 * Creates a shallow copy of the given section that is not referenced by the parent node.
+	 * @param section - the section to copy.
+	 * @return A copied configuration section.
+	 */
+	public static ConfigurationSection cloneSection(ConfigurationSection section) {
+		
+		MemorySection copy = null;
+		
+		// Is this the root node?
+		if (section.getParent() == null) {
+			if (!(section instanceof MemorySection)) {
+				throw new IllegalArgumentException("Only memory configurations can be cloned.");
+			}
+			
+			Configuration sourceConfig = (Configuration) section;
+			Configuration copyConfig = new MemoryConfiguration(sourceConfig.getDefaults());
+			
+			try {
+				// We're very unlikely to clone a root node in the first place, so who cares
+				FieldUtils.writeField(copyConfig, "options", sourceConfig.options(), true);
+			
+			} catch (IllegalAccessException e) {
+				throw new RuntimeException("Cannot modify options.", e);
+			}
+				
+		} else {
+
+			String path = Iterables.getLast(
+							Splitter.on(section.getRoot().options().pathSeparator()).
+					        split(section.getCurrentPath())
+					      );
+			copy = new ClonableMemorySection(section.getParent(), path);			
+		}
+		
+		// Copy every stored value
+		for (String key : section.getKeys(false)) {
+			copy.set(key, section.get(key));
+		}
+		
+		return copy;
+	}
+	
+	/**
 	 * Determines if a String can be ignored.
 	 * @param param String to test.
 	 * @return TRUE if the string is null, blank or equal to '?', FALSE otherwise.
 	 */
 	public static boolean isNullOrIgnoreable(String param) { 
 	    return param == null || param.trim().length() == 0 || param.trim().equals("?"); 
+	}
+	
+	private static class ClonableMemorySection extends MemorySection {
+		// Used by the cloner to access the protected constructor without using reflection 
+		public ClonableMemorySection(ConfigurationSection parent, String path) {
+			super(parent, path);
+		}
 	}
 }
