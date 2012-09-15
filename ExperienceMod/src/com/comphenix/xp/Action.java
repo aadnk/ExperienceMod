@@ -372,8 +372,10 @@ public class Action {
 		Iterator<String> rewardKeys = rewards.keySet().iterator();
 
 		// Dispatch every listed message
-		for (Message message : messages) {
-			dispatchMessages(provider, formatter, message, player);
+		if (messages != null) {
+			for (Message message : messages) {
+				dispatchMessages(provider, formatter, message, player);
+			}
 		}
 		
 		// Handle reward specific messages
