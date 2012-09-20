@@ -10,6 +10,7 @@ import com.comphenix.xp.Debugger;
 import com.comphenix.xp.Presets;
 import com.comphenix.xp.lookup.LevelingRate;
 import com.comphenix.xp.rewards.xp.ExperienceManager;
+import com.google.common.base.Objects;
 
 public class ExperienceLevelListener extends AbstractExperienceListener {
 
@@ -51,7 +52,7 @@ public class ExperienceLevelListener extends AbstractExperienceListener {
 		Integer defaultLevelUp = manager.getXpNeededToLevelUp(player.getLevel());
 		
 		// See if we need to modify the experience gained
-		if (desiredLevelUp != null && desiredLevelUp != defaultLevelUp) {
+		if (!Objects.equal(desiredLevelUp, defaultLevelUp)) {
 			// Make experience drops correspond to the desired level rate
 			double factor = (double)defaultLevelUp / (double)desiredLevelUp;
 			

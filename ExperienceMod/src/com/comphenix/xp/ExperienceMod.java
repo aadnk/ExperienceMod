@@ -74,6 +74,7 @@ import com.comphenix.xp.rewards.xp.RewardEconomy;
 import com.comphenix.xp.rewards.xp.RewardExperience;
 import com.comphenix.xp.rewards.xp.RewardVirtual;
 import com.google.common.base.Function;
+import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 
 public class ExperienceMod extends JavaPlugin implements Debugger {
@@ -762,7 +763,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		ItemTree current = config.getActionReward(trigger);
 		
 		// Special brewing type
-		if (trigger == brewing && query instanceof PotionQuery) {
+		if (Objects.equal(trigger, brewing) && query instanceof PotionQuery) {
 			
 			// Use the complex brewing reward rules
 			return config.getComplexBrewingReward().getAllRanked((PotionQuery) query);

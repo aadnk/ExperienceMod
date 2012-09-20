@@ -203,12 +203,12 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 	public void onEntityDeathEvent(EntityDeathEvent event) {
 		
 		LivingEntity entity = event.getEntity();
-		Player killer = entity.getKiller();
 		Collection<ResourceHolder> result = null;
 		
 		try {
 			// Only drop experience from mobs
 			if (entity != null) {
+				Player killer = entity.getKiller();
 				result = handleEntityDeath(event, entity, killer);
 			}
 			

@@ -66,9 +66,9 @@ public class CommandExperienceMod implements CommandExecutor {
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
 		// Execute the correct command
-		if (command != null && 
+		if (command != null && (
 				command.getName().equalsIgnoreCase(COMMAND_RELOAD) || 
-				command.getName().equalsIgnoreCase(COMMAND_ABBREVIATED))
+				command.getName().equalsIgnoreCase(COMMAND_ABBREVIATED)))
 			
 			return handleMainCommand(sender, args);
 		else
@@ -95,10 +95,12 @@ public class CommandExperienceMod implements CommandExecutor {
 		// Display the parse warnings during the last configuration load
 		} else if (sub.equalsIgnoreCase(SUB_COMMAND_WARNINGS)) {
 			
-			if (sender != null && plugin.getInformer().hasWarnings())
-				plugin.getInformer().displayWarnings(sender, true);
-			else
-				sender.sendMessage(ChatColor.GREEN + "No warnings found.");
+			if (sender != null) {
+				if (plugin.getInformer().hasWarnings())
+					plugin.getInformer().displayWarnings(sender, true);
+				else 
+					sender.sendMessage(ChatColor.GREEN + "No warnings found.");
+			}
 			return true;
 			
 		} else if (sub.equalsIgnoreCase(SUB_COMMAND_ITEM)) {

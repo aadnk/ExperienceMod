@@ -22,7 +22,7 @@ public class HawkeyeService implements HistoryService {
 	public static final String NAME = "HAWKEYE";
 	
 	private Debugger debugger;
-	private boolean searching;
+	private volatile boolean searching;
 	
 	// The result
 	private DataEntry searchResult;
@@ -55,7 +55,7 @@ public class HawkeyeService implements HistoryService {
 		
 		// Async lock
 		synchronized (lock) {
-			if (searching) {
+			while (searching) {
 				try {
 					lock.wait();
 				} catch (InterruptedException e) {
@@ -76,7 +76,7 @@ public class HawkeyeService implements HistoryService {
 					searchParser, SearchDir.DESC);
 			
 			// Wait for it to be done
-			if (searching) {
+			while (searching) {
 				try {
 					lock.wait();
 				} catch (InterruptedException e) {

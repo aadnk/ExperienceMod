@@ -85,7 +85,7 @@ public class PlayerQuery implements Query {
 	 */
 	public static PlayerQuery fromExact(Player player, String[] groups, Boolean murder) {
 
-		EntityDamageEvent event = player.getLastDamageCause();
+		EntityDamageEvent event = player != null ? player.getLastDamageCause() : null;
 		DamageCause cause = null;
 
 		if (event != null) {

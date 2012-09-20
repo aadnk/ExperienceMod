@@ -217,10 +217,10 @@ public class Presets implements PlayerCleanupListener {
 						section.getConfigurationSection(key), loader);
 				
 				// Remember if we have presets or not
-				data.setPreset(query.hasPresetNames());
-				
-				if (data != null)
+				if (data != null) {
+					data.setPreset(query.hasPresetNames());
 					presets.put(query, data);
+				}
 			
 			} catch (ParsingException ex) {
 				if (logger != null)

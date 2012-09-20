@@ -41,6 +41,7 @@ public class ExperienceInformerListener implements Listener {
 	private ErrorReporting report = ErrorReporting.DEFAULT;
 	
 	public ExperienceInformerListener(Debugger debugger, Server server) {
+		this.debugger = debugger;
 		this.server = server;
 	}
 	

@@ -239,6 +239,7 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 			if (config == null) {
 				if (hasDebugger())
 					debugger.printDebug(this, "No config found for block %s.", block);
+				return;
 			}
 				
 			ItemQuery retrieveKey = ItemQuery.fromExact(block);

@@ -64,6 +64,7 @@ public class RewardEconomy implements RewardService {
 		if (listener == null)
 			throw new NullArgumentException("listener");
 		
+		this.debugger = debugger;
 		this.listener = listener;
 		this.economy = economy;
 	}
