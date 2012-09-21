@@ -66,7 +66,7 @@ public class RewardVirtual implements RewardService {
 		
 		// See if we'd end up with negative experience
 		if (resource.getAmount() < 0) {
-			return manager.hasExp(-resource.getAmount() * getLevelingFactor(player, manager));
+			return manager.hasExp(-resource.getAmount() * getLevelingFactor(levelingRate, player, manager));
 		} else {
 			return true;
 		}
@@ -84,7 +84,7 @@ public class RewardVirtual implements RewardService {
 		
 		// Rely on the brilliance of others
 		if (resource.getAmount() != 0) {
-			manager.changeExp(resource.getAmount() * getLevelingFactor(player, manager));
+			manager.changeExp(resource.getAmount() * getLevelingFactor(levelingRate, player, manager));
 		}
 	}
 
@@ -107,9 +107,16 @@ public class RewardVirtual implements RewardService {
 			Server.spawnExperience(world, point, resource.getAmount());
 	}
 	
-	private double getLevelingFactor(Player player, ExperienceManager manager) {
+	/**
+	 * Retrieve the factor f that multiplied by the current experience yields the correct leveling rate.
+	 * @param rate - leveling rate to use.
+	 * @param player - the player and their level.
+	 * @param manager - experience manager used for the grunt experience calculation.
+	 * @return Leveling factor.
+	 */
+	public static double getLevelingFactor(LevelingRate rate, Player player, ExperienceManager manager) {
 		// Retrieve the desired amount of experience required to level up
-		Integer desiredLevelUp = levelingRate.get(player.getLevel());
+		Integer desiredLevelUp = rate.get(player.getLevel());
 		Integer defaultLevelUp = manager.getXpNeededToLevelUp(player.getLevel());
 		
 		// Make experience drops correspond to the desired level rate

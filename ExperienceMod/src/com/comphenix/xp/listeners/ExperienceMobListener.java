@@ -42,13 +42,16 @@ import com.comphenix.xp.Presets;
 import com.comphenix.xp.SampleRange;
 import com.comphenix.xp.expressions.NamedParameter;
 import com.comphenix.xp.extra.Permissions;
+import com.comphenix.xp.lookup.LevelingRate;
 import com.comphenix.xp.lookup.MobQuery;
 import com.comphenix.xp.lookup.PlayerQuery;
 import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.rewards.ResourceHolder;
 import com.comphenix.xp.rewards.RewardProvider;
+import com.comphenix.xp.rewards.items.RandomSampling;
 import com.comphenix.xp.rewards.xp.ExperienceHolder;
 import com.comphenix.xp.rewards.xp.ExperienceManager;
+import com.comphenix.xp.rewards.xp.RewardVirtual;
 
 public class ExperienceMobListener extends AbstractExperienceListener {
 
@@ -247,7 +250,9 @@ public class ExperienceMobListener extends AbstractExperienceListener {
         	}
         	
         	// Set the correct level and experience
-        	subtractExperience(event, player, total);
+        	if (total > 0) {
+        		subtractExperience(event, player, revertLevelingRate(player, total));
+        	}
         	
             if (hasDebugger())
         		debugger.printDebug(this, "%s took %d experience loss.", player.getName(), total);
@@ -260,9 +265,23 @@ public class ExperienceMobListener extends AbstractExperienceListener {
         }
 	}
 	
+	// Revert the leveling rate we applied
+	private int revertLevelingRate(Player player, int experience) {
+		
+		Configuration config = getConfiguration(player);
+		ExperienceManager manager = new ExperienceManager(player);	
+		
+		LevelingRate rate = config != null ? config.getLevelingRate() : null;
+		double rateFactor = rate != null ? RewardVirtual.getLevelingFactor(rate, player, manager) : 1;
+		
+		SampleRange sampling = new SampleRange(experience / rateFactor);
+		return sampling.sampleInt(RandomSampling.getThreadRandom());
+	}
+	
+	// Manually subtract experience
 	private void subtractExperience(PlayerDeathEvent event, Player player, int experience) {
 		
-		ExperienceManager manager = new ExperienceManager(player);   
+		ExperienceManager manager = new ExperienceManager(player);		
 		int current = manager.getCurrentExp();
 		int after = Math.max(current - experience, 0);
 		int level = manager.getLevelForExp(after);

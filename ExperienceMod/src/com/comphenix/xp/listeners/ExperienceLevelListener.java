@@ -52,7 +52,7 @@ public class ExperienceLevelListener extends AbstractExperienceListener {
 		Integer defaultLevelUp = manager.getXpNeededToLevelUp(player.getLevel());
 		
 		// See if we need to modify the experience gained
-		if (!Objects.equal(desiredLevelUp, defaultLevelUp)) {
+		if (desiredLevelUp != null && !Objects.equal(desiredLevelUp, defaultLevelUp)) {
 			// Make experience drops correspond to the desired level rate
 			double factor = (double)defaultLevelUp / (double)desiredLevelUp;
 			
