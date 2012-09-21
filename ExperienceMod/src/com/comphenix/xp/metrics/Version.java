@@ -3,8 +3,6 @@ package com.comphenix.xp.metrics;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.google.common.base.Objects;
-
 /**
  * Represents a version that can be compared. The input is expected to take the following form: </br >
  * <code>

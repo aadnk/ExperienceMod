@@ -49,7 +49,6 @@ import com.comphenix.xp.rewards.ResourceHolder;
 import com.comphenix.xp.rewards.RewardProvider;
 import com.comphenix.xp.rewards.xp.ExperienceHolder;
 import com.comphenix.xp.rewards.xp.ExperienceManager;
-import com.google.common.collect.Lists;
 
 public class ExperienceMobListener extends AbstractExperienceListener {
 
@@ -252,6 +251,12 @@ public class ExperienceMobListener extends AbstractExperienceListener {
         	
             if (hasDebugger())
         		debugger.printDebug(this, "%s took %d experience loss.", player.getName(), total);
+        } else {
+        	
+        	// Display the loss, at least
+            if (hasDebugger())
+        		debugger.printDebug(this, "%s took %d standard experience loss.", 
+        				player.getName(), event.getDroppedExp());
         }
 	}
 	
@@ -403,13 +408,6 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 			spawnReasonLookup.remove(id);
 		}
 	
-		// Set the experience dropped
-		if (result == null) {
-			result = Lists.newArrayList(
-				(ResourceHolder) new ExperienceHolder(event.getDroppedExp())
-			);
-		}
-		
 		return result;
 	}
 	
