@@ -26,14 +26,14 @@ public class ExperienceLevelListener extends AbstractExperienceListener {
 	public void onPlayerExpChangeEvent(PlayerExpChangeEvent event) {
 		
 		try {
-			handleEnchantItemEvent(event);
+			handleExpOrb(event);
 			
 		} catch (Exception e) {
 			ErrorReporting.DEFAULT.reportError(debugger, this, e, event);
 		}
 	}
 	
-	private void handleEnchantItemEvent(PlayerExpChangeEvent event) {
+	private void handleExpOrb(PlayerExpChangeEvent event) {
 		
 		Player player = event.getPlayer();
 		Configuration config = getConfiguration(player);
