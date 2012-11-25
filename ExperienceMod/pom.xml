@@ -1,0 +1,124 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.comphenix.experiencemod</groupId>
+  <artifactId>ExperienceMod</artifactId>
+  <version>2.5.1-SNAPSHOT</version>
+  <name>ExperienceMod</name>
+  <description>Customize the experience reward in Minecraft.</description>
+
+  <properties>
+    <project.build.sourceEncoding>cp1252</project.build.sourceEncoding>
+  </properties>
+  
+  <repositories>
+    <repository>
+      <id>bukkit-rep</id>
+      <url>http://repo.bukkit.org/content/groups/public</url>
+    </repository>
+    <repository>
+      <id>comphenix-3rdparty</id>
+      <name>Comphenix Maven 3rdParty</name>
+      <url>http://repo.comphenix.net/content/repositories/thirdparty/</url>
+    </repository>
+  </repositories>
+  
+  <distributionManagement>
+    <repository>
+      <id>comphenix-releases</id>
+      <name>Comphenix Maven Releases</name>
+      <url>http://repo.comphenix.net/content/repositories/releases/</url>
+    </repository>
+    <snapshotRepository>
+      <id>comphenix-snapshots</id>
+      <name>Comphenix Maven Snapshots</name>
+      <url>http://repo.comphenix.net/content/repositories/snapshots/</url>
+    </snapshotRepository>
+  </distributionManagement>
+  
+  <build>
+    <sourceDirectory>src/main/java</sourceDirectory>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+      </resource>
+    </resources>
+    <plugins>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.3.2</version>
+        <configuration>
+          <source>1.6</source>
+          <target>1.6</target>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <scm>
+    <connection>scm:git:git://github.com/aadnk/ExperienceMod.git</connection>
+    <developerConnection>scm:git:git@github.com:aadnk/ExperienceMod.git</developerConnection>
+    <url>https://github.com/aadnk/ExperienceMod</url>
+  </scm>
+  
+  <licenses>
+    <license>
+      <name>GNU GENERAL PUBLIC LICENSE - Version 2, June 1991</name>
+      <url>http://www.gnu.org/licenses/gpl-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  
+  <developers>
+    <developer>
+      <id>aadnk</id>
+      <name>Kristian S. Stangeland</name>
+      <email>kr_stang@hotmail.com</email>
+      <url>http://comphenix.net/</url>
+      <roles>
+        <role>developer</role>
+        <role>maintainer</role>
+      </roles>
+      <timezone>1</timezone>
+    </developer>
+  </developers>
+  
+  <dependencies>
+    <dependency>
+  	  <groupId>org.bukkit</groupId>
+  	  <artifactId>craftbukkit</artifactId>
+  	  <version>1.4.5-R0.2</version>
+  	  <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>uk.co.oliwali.HawkEye</groupId>
+      <artifactId>HawkEye</artifactId>
+      <version>1.0.7b</version>
+    </dependency>
+    <dependency>
+      <groupId>net.milkbowl.vault</groupId>
+      <artifactId>Vault</artifactId>
+      <version>1.2.20</version>
+    </dependency>
+    <dependency>
+      <groupId>de.diddiz.logblock</groupId>
+      <artifactId>LogBlock</artifactId>
+      <version>1.60</version>
+    </dependency>
+    <dependency>
+      <groupId>com.dthielke.herochat</groupId>
+      <artifactId>Herochat</artifactId>
+      <version>5.6.1</version>
+    </dependency>
+    <dependency>
+      <groupId>com.feildmaster.channelchat</groupId>
+      <artifactId>Channelchat</artifactId>
+      <version>0.6.2</version>
+    </dependency>
+    <dependency>
+  		<groupId>junit</groupId>
+  		<artifactId>junit</artifactId>
+  		<version>4.10</version>
+  		<scope>test</scope>
+  	</dependency>
+  </dependencies>
+</project>

@@ -17,6 +17,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Note;
 import org.bukkit.Server;
+import org.bukkit.Sound;
 import org.bukkit.Statistic;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -161,6 +162,11 @@ public class MockPlayer implements Player {
 	@Override
 	public void setBedSpawnLocation(Location arg0) {
 		bedSpawnLocation = arg0;
+	}
+	
+	@Override
+	public void setBedSpawnLocation(Location paramLocation, boolean paramBoolean) {
+		bedSpawnLocation = paramLocation;
 	}
 
 	@Override
@@ -520,10 +526,14 @@ public class MockPlayer implements Player {
 
 	@Override
 	public boolean eject() {
-		
 		return false;
 	}
 
+	@Override
+	public Inventory getEnderChest() {
+		return null;
+	}
+	
 	@Override
 	public int getEntityId() {
 		
@@ -943,13 +953,16 @@ public class MockPlayer implements Player {
 
 	@Override
 	public void chat(String arg0) {
-		
-		
+			
 	}
 	
 	@Override
 	public void giveExp(int arg0) {
-		
+
+	}
+	
+	@Override
+	public void giveExpLevels(int paramInt) {
 		
 	}
 
@@ -1014,6 +1027,10 @@ public class MockPlayer implements Player {
 	public void playNote(Location arg0, Instrument arg1, Note arg2) {
 	}
 
+	@Override
+	public void playSound(Location paramLocation, Sound paramSound, float paramFloat1, float paramFloat2) {
+	}
+	
 	@Override
 	public void resetPlayerTime() {
 	}

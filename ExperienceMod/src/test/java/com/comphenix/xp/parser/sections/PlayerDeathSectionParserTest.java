@@ -12,6 +12,7 @@ import com.comphenix.xp.Debugger;
 import com.comphenix.xp.MockDebugger;
 import com.comphenix.xp.lookup.PlayerQuery;
 import com.comphenix.xp.lookup.PlayerTree;
+import com.comphenix.xp.parser.ActionParser;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.rewards.RewardProvider;
 import com.comphenix.xp.rewards.xp.ExperienceFactory;
@@ -26,6 +27,9 @@ public class PlayerDeathSectionParserTest {
 		
 		RewardProvider provider = new RewardProvider();
 		provider.register(new RewardExperience());
+	
+		// Reset action ID
+		ActionParser.setCurrentID(0);
 		
 		Configuration test = ConfigurationTest.createConfig("player death:\n" +
 				"  aadnk: 10\n" + 

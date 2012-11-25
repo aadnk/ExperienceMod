@@ -63,7 +63,17 @@ public class MockServer implements Server {
 	public void sendPluginMessage(Plugin arg0, String arg1, byte[] arg2) {
 			
 	}
-
+	
+	@Override
+	public int getAmbientSpawnLimit() {
+		return 0;
+	}
+	
+	@Override
+	public boolean isHardcore() {
+		return false;
+	}
+	
 	@Override
 	public boolean addRecipe(Recipe arg0) {
 		return false;
