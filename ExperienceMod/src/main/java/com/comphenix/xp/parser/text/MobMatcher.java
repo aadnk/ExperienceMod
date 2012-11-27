@@ -30,6 +30,7 @@ import com.google.common.collect.Lists;
 
 import org.apache.commons.lang.NullArgumentException;
 import org.bukkit.entity.EntityType;
+import org.omg.IOP.ENCODING_CDR_ENCAPS;
 
 /**
  * Used by the MobEntityTypeParser to parse mob names or categories.
@@ -47,22 +48,22 @@ public class MobMatcher extends TextParser<List<Short>> {
 		
 	protected void loadDefaultCategories() {
 		// Utility mobs may be created by and serve the player. 
-		registerCategory("UTILITY", EntityType.IRON_GOLEM, EntityType.SNOWMAN);
+		registerCategory("UTILITY", EntityType.IRON_GOLEM, EntityType.SNOWMAN, EntityType.WITHER);
 		
 		// Passive mobs will never attack the player.
 		registerCategory("PASSIVE", EntityType.CHICKEN, EntityType.COW, EntityType.MUSHROOM_COW, EntityType.OCELOT, 
 				EntityType.PIG, EntityType.SHEEP, EntityType.SQUID, EntityType.VILLAGER);
 		
 		// Neutral mobs will not attack the player unless provoked. The act of provoking neutral mobs varies between mobs. 
-		registerCategory("NEUTRAL", EntityType.IRON_GOLEM, EntityType.ENDERMAN, EntityType.PIG_ZOMBIE, EntityType.WOLF);
+		registerCategory("NEUTRAL", EntityType.BAT, EntityType.IRON_GOLEM, EntityType.ENDERMAN, EntityType.PIG_ZOMBIE, EntityType.WOLF);
 		
 		// Hostile mobs will attack the player when in range.
 		registerCategory("HOSTILE", EntityType.BLAZE, EntityType.CAVE_SPIDER, EntityType.CREEPER, EntityType.GHAST, 
 				EntityType.MAGMA_CUBE, EntityType.SILVERFISH, EntityType.SKELETON, EntityType.SLIME, 
-				EntityType.SPIDER, EntityType.ZOMBIE);
-		
+				EntityType.SPIDER, EntityType.ZOMBIE, EntityType.WITCH);
+
 		// Boss mobs have a large amount of health and spawn only once per world. 
-		registerCategory("BOSS", EntityType.ENDER_DRAGON);
+		registerCategory("BOSS", EntityType.ENDER_DRAGON, EntityType.WITHER);
 	}
 	
 	protected void loadDefaultMobs() {
