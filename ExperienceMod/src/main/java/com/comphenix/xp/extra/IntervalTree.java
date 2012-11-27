@@ -4,17 +4,17 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Set;
-import java.util.SortedMap;
 import java.util.TreeMap;
 
-import org.apache.commons.lang.NotImplementedException;
-
+import com.google.common.base.Objects;
 import com.google.common.collect.Range;
 import com.google.common.collect.Ranges;
 
 /**
  * Represents a generic store of intervals and associated values. No two intervals
  * can overlap in this representation.
+ * <p>
+ * Note that this implementation is not thread safe.
  * 
  * @author Kristian
  *
@@ -33,27 +33,65 @@ public abstract class IntervalTree<TKey extends Comparable<TKey>, TValue> {
 	 * Represents a range and a value in this interval tree.
 	 */
 	public class Entry implements Map.Entry<Range<TKey>, TValue> {
-		private Range<TKey> key;
-		private TValue value;
-		
-		public Entry(Range<TKey> key, TValue value) {
-			this.key = key;
-			this.value = value;
+		private EndPoint left;
+		private EndPoint right;
+
+		Entry(EndPoint left, EndPoint right) {
+			if (left == null)
+				throw new IllegalAccessError("left cannot be NUll");
+			if (right == null)
+				throw new IllegalAccessError("right cannot be NUll");
+			if (left.key.compareTo(right.key) > 0)
+				throw new IllegalArgumentException(
+						"Left key (" + left.key + ") cannot be greater than the right key (" + right.key + ")");
+			
+			this.left = left;
+			this.right = right;
 		}
 
 		@Override
 		public Range<TKey> getKey() {
-			return key;
+			return Ranges.closed(left.key, right.key);
 		}
 
 		@Override
 		public TValue getValue() {
-			return value;
+			return left.value;
 		}
 
 		@Override
 		public TValue setValue(TValue value) {
-			throw new NotImplementedException();
+			TValue old = left.value;
+			
+			// Set both end points
+			left.value = value;
+			right.value = value;
+			return old;
+		}
+		
+		@SuppressWarnings("rawtypes")
+		@Override
+		public boolean equals(Object obj) {
+			// Quick equality check
+			if (obj == this) {
+				return true;
+			} else if (obj instanceof IntervalTree.Entry) {
+				return Objects.equal(left.key, ((IntervalTree.Entry) obj).left.key) &&
+					   Objects.equal(right.key, ((IntervalTree.Entry) obj).right.key) &&
+					   Objects.equal(left.value, ((IntervalTree.Entry) obj).left.value);
+			} else {
+				return false;
+			}
+		}
+		
+		@Override
+		public int hashCode() {
+			return Objects.hashCode(left.key, right.key, left.value);
+		}
+		
+		@Override
+		public String toString() {
+			return String.format("Value %s at [%s, %s]", left.value, left.key, right.key);
 		}
 	}
 	
@@ -67,9 +105,13 @@ public abstract class IntervalTree<TKey extends Comparable<TKey>, TValue> {
 		
 		// The value this range contains
 		public TValue value;
+		
+		// The key of this end point
+		public TKey key;
 
-		public EndPoint(State state, TValue value) {
+		public EndPoint(State state, TKey key, TValue value) {
 			this.state = state;
+			this.key = key;
 			this.value = value;
 		}	
 	}
@@ -82,39 +124,114 @@ public abstract class IntervalTree<TKey extends Comparable<TKey>, TValue> {
 	 * @param lowerBound - lowest value to remove.
 	 * @param upperBound - highest value to remove.
 	 */
-	public void remove(TKey lowerBound, TKey upperBound) {
-		SortedMap<TKey, EndPoint> range = bounds.subMap(lowerBound, true, upperBound, true);
-		TKey first = range.firstKey();
-		TKey last = range.lastKey();
+	public Set<Entry> remove(TKey lowerBound, TKey upperBound) {
+		return remove(lowerBound, upperBound, false);
+	}
+	
+	/**
+	 * Removes every interval that intersects with the given range.
+	 * @param lowerBound - lowest value to remove.
+	 * @param upperBound - highest value to remove.
+	 * @param preserveOutside - whether or not to preserve the intervals that are partially outside.
+	 */
+	public Set<Entry> remove(TKey lowerBound, TKey upperBound, boolean preserveDifference) {
+		checkBounds(lowerBound, upperBound);
+		NavigableMap<TKey, EndPoint> range = bounds.subMap(lowerBound, true, upperBound, true);
 		
-		if (range.get(first).state == State.CLOSE) {
-			// Remove the previous element too. A close end-point must be preceded by an OPEN end-point.
-			removeIfNonNull(bounds.floorKey(first));
+		EndPoint first = getNextEndPoint(lowerBound, true); 
+		EndPoint last = getPreviousEndPoint(upperBound, true);
+		
+		// Used while resizing intervals
+		EndPoint previous = null;
+		EndPoint next = null;
+		
+		Set<Entry> resized = new HashSet<Entry>();
+		Set<Entry> removed = new HashSet<Entry>();
+		
+		// Remove the previous element too. A close end-point must be preceded by an OPEN end-point.
+		if (first != null && first.state == State.CLOSE) {
+			previous = getPreviousEndPoint(first.key, false);
+			
+			// Add the interval back
+			if (previous != null) {
+				removed.add(getEntry(previous, first));
+			}
 		}
 		
-		if (range.get(last).state == State.OPEN) {
-			// Get the closing element too.
-			removeIfNonNull(bounds.ceilingKey(last));
+		// Get the closing element too.
+		if (last != null && last.state == State.OPEN) {
+			next = getNextEndPoint(last.key, false);
+		
+			if (next != null) {
+				removed.add(getEntry(last, next));
+			} 
+		}
+		
+		// Now remove both ranges
+		removeEntrySafely(previous, first);
+		removeEntrySafely(last, next);
+		
+		// Add new resized intervals
+		if (preserveDifference) {
+			if (previous != null) {
+				resized.add(putUnsafe(previous.key, decrementKey(lowerBound), previous.value));
+			}
+			if (next != null) {
+				resized.add(putUnsafe(incrementKey(upperBound), next.key, next.value));
+			}
+		}
+		
+		// Get the removed entries too
+		getEntries(removed, range);
+		invokeEntryRemoved(removed);
+		
+		if (preserveDifference) {
+			invokeEntryAdded(resized);
 		}
 		
 		// Remove the range as well
 		range.clear();
+		return removed;
 	}
 	
-	// Helper
-	protected void removeIfNonNull(Object key) {
-		if (key != null) {
-			bounds.remove(key);
+	/**
+	 * Retrieve the entry from a given set of end points.
+	 * @param left - leftmost end point.
+	 * @param right - rightmost end point.
+	 * @return The associated entry.
+	 */
+	protected Entry getEntry(EndPoint left, EndPoint right) {
+		if (left == null)
+			throw new IllegalArgumentException("left endpoint cannot be NULL.");
+		if (right == null)
+			throw new IllegalArgumentException("right endpoint cannot be NULL.");
+		
+		// Make sure the order is correct
+		if (right.key.compareTo(left.key) < 0) {
+			return getEntry(right, left);
+		} else {
+			return new Entry(left, right);
+		}
+	}
+	
+	private void removeEntrySafely(EndPoint left, EndPoint right) {
+		if (left != null && right != null) {
+			bounds.remove(left.key);
+			bounds.remove(right.key);
 		}
 	}
 	
 	// Adds a given end point
-	protected void addEndPoint(TKey key, TValue value, State state) {
-		if (bounds.containsKey(key)) {
-			bounds.get(key).state = State.BOTH;
+	protected EndPoint addEndPoint(TKey key, TValue value, State state) {
+		EndPoint endPoint = bounds.get(key);
+		
+		if (endPoint != null) {
+			endPoint.state = State.BOTH;
 		} else {
-			bounds.put(key, new EndPoint(state, value));
+			endPoint = new EndPoint(state, key, value);
+			bounds.put(key, endPoint);
 		}
+		return endPoint;
 	}
 	
 	/**
@@ -128,30 +245,41 @@ public abstract class IntervalTree<TKey extends Comparable<TKey>, TValue> {
 	 * @param value - the value, or NULL to reset this range.
 	 */
 	public void put(TKey lowerBound, TKey upperBound, TValue value) {
-		
 		// While we don't permit overlapping intervals, we'll still allow overwriting existing intervals. 
-		// First, remove everything within the given bounds:
-		bounds.subMap(lowerBound, true, upperBound, true).clear();
-		
-		// Then see if there's anything we need to fix
-		TKey left = bounds.floorKey(lowerBound);
-		TKey right = bounds.ceilingKey(upperBound);
-		
-		// Close the range to the left
-		if (left != null && bounds.get(left).state == State.OPEN) {
-			addEndPoint(decrementKey(lowerBound), bounds.get(left).value, State.CLOSE);
-		}
-		
-		// And to the right
-		if (right != null && bounds.get(right).state == State.CLOSE) {
-			addEndPoint(incrementKey(upperBound), bounds.get(right).value, State.OPEN);
-		}
-		
+		remove(lowerBound, upperBound, true);
+		invokeEntryAdded(putUnsafe(lowerBound, upperBound, value));
+	}
+	
+	/**
+	 * Associates a given interval without performing any interval checks.
+	 * @param lowerBound - the minimum key (inclusive).
+	 * @param upperBound - the maximum key (inclusive).
+	 * @param value - the value, or NULL to reset the range.
+	 */
+	private Entry putUnsafe(TKey lowerBound, TKey upperBound, TValue value) {
 		// OK. Add the end points now
 		if (value != null) {
-			addEndPoint(lowerBound, value, State.OPEN);
-			addEndPoint(upperBound, value, State.CLOSE);
+			EndPoint left = addEndPoint(lowerBound, value, State.OPEN);
+			EndPoint right = addEndPoint(upperBound, value, State.CLOSE);
+
+			return new Entry(left, right);
+		} else {
+			return null;
 		}
+	}
+	
+	/**
+	 * Used to verify the validity of the given interval.
+	 * @param lowerBound - lower bound (inclusive).
+	 * @param upperBound - upper bound (inclusive).
+	 */
+	private void checkBounds(TKey lowerBound, TKey upperBound) {
+		if (lowerBound == null)
+			throw new IllegalAccessError("lowerbound cannot be NULL.");
+		if (upperBound == null)
+			throw new IllegalAccessError("upperBound cannot be NULL.");
+		if (upperBound.compareTo(lowerBound) < 0)
+			throw new IllegalArgumentException("upperBound cannot be less than lowerBound.");
 	}
 	
 	/**
@@ -168,19 +296,39 @@ public abstract class IntervalTree<TKey extends Comparable<TKey>, TValue> {
 	 * @return Number of ranges.
 	 */
 	public Set<Entry> entrySet() {
-
 		// Don't mind the Java noise
 		Set<Entry> result = new HashSet<Entry>();
+		getEntries(result, bounds);
+		return result;
+	}
+	
+	/**
+	 * Remove every interval.
+	 */
+	public void clear() {
+		if (!bounds.isEmpty()) {
+			remove(bounds.firstKey(), bounds.lastKey());
+		}
+	}
+	
+	/**
+	 * Converts a map of end points into a set of entries.
+	 * @param destination - set of entries.
+	 * @param map - a map of end points.
+	 */
+	private void getEntries(Set<Entry> destination, NavigableMap<TKey, EndPoint> map) {
 		Map.Entry<TKey, EndPoint> last = null;
 		
-		for (Map.Entry<TKey, EndPoint> entry : bounds.entrySet()) {
+		for (Map.Entry<TKey, EndPoint> entry : map.entrySet()) {
 			switch (entry.getValue().state) {
 			case BOTH:
-				result.add(new Entry(Ranges.singleton(entry.getKey()), entry.getValue().value));
+				EndPoint point = entry.getValue();
+				destination.add(new Entry(point, point));
 				break;
 			case CLOSE:
-				Range<TKey> range = Ranges.closed(last.getKey(), entry.getKey());
-				result.add(new Entry(range, entry.getValue().value));
+				if (last != null) {
+					destination.add(new Entry(last.getValue(), entry.getValue()));
+				}
 				break;
 			case OPEN:
 				// We don't know the full range yet
@@ -190,8 +338,6 @@ public abstract class IntervalTree<TKey extends Comparable<TKey>, TValue> {
 				throw new IllegalStateException("Illegal open/close state detected.");
 			}
 		}
-		
-		return result;
 	}
 	
 	/**
@@ -201,7 +347,7 @@ public abstract class IntervalTree<TKey extends Comparable<TKey>, TValue> {
 	public void putAll(IntervalTree<TKey, TValue> other) {
 		// Naively copy every range.
 		for (Entry entry : other.entrySet()) {
-			put(entry.key.lowerEndpoint(), entry.key.upperEndpoint(), entry.value);
+			put(entry.left.key, entry.right.key, entry.getValue());
 		}
 	}
 	
@@ -220,7 +366,7 @@ public abstract class IntervalTree<TKey extends Comparable<TKey>, TValue> {
 	}
 	
 	/**
-	 * Get the end-point composite associated with this key.
+	 * Get the left-most end-point associated with this key.
 	 * @param key - key to search for.
 	 * @return The end point found, or NULL.
 	 */
@@ -228,23 +374,103 @@ public abstract class IntervalTree<TKey extends Comparable<TKey>, TValue> {
 		EndPoint ends = bounds.get(key);
 		
 		if (ends != null) {
-			// This is a piece of cake
-			return ends;
-		} else {
+			// Always return the end point to the left
+			if (ends.state == State.CLOSE) {
+				Map.Entry<TKey, EndPoint> left = bounds.floorEntry(decrementKey(key));
+				return left != null ? left.getValue() : null;
+				
+			} else {
+				return ends;
+			}
 			
+		} else {
 			// We need to determine if the point intersects with a range
-			TKey left = bounds.floorKey(key);
+			Map.Entry<TKey, EndPoint> left = bounds.floorEntry(key);
 			
 			// We only need to check to the left
-			if (left != null && bounds.get(left).state == State.OPEN) {
-				return bounds.get(left);
+			if (left != null && left.getValue().state == State.OPEN) {
+				return left.getValue();
 			} else {
 				return null;
 			}
 		}
 	}
 	
+	/**
+	 * Get the previous end point of a given key.
+	 * @param point - the point to search with.
+	 * @param inclusive - whether or not to include the current point in the search.
+	 * @return The previous end point of a given given key, or NULL if not found.
+	 */
+	protected EndPoint getPreviousEndPoint(TKey point, boolean inclusive) {
+		if (point != null) {
+			Map.Entry<TKey, EndPoint> previous = bounds.floorEntry(inclusive ? point : decrementKey(point));
+		
+			if (previous != null) 
+				return previous.getValue();
+		}
+		return null;
+	}
+	
+	/**
+	 * Get the next end point of a given key.
+	 * @param point - the point to search with.
+	 * @param inclusive - whether or not to include the current point in the search.
+	 * @return The next end point of a given given key, or NULL if not found.
+	 */
+	protected EndPoint getNextEndPoint(TKey point, boolean inclusive) {
+		if (point != null) {
+			Map.Entry<TKey, EndPoint> next = bounds.ceilingEntry(inclusive ? point : incrementKey(point));
+		
+			if (next != null) 
+				return next.getValue();
+		}
+		return null;
+	}
+
+	private void invokeEntryAdded(Entry added) {
+		if (added != null) {
+			onEntryAdded(added);
+		}
+	}
+	
+	private void invokeEntryAdded(Set<Entry> added) {
+		for (Entry entry : added) {
+			onEntryAdded(entry);
+		}
+	}
+
+	private void invokeEntryRemoved(Set<Entry> removed) {
+		for (Entry entry : removed) {
+			onEntryRemoved(entry);
+		}
+	}
+	
+	// Listeners for added or removed entries
+	/**
+	 * Invoked when an entry is added.
+	 * @param added - the entry that was added.
+	 */
+	protected void onEntryAdded(Entry added) { }
+	
+	/**
+	 * Invoked when an entry is removed.
+	 * @param removed - the removed entry.
+	 */
+	protected void onEntryRemoved(Entry removed) { }
+	
 	// Helpers for decrementing or incrementing key values
+	/**
+	 * Decrement the given key by one unit.
+	 * @param key - the key that should be decremented.
+	 * @return The new decremented key.
+	 */
 	protected abstract TKey decrementKey(TKey key);
+	
+	/**
+	 * Increment the given key by one unit.
+	 * @param key - the key that should be incremented.
+	 * @return The new incremented key.
+	 */
 	protected abstract TKey incrementKey(TKey key);
 }
