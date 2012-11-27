@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.comphenix.experiencemod</groupId>
   <artifactId>ExperienceMod</artifactId>
-  <version>2.5.1-SNAPSHOT</version>
+  <version>2.5.2-SNAPSHOT</version>
   <name>ExperienceMod</name>
   <description>Customize the experience reward in Minecraft.</description>
 
