@@ -27,6 +27,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
+import org.bukkit.entity.Skeleton;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.CreatureSpawnEvent;
@@ -332,6 +333,9 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 			Integer id = entity.getEntityId();
 			MobQuery query = MobQuery.fromExact(entity, spawnReasonLookup.get(id), killer != null);
 			
+			if (hasDebugger()) 
+				debugger.printDebug(this, "Mob query: %s", query.toString());
+				
 			if (config != null) {
 				return config.getExperienceDrop().get(query);
 				

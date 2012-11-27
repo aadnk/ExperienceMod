@@ -27,6 +27,8 @@ import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.bukkit.entity.Ageable;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Skeleton;
+import org.bukkit.entity.Skeleton.SkeletonType;
 import org.bukkit.entity.Slime;
 import org.bukkit.entity.Tameable;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -42,6 +44,8 @@ public class MobQuery implements Query {
 	private List<Short> typeID;
 	private List<DamageCause> deathCause;
 	private List<Integer> size;
+	private List<SkeletonType> skeletonType;
+	
 	private List<Boolean> spawner;
 	private List<Boolean> baby;
 	private List<Boolean> tamed;
@@ -51,13 +55,14 @@ public class MobQuery implements Query {
 	private static List<Short> noTypes = Utility.getElementList((Short) null);
 	private static List<Integer> noSizes = Utility.getElementList((Integer) null);
 	private static List<DamageCause> noDamages = Utility.getElementList((DamageCause) null);
+	private static List<SkeletonType> noSkeletons = Utility.getElementList((SkeletonType) null);
 	private static List<Boolean> noBooleans = Utility.getElementList((Boolean) null);
 	
 	/**
 	 * Universal query.
 	 */
 	public static MobQuery fromAny() {
-		return new MobQuery(noTypes, noDamages, noSizes, 
+		return new MobQuery(noTypes, noDamages, noSizes, noSkeletons,
 							noBooleans, noBooleans, noBooleans, noBooleans);
 	}	
 	
@@ -130,6 +135,24 @@ public class MobQuery implements Query {
 	public static MobQuery fromAny(Short typeID, DamageCause deathCause, Integer size,
 								   SpawnReason reason, Boolean baby, Boolean tamed, Boolean playerKill) {
 		
+		return fromAny(typeID, deathCause, size, null, reason, baby, tamed, playerKill);
+	}
+	
+	/**
+	 * Creates a query where NULL values match any possible value in that category. 
+	 * @param typeID - the unique type ID to search for, or NULL for all mob types.
+	 * @param deathCause - the damage type that killed the mob, or NULL for all damage types.
+	 * @param size - size of the slime/magma cube, or NULL for all sizes (or mobs without different sizes).
+	 * @param skeleton - the type of the skeleton to find, or NULL for all skeleton types (or non-skeletons).
+	 * @param reason - the cause for spawning this mob, or NULL for all possible causes.
+	 * @param baby - TRUE to match babies, FALSE to match adults, and NULL to match both.
+	 * @param tamed - TRUE to matched tamed animals (wolfs), FALSE to match non-tamed or not-tamable, NULL for both.
+	 * @param playerKill - TRUE to match mobs killed by players, FALSE to match mobs killed by anything else, NULL for both.
+	 * @return The new mob query.
+	 */
+	public static MobQuery fromAny(Short typeID, DamageCause deathCause, Integer size, SkeletonType skeleton,
+								   SpawnReason reason, Boolean baby, Boolean tamed, Boolean playerKill) {
+		
 		List<Boolean> spawner;
 		
 		if (reason != null) 
@@ -141,6 +164,7 @@ public class MobQuery implements Query {
 				 	Utility.getElementList(typeID),
 				 	Utility.getElementList(deathCause),
 				 	Utility.getElementList(size),
+				 	Utility.getElementList(skeleton),
 				 	spawner,
 				 	Utility.getElementList(baby),
 				 	Utility.getElementList(tamed),
@@ -160,6 +184,7 @@ public class MobQuery implements Query {
 		EntityDamageEvent cause = entity.getLastDamageCause();
 		DamageCause deathCause = null;
 		Integer size = null;
+		SkeletonType skeleton = null;
 		
 		Boolean paramBaby = false;
 		Boolean paramTamed = false;
@@ -182,8 +207,13 @@ public class MobQuery implements Query {
 			size = ((Slime)entity).getSize();
 		}
 		
+		// Check skeleton type
+		if (entity instanceof Skeleton) {
+			skeleton = ((Skeleton) entity).getSkeletonType();
+		} 
+		
 		// Load directly
-		return fromExact(entity.getType(), deathCause, size, reason, 
+		return fromExact(entity.getType(), deathCause, size, skeleton, reason, 
 					     paramBaby, paramTamed, playerKill);
 	}
 
@@ -227,6 +257,27 @@ public class MobQuery implements Query {
 	/**
 	 * Creates an exact query - where null values only match unspecified "any" queries - from the given 
 	 * entity, spawn reason and killer.
+	 * @param type - the entity type to search for.
+	 * @param deathCause - the last damage to include in the search.
+	 * @param size - the slime/magma cube size to search for.
+	 * @param skeleton - the type of skeleton to search for.
+	 * @param reason - the action that spawned the given entity.
+	 * @param baby - TRUE to search for babies, FALSE to search for adults.
+	 * @param tamed - TRUE to search for tamed animals, FALSE for everything else.
+	 * @param playerKill - TRUE to search for mobs killed by a player, FALSE for anything else.
+	 * @return The exact query.
+	 */
+	public static MobQuery fromExact(EntityType type, DamageCause deathCause, Integer size, SkeletonType skeleton,
+									 SpawnReason reason, Boolean baby, Boolean tamed, Boolean playerKill) {
+
+		return fromExact(type != null ? type.getTypeId() : null, 
+						 deathCause, size, skeleton, 
+						 reason, baby, tamed, playerKill);
+	}	
+	
+	/**
+	 * Creates an exact query - where null values only match unspecified "any" queries - from the given 
+	 * entity, spawn reason and killer.
 	 * @param typeID - the unique entity type ID to search for.
 	 * @param deathCause - the last damage to include in the search.
 	 * @param size - the slime/magma cube size to search for.
@@ -250,19 +301,52 @@ public class MobQuery implements Query {
 		);
 	}
 	
+	/**
+	 * Creates an exact query - where null values only match unspecified "any" queries - from the given 
+	 * entity, spawn reason and killer.
+	 * @param typeID - the unique entity type ID to search for.
+	 * @param deathCause - the last damage to include in the search.
+	 * @param size - the slime/magma cube size to search for.
+	 * @param skeleton - the type of skeleton to search for.
+	 * @param reason - the action that spawned the given entity.
+	 * @param baby - TRUE to search for babies, FALSE to search for adults.
+	 * @param tamed - TRUE to search for tamed animals, FALSE for everything else.
+	 * @param playerKill - TRUE to search for mobs killed by a player, FALSE for anything else.
+	 * @return The exact query.
+	 */
+	public static MobQuery fromExact(Short typeID, DamageCause deathCause, Integer size, SkeletonType skeleton,
+									 SpawnReason reason, Boolean baby, Boolean tamed, Boolean playerKill) {
+		return new MobQuery(
+				Lists.newArrayList(typeID), 
+				Lists.newArrayList(deathCause),
+				Lists.newArrayList(size),
+				Lists.newArrayList(skeleton),
+				Lists.newArrayList(reason == null ? null : 
+					(reason == SpawnReason.SPAWNER)),
+				Lists.newArrayList(baby),
+				Lists.newArrayList(tamed),
+				Lists.newArrayList(playerKill)
+		);
+	}
+	
 	public MobQuery(List<Short> typeID, List<DamageCause> deathCause, List<Integer> size, 
 					List<Boolean> spawner, List<Boolean> baby, List<Boolean> tamed, 
 					List<Boolean> playerKill) {
-		
+		this(typeID, deathCause, size, noSkeletons, spawner, baby, tamed, playerKill); 
+	}
+
+	public MobQuery(List<Short> typeID, List<DamageCause> deathCause, List<Integer> size, List<SkeletonType> skeleton, 
+					List<Boolean> spawner, List<Boolean> baby, List<Boolean> tamed, List<Boolean> playerKill) {
 		this.typeID = typeID;
 		this.deathCause = deathCause;
 		this.size = size;
+		this.skeletonType = skeleton;
 		this.spawner = spawner;
 		this.baby = baby;
 		this.tamed = tamed;
 		this.playerKill = playerKill;
 	}
-
+	
 	public List<DamageCause> getDeathCause() {
 		return deathCause;
 	}
@@ -291,6 +375,10 @@ public class MobQuery implements Query {
 		return playerKill;
 	}
 	
+	public List<SkeletonType> getSkeletonType() {
+		return skeletonType;
+	}
+
 	public boolean hasType() {
 		return typeID != null && !typeID.isEmpty();
 	}
@@ -319,12 +407,17 @@ public class MobQuery implements Query {
 		return playerKill != null && !playerKill.isEmpty();
 	}
 	
+	public boolean hasSkeletonType() {
+		return skeletonType != null && !skeletonType.isEmpty();
+	}
+	
 	@Override
 	public int hashCode() {
 		return new HashCodeBuilder(17, 31).
 	            append(typeID).
 	            append(deathCause).
 	            append(size).
+	            append(skeletonType).
 	            append(spawner).
 	            append(baby).
 	            append(tamed).
@@ -346,6 +439,7 @@ public class MobQuery implements Query {
             append(typeID, other.typeID).
             append(deathCause, other.deathCause).
             append(size, other.size).
+            append(skeletonType, other.skeletonType).
             append(spawner, other.spawner).
             append(baby, other.baby).
             append(tamed, other.tamed).
@@ -365,6 +459,7 @@ public class MobQuery implements Query {
 			return QueryMatching.matchParameter(typeID, query.typeID) &&
 				   QueryMatching.matchParameter(deathCause, query.deathCause) &&
 				   QueryMatching.matchParameter(size, query.size) &&
+				   QueryMatching.matchParameter(skeletonType, query.skeletonType) &&
 				   QueryMatching.matchParameter(spawner, query.spawner) &&
 				   QueryMatching.matchParameter(baby, query.baby) &&
 				   QueryMatching.matchParameter(tamed, query.tamed) &&
@@ -377,10 +472,11 @@ public class MobQuery implements Query {
 	
 	@Override
 	public String toString() {
-		return String.format("%s|%s|%s|%s|%s|%s|%s", 
+		return String.format("%s|%s|%s|%s|%s|%s|%s|%s", 
 							hasType() ? StringUtils.join(typeID, ", ") : "",
 							hasDeathCause() ? StringUtils.join(deathCause, ", ") : "",
 							hasSize() ? StringUtils.join(size, ", ") : "",
+							hasSkeletonType() ? StringUtils.join(skeletonType, ", ") : "",
 						    Utility.formatBoolean("spawner", spawner),
 							Utility.formatBoolean("baby", baby),
 							Utility.formatBoolean("tamed", tamed),

@@ -30,7 +30,6 @@ import com.google.common.collect.Lists;
 
 import org.apache.commons.lang.NullArgumentException;
 import org.bukkit.entity.EntityType;
-import org.omg.IOP.ENCODING_CDR_ENCAPS;
 
 /**
  * Used by the MobEntityTypeParser to parse mob names or categories.
@@ -61,7 +60,7 @@ public class MobMatcher extends TextParser<List<Short>> {
 		registerCategory("HOSTILE", EntityType.BLAZE, EntityType.CAVE_SPIDER, EntityType.CREEPER, EntityType.GHAST, 
 				EntityType.MAGMA_CUBE, EntityType.SILVERFISH, EntityType.SKELETON, EntityType.SLIME, 
 				EntityType.SPIDER, EntityType.ZOMBIE, EntityType.WITCH);
-
+		
 		// Boss mobs have a large amount of health and spawn only once per world. 
 		registerCategory("BOSS", EntityType.ENDER_DRAGON, EntityType.WITHER);
 	}

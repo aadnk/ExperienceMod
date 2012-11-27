@@ -20,6 +20,7 @@ package com.comphenix.xp.lookup;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.bukkit.entity.Skeleton.SkeletonType;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
 import com.comphenix.xp.Action;
@@ -30,6 +31,8 @@ public class MobTree extends ActionTree<MobQuery> implements Multipliable<MobTre
 	protected Parameter<Short> type;
 	protected Parameter<DamageCause> deathCause;
 	protected Parameter<Integer> size;
+	protected Parameter<SkeletonType> skeletonType;
+	
 	protected Parameter<Boolean> spawner;
 	protected Parameter<Boolean> baby;
 	protected Parameter<Boolean> tamed;
@@ -45,6 +48,8 @@ public class MobTree extends ActionTree<MobQuery> implements Multipliable<MobTre
 		this.type = other.type;
 		this.deathCause = other.deathCause;
 		this.size = other.size;
+		this.skeletonType = other.skeletonType;
+		
 		this.spawner = other.spawner;
 		this.baby = other.baby;
 		this.tamed = other.tamed;
@@ -56,6 +61,8 @@ public class MobTree extends ActionTree<MobQuery> implements Multipliable<MobTre
 		this.type = new Parameter<Short>();
 		this.deathCause = new Parameter<DamageCause>();
 		this.size = new Parameter<Integer>();
+		this.skeletonType = new Parameter<SkeletonType>();
+		
 		this.spawner = new Parameter<Boolean>();
 		this.baby = new Parameter<Boolean>();
 		this.tamed = new Parameter<Boolean>();
@@ -82,6 +89,10 @@ public class MobTree extends ActionTree<MobQuery> implements Multipliable<MobTre
 		
 		if (source.hasSize()) {
 			size.put(source.getSize(), id); paramCount++;
+		}
+		
+		if (source.hasSkeletonType()) {
+			skeletonType.put(source.getSkeletonType(), id); paramCount++;
 		}
 		
 		if (source.hasSpawner()) {
@@ -120,6 +131,10 @@ public class MobTree extends ActionTree<MobQuery> implements Multipliable<MobTre
 			size.retain(candidates, source.getSize());
 		}
 		
+		if (source.hasSkeletonType()) {
+			skeletonType.retain(candidates, source.getSkeletonType());
+		}
+		
 		if (source.hasSpawner()) {
 			spawner.retain(candidates, source.getSpawner());
 		}
@@ -146,6 +161,8 @@ public class MobTree extends ActionTree<MobQuery> implements Multipliable<MobTre
 		type.putAll(tree.type, offset);
 		deathCause.putAll(tree.deathCause, offset);
 		size.putAll(tree.size, offset);
+		skeletonType.putAll(tree.skeletonType, offset);
+		
 		spawner.putAll(tree.spawner, offset);
 		baby.putAll(tree.baby, offset);
 		tamed.putAll(tree.tamed, offset);
@@ -162,6 +179,10 @@ public class MobTree extends ActionTree<MobQuery> implements Multipliable<MobTre
 
 	public Parameter<Integer> getSize() {
 		return size;
+	}
+	
+	public Parameter<SkeletonType> getSkeletonType() {
+		return skeletonType;
 	}
 	
 	public Parameter<Boolean> getSpawner() {

@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Queue;
 
 import org.apache.commons.lang.StringUtils;
+import org.bukkit.entity.Skeleton.SkeletonType;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
 import com.comphenix.xp.lookup.MobQuery;
@@ -36,6 +37,7 @@ public class MobParser extends TextParser<MobQuery> {
 	private ParameterParser<List<Short>> entityTypeParser;
 	private ParameterParser<DamageCause> damageCauseParser;
 	private ParameterParser<Integer> mobSizeParser;
+	private ParameterParser<SkeletonType> skeletonParser;
 	
 	private BooleanParser spawnerParser = new BooleanParser("spawner");
 	private BooleanParser babyParser = new BooleanParser("baby");
@@ -46,6 +48,7 @@ public class MobParser extends TextParser<MobQuery> {
 		this.entityTypeParser = new ParameterParser<List<Short>>(new MobEntityTypeParser(matcher));
 		this.damageCauseParser = new ParameterParser<DamageCause>(new MobDamageCauseParser());
 		this.mobSizeParser = new ParameterParser<Integer>(new MobSizeParser());
+		this.skeletonParser = new ParameterParser<SkeletonType>(new MobSkeletonParser());
 	}
 	
 	@Override
@@ -56,13 +59,15 @@ public class MobParser extends TextParser<MobQuery> {
 		ParsingException errorReason = null;
 		
 		List<Short> types = Utility.getElementList((Short) null);
-		List<DamageCause> causes = Utility.getElementList((DamageCause) null);;
-		List<Integer> sizes = Utility.getElementList((Integer) null);;
+		List<DamageCause> causes = Utility.getElementList((DamageCause) null);
+		List<Integer> sizes = Utility.getElementList((Integer) null);
+		List<SkeletonType> skeletons = Utility.getElementList((SkeletonType) null);
 		
 		try {
 			types = flatten(entityTypeParser.parse(tokens));
 			causes = damageCauseParser.parse(tokens);
 			sizes = mobSizeParser.parse(tokens);
+			skeletons = skeletonParser.parse(tokens);
 			
 		} catch (ParsingException e) {
 			// Try more
@@ -85,7 +90,7 @@ public class MobParser extends TextParser<MobQuery> {
 				throw ParsingException.fromFormat("Unknown item tokens: %s", StringUtils.join(tokens, ", "));
 		}
 		
-		return new MobQuery(types, causes, sizes, spawner, baby, tamed, player);
+		return new MobQuery(types, causes, sizes, skeletons, spawner, baby, tamed, player);
 	}
 
 	private List<Short> flatten(List<List<Short>> list) {
