@@ -20,6 +20,7 @@ package com.comphenix.xp.listeners;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import org.apache.commons.lang.StringUtils;
@@ -27,7 +28,6 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
-import org.bukkit.entity.Skeleton;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.CreatureSpawnEvent;
@@ -72,10 +72,10 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 	private PlayerGroupMembership playerGroups;
 	
 	// To determine spawn reason
-	private HashMap<Integer, SpawnReason> spawnReasonLookup = new HashMap<Integer, SpawnReason>();
+	private Map<Integer, SpawnReason> spawnReasonLookup = new HashMap<Integer, SpawnReason>();
 
 	// The resources to award
-	private HashMap<Integer, FutureReward> scheduledRewards = new HashMap<Integer, FutureReward>();
+	private Map<Integer, FutureReward> scheduledRewards = new HashMap<Integer, FutureReward>();
 	
 	// Random source
 	private Random random = new Random();
