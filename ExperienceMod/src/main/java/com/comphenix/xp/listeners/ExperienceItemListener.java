@@ -637,18 +637,20 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 	// Recipes are cancelled if there's isn't exactly enough space. 
 	public int getStorageCount(ItemStack storage, ItemStack addition, boolean allowPartial) {
 		
+		boolean isAir = storage == null || storage.getType() == Material.AIR;
+		
 		if (addition == null)
 			return 0;
 		else if (storage == null)
 			// All storage slots have the same limits
 			return addition.getAmount(); 
 		// Yes, storage might be air blocks ... weird.
-		else if (storage.getType() != Material.AIR && !hasSameItem(storage, addition))
+		else if (!isAir && !hasSameItem(storage, addition)) 
 			// Items MUST be the same
 			return 0;
 		
 		int sum = storage.getAmount() + addition.getAmount();
-		int max = storage.getType().getMaxStackSize();
+		int max = isAir ? addition.getMaxStackSize() : storage.getMaxStackSize();
 
 		// Now determine the number of additional items in the storage stack
 		if (sum > max) {
