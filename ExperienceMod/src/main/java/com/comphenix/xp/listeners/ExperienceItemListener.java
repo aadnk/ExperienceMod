@@ -28,6 +28,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.inventory.BrewEvent;
+import org.bukkit.event.inventory.FurnaceExtractEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerFishEvent;
@@ -35,6 +36,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import com.comphenix.xp.Action;
+import com.comphenix.xp.ActionTypes;
 import com.comphenix.xp.Configuration;
 import com.comphenix.xp.Debugger;
 import com.comphenix.xp.PlayerScheduler;
@@ -78,6 +80,22 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 		setPresets(presets);
 	}
 
+	@EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
+	public void onFurnaceExtract(FurnaceExtractEvent event) {
+		// Would this yield a reward for the current player?
+		Configuration config = getConfiguration(event.getPlayer());
+		
+		if (config != null) {
+			ItemTree tree = config.getActionReward(ActionTypes.SMELTING);
+			Action action = getAction(new ItemStack(event.getItemType()), tree);
+
+			// See if we are overriding CraftBukkit
+			if (action != null) {
+				event.setExpToDrop(0);
+			}
+		}	
+	}
+	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onPlayerFishEvent(PlayerFishEvent event) {
 

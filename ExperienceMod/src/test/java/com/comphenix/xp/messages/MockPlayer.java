@@ -32,6 +32,7 @@ import org.bukkit.entity.Projectile;
 import org.bukkit.entity.Snowball;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
+import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.InventoryView.Property;
@@ -1115,5 +1116,35 @@ public class MockPlayer implements Player {
 	@Override
 	public void setWalkSpeed(float walkSpeed) throws IllegalArgumentException {
 		this.walkSpeed = walkSpeed;
+	}
+
+	@Override
+	public boolean getCanPickupItems() {
+		return false;
+	}
+
+	@Override
+	public EntityEquipment getEquipment() {
+		return null;
+	}
+
+	@Override
+	public boolean getRemoveWhenFarAway() {
+		return false;
+	}
+
+	@Override
+	public void setCanPickupItems(boolean arg0) {
+
+	}
+
+	@Override
+	public void setRemoveWhenFarAway(boolean arg0) {
+		
+	}
+
+	@Override
+	public Location getLocation(Location arg0) {
+		return null;
 	}
 }

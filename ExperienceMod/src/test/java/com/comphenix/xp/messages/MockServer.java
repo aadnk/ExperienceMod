@@ -23,6 +23,7 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.help.HelpMap;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
+import org.bukkit.inventory.ItemFactory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.map.MapView;
@@ -481,4 +482,13 @@ public class MockServer implements Server {
 		return true;
 	}
 
+	@Override
+	public ItemFactory getItemFactory() {
+		return null;
+	}
+
+	@Override
+	public String getShutdownMessage() {
+		return null;
+	}
 }
