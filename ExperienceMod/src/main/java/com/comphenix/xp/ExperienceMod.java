@@ -110,6 +110,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	private HistoryProviders historyProviders;
 	private ParameterProviderSet parameterProviders;
 	private StandardPlayerService standardPlayerService;
+	private RewardEconomy rewardEconomy;
 	
 	private GlobalSettings globalSettings;
 	private ConfigurationLoader configLoader;
@@ -242,7 +243,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			// Don't register economy rewards unless we can
 			if (hasEconomy()) {
 				itemListener = new ItemRewardListener(this);
-				RewardEconomy rewardEconomy = new RewardEconomy(economy, this, itemListener);
+				rewardEconomy = new RewardEconomy(economy, this, itemListener);
 				
 				// Associate everything
 				rewardProvider.register(rewardEconomy);
@@ -283,6 +284,8 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			} catch (IOException e) {
 				currentLogger.severe("IO error when loading configurations: " + e.getMessage());
 			}
+			
+			xpMobListener.setEconomy(rewardEconomy);
 			
 			// Create memory history
 			historyProviders.register(new MemoryService(
