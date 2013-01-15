@@ -192,29 +192,11 @@ public class RewardEconomy implements RewardService {
 			worth = defaultWorth;
 		}
 		
-		// Size of stack to make
-		int stackSize = 0;
-		
+		stack.addUnsafeEnchantment(Enchantment.ARROW_DAMAGE, -1);
+			
 		// Create the proper amount of items
 		for (; amount > 0; amount -= worth) {
-			// Increment stack size and spawn stacks of up to 64 at once
-			stackSize++;
-			if (stackSize == 64) {
-				ItemStack stackToSpawn = stack.clone();
-				stackToSpawn.setAmount(64);
-				stackToSpawn.addUnsafeEnchantment(Enchantment.ARROW_DAMAGE, -1);
-				Item spawned = world.dropItemNaturally(point, stackToSpawn);
-				listener.pinReward(spawned, sign * Math.min(amount, worth));
-				stackSize = 0;
-			}
-		}
-		
-		// Spawn any unspawned stack parts
-		if (stackSize > 0) {
-			ItemStack stackToSpawn = stack.clone();
-			stackToSpawn.setAmount(stackSize);
-			stackToSpawn.addUnsafeEnchantment(Enchantment.ARROW_DAMAGE, -1);
-			Item spawned = world.dropItemNaturally(point, stackToSpawn);
+			Item spawned = world.dropItemNaturally(point, stack);
 			listener.pinReward(spawned, sign * Math.min(amount, worth));
 		}
 	}
