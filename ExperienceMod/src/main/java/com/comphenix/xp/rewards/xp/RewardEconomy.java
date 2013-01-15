@@ -24,6 +24,7 @@ import org.apache.commons.lang.NullArgumentException;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -190,10 +191,30 @@ public class RewardEconomy implements RewardService {
 		if (worth < 1) {
 			worth = defaultWorth;
 		}
-			
+		
+		// Size of stack to make
+		int stackSize = 0;
+		
 		// Create the proper amount of items
 		for (; amount > 0; amount -= worth) {
-			Item spawned = world.dropItemNaturally(point, stack);
+			// Increment stack size and spawn stacks of up to 64 at once
+			stackSize++;
+			if (stackSize == 64) {
+				ItemStack stackToSpawn = stack.clone();
+				stackToSpawn.setAmount(64);
+				stackToSpawn.addUnsafeEnchantment(Enchantment.ARROW_DAMAGE, -1);
+				Item spawned = world.dropItemNaturally(point, stackToSpawn);
+				listener.pinReward(spawned, sign * Math.min(amount, worth));
+				stackSize = 0;
+			}
+		}
+		
+		// Spawn any unspawned stack parts
+		if (stackSize > 0) {
+			ItemStack stackToSpawn = stack.clone();
+			stackToSpawn.setAmount(stackSize);
+			stackToSpawn.addUnsafeEnchantment(Enchantment.ARROW_DAMAGE, -1);
+			Item spawned = world.dropItemNaturally(point, stackToSpawn);
 			listener.pinReward(spawned, sign * Math.min(amount, worth));
 		}
 	}
