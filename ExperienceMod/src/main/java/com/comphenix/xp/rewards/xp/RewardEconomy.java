@@ -105,7 +105,7 @@ public class RewardEconomy implements RewardService {
 	}
 	
 	// Internal method
-	private boolean economyReward(Player player, int amount, Debugger debugger) {
+	public boolean economyReward(Player player, int amount, Debugger debugger) {
 		if (player == null)
 			throw new NullArgumentException("player");
 		

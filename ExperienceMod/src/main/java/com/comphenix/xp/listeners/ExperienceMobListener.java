@@ -50,8 +50,10 @@ import com.comphenix.xp.messages.ChannelProvider;
 import com.comphenix.xp.rewards.ResourceHolder;
 import com.comphenix.xp.rewards.RewardProvider;
 import com.comphenix.xp.rewards.items.RandomSampling;
+import com.comphenix.xp.rewards.xp.CurrencyHolder;
 import com.comphenix.xp.rewards.xp.ExperienceHolder;
 import com.comphenix.xp.rewards.xp.ExperienceManager;
+import com.comphenix.xp.rewards.xp.RewardEconomy;
 import com.comphenix.xp.rewards.xp.RewardVirtual;
 
 public class ExperienceMobListener extends AbstractExperienceListener {
@@ -83,10 +85,17 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 	// Error report creator
 	private ErrorReporting report = ErrorReporting.DEFAULT;
 	
+	// Economy for currency subtraction
+	private RewardEconomy economy;
+	
 	public ExperienceMobListener(Debugger debugger, PlayerGroupMembership playerGroups, Presets presets) {
 		this.debugger = debugger;
 		this.playerGroups = playerGroups;
 		setPresets(presets);
+	}
+	
+	public void setEconomy(RewardEconomy economy) {
+		this.economy = economy;
 	}
 	
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true) 
@@ -264,6 +273,25 @@ public class ExperienceMobListener extends AbstractExperienceListener {
         		debugger.printDebug(this, "%s took %d standard experience loss.", 
         				player.getName(), event.getDroppedExp());
         }
+		
+		// Subtract money
+		if (economy != null && /*config.subtract economy &&*/ dropped != null && dropped.size() > 0) {
+			int total = 0;
+			
+			for (ResourceHolder holder : dropped) {
+				if (holder instanceof CurrencyHolder) {
+					CurrencyHolder currency = (CurrencyHolder) holder;
+					total += currency.getAmount();
+				}
+			}
+			
+			if (total > 0) {
+				economy.economyReward(player, -total, debugger);
+				if (hasDebugger())
+					debugger.printDebug(this, "%s took %d currency loss.",
+						player.getName(), total);
+			}
+		}
 	}
 	
 	// Revert the leveling rate we applied

@@ -34,11 +34,13 @@ public class StandardPlayerService implements ParameterService<Player> {
 	private static String[] PARAM_NAMES = Utility.toStringArray(PlayerParameters.values());
 	
 	// Used to support the currency parameter
-	protected RewardEconomy economy;
+	protected RewardEconomy economy = null;
 	
-	public StandardPlayerService(RewardProvider provider) {
-		// Load the economy provider
-		economy = (RewardEconomy) provider.getByEnum(RewardTypes.ECONOMY);
+	public StandardPlayerService() {
+	}
+	
+	public void setEconomy(RewardEconomy economy) {
+		this.economy = economy;
 	}
 	
 	@Override
