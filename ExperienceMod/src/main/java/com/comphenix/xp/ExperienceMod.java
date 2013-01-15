@@ -109,6 +109,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	private CustomBlockProviders customProvider;
 	private HistoryProviders historyProviders;
 	private ParameterProviderSet parameterProviders;
+	private StandardPlayerService standardPlayerService;
 	
 	private GlobalSettings globalSettings;
 	private ConfigurationLoader configLoader;
@@ -182,7 +183,8 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			
 			// Initialize parameter providers
 			parameterProviders = new ParameterProviderSet();
-			parameterProviders.registerPlayer(new StandardPlayerService(rewardProvider));
+			standardPlayerService = new StandardPlayerService();
+			parameterProviders.registerPlayer(standardPlayerService);
 			
 			// Initialize configuration loader
 			configLoader = new ConfigurationLoader(getDataFolder(), this, 
@@ -245,6 +247,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 				// Associate everything
 				rewardProvider.register(rewardEconomy);
 				itemListener.setReward(rewardEconomy);
+				standardPlayerService.setEconomy(rewardEconomy);
 				
 				// Inform the player
 				currentLogger.info("Economy enabled. Using " + economy.getName() + ".");
