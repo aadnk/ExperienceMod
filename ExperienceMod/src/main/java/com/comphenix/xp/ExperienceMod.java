@@ -213,7 +213,6 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	@Override
 	public void onEnable() {
 		try {
-			playerGroups = new PlayerGroupMembership(chat);
 			interactionListener = new PlayerInteractionListener(this);
 			
 			// Commands
@@ -239,6 +238,8 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			} catch (NullPointerException e) {
 				e.printStackTrace();
 			}
+			
+			playerGroups = new PlayerGroupMembership(chat);
 			
 			// Don't register economy rewards unless we can
 			if (hasEconomy()) {
