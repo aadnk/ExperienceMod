@@ -329,6 +329,8 @@ public class Presets implements PlayerCleanupListener {
 		// This plugin insists on using NullPointerExceptions as a good flag for "not found". Excellent.
 		if (e instanceof NullPointerException && chat.getName().equals("mChatSuite"))
 			return true;
+		if (e instanceof UnsupportedOperationException && chat.getName().equals("iChat"))
+			return true;
 		
 		// Treat it normally
 		return false;
