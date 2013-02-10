@@ -402,7 +402,7 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 				result = action.rewardAnyone(rewards, entity.getWorld(), generated, entity.getLocation());
 			
 			// Print message
-			config.getMessageQueue().enqueue(null, action, channels.getFormatter(null, result, generated));
+			config.getMessageQueue().enqueue(killer, action, channels.getFormatter(killer, result, generated));
 			
 			if (hasDebugger())
 				debugger.printDebug(this, "Entity %d: Changed experience drop to %s.", 
