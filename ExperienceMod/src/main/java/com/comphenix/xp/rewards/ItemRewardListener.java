@@ -20,7 +20,9 @@ package com.comphenix.xp.rewards;
 import java.util.HashMap;
 import java.util.UUID;
 
-import org.bukkit.Effect;
+import org.bukkit.Bukkit;
+import org.bukkit.Sound;
+import org.bukkit.World;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -76,7 +78,7 @@ public class ItemRewardListener implements Listener {
 				}
 				
 				// Just play a sound
-				player.getWorld().playEffect(item.getLocation(), Effect.CLICK1, SOUND_RADIUS);
+				player.getWorld().playSound(item.getLocation(), Sound.ORB_PICKUP, 1.0f, 1.0f);
 			}
 		}
 	}
@@ -112,5 +114,18 @@ public class ItemRewardListener implements Listener {
 
 	public void setReward(RewardService reward) {
 		this.reward = reward;
+	}
+	
+	// Cleanup dropped items on plugin disable
+	// not the most elegant solution but it prevents players
+	// getting weird items
+	public void cleanupItems() {
+		for (World world : Bukkit.getWorlds()) {
+			for (Item item : world.getEntitiesByClass(Item.class)) {
+				if (queue.containsKey(item.getUniqueId())) {
+					item.remove();
+				}
+			}
+		}
 	}
 }

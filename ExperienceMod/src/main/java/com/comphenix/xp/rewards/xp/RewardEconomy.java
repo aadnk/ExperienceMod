@@ -24,9 +24,11 @@ import org.apache.commons.lang.NullArgumentException;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import com.comphenix.xp.Configuration;
 import com.comphenix.xp.Debugger;
@@ -105,7 +107,7 @@ public class RewardEconomy implements RewardService {
 	}
 	
 	// Internal method
-	private boolean economyReward(Player player, int amount, Debugger debugger) {
+	public boolean economyReward(Player player, int amount, Debugger debugger) {
 		if (player == null)
 			throw new NullArgumentException("player");
 		
@@ -190,11 +192,18 @@ public class RewardEconomy implements RewardService {
 		if (worth < 1) {
 			worth = defaultWorth;
 		}
+		
+		stack.addUnsafeEnchantment(Enchantment.ARROW_DAMAGE, -1);
 			
 		// Create the proper amount of items
 		for (; amount > 0; amount -= worth) {
-			Item spawned = world.dropItemNaturally(point, stack);
-			listener.pinReward(spawned, sign * Math.min(amount, worth));
+			int thisAmount = sign * Math.min(amount, worth);
+			ItemStack thisStack = stack.clone();
+			ItemMeta meta = thisStack.getItemMeta();
+			meta.setDisplayName(Integer.toString(thisAmount));
+			thisStack.setItemMeta(meta);
+			Item spawned = world.dropItemNaturally(point, thisStack);
+			listener.pinReward(spawned, thisAmount);
 		}
 	}
 	

@@ -26,7 +26,7 @@ public class ConfigurationLoaderTest implements Debugger {
 		provider.register(new RewardVirtual());
 		
 		ParameterProviderSet parameterProviders = new ParameterProviderSet();
-		parameterProviders.registerPlayer(new StandardPlayerService(provider));
+		parameterProviders.registerPlayer(new StandardPlayerService());
 
 		File root = new File(path);
 		ConfigurationLoader loader = new ConfigurationLoader(root, this, provider, new ChannelProvider(), parameterProviders);
