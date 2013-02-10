@@ -8,7 +8,6 @@ import org.bukkit.entity.Player;
 import com.comphenix.xp.Action;
 import com.comphenix.xp.lookup.LevelingRate;
 import com.comphenix.xp.parser.Utility;
-import com.comphenix.xp.rewards.RewardProvider;
 import com.comphenix.xp.rewards.RewardTypes;
 import com.comphenix.xp.rewards.xp.ExperienceManager;
 import com.comphenix.xp.rewards.xp.RewardEconomy;

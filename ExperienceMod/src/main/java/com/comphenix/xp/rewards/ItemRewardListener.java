@@ -36,8 +36,6 @@ import com.comphenix.xp.rewards.xp.CurrencyHolder;
 
 public class ItemRewardListener implements Listener {
 
-	private static final int SOUND_RADIUS = 5;
-	
 	private HashMap<UUID, Integer> queue = new HashMap<UUID, Integer>();
 	private RewardService reward;
 	private Debugger logger;

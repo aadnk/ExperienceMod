@@ -197,6 +197,7 @@ public class AutoUpdate implements Runnable, Listener {
 			this.pid = pid;
 		}
 
+		@SuppressWarnings("deprecation")
 		public void run() {
 			try {
 				if (!lock.compareAndSet(false, true))
@@ -479,6 +480,7 @@ public class AutoUpdate implements Runnable, Listener {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	private boolean update(CommandSender sender) {
 		if (!hasPermission(sender, "autoupdate.update." + plugin.getName())) {
 			sender.sendMessage(COLOR_ERROR + plugin.getName()
@@ -554,6 +556,7 @@ public class AutoUpdate implements Runnable, Listener {
 		return true;
 	}
 
+	@SuppressWarnings("deprecation")
 	private void printStackTraceSync(Throwable t, boolean expected) {
 		BukkitScheduler bs = plugin.getServer().getScheduler();
 		try {
