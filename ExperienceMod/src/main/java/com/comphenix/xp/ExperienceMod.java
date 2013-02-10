@@ -385,7 +385,8 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		if (serverTickTask >= 0)
 			getServer().getScheduler().cancelTask(serverTickTask);
 			
-		itemListener.cleanupItems();
+		if (itemListener != null)
+			itemListener.cleanupItems();
 	}
 	
 	public YamlConfiguration loadConfig(String name, String createMessage) throws IOException {
