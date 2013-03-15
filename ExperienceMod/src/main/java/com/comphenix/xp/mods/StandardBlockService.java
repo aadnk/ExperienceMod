@@ -4,7 +4,6 @@ import org.bukkit.Material;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.inventory.InventoryType.SlotType;
-import org.bukkit.inventory.ItemStack;
 
 import com.comphenix.xp.ActionTypes;
 import com.comphenix.xp.extra.Permissions;
@@ -23,12 +22,11 @@ public class StandardBlockService implements BlockService {
 		boolean isCraftResult = event.getSlotType() == SlotType.RESULT;
 		boolean isPotionResult = event.getRawSlot() < 3;
 		
-		InventoryType type = event.getInventory().getType();
-		ItemStack toCraft = event.getCurrentItem();
-		
-		// Empty slots are invalid
-		if (!ItemQuery.hasItems(toCraft))
+		// Empty slots are ignored
+		if (!BlockResponse.hasCurrentItem(event))
 			return BlockResponse.FAILURE;
+		
+		InventoryType type = event.getInventory().getType();
 		
 		// Handle different types
 		switch (type) {

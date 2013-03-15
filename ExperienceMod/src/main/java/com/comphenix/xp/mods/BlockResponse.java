@@ -5,7 +5,10 @@ import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.inventory.InventoryType.SlotType;
 import org.bukkit.inventory.ItemStack;
+
+import com.comphenix.xp.lookup.ItemQuery;
 
 /**
  * Represents a immutable block service response. 
@@ -183,8 +186,22 @@ public class BlockResponse {
 	public ItemStack getOverridableCurrentItem(InventoryClickEvent event) {
 		if (isOverrideCurrent())
 			return getCurrentItem();
-		else
+		else if (hasCurrentItem(event))
 			return event.getCurrentItem();
+		else
+			return null;
+	}
+	
+	/**
+	 * Determine if the given inventory click event has a non-null (no air) current item.
+	 * @param event - the event to check.
+	 * @return TRUE if it does, FALSE otherwise.
+	 */
+	public static boolean hasCurrentItem(InventoryClickEvent event) {
+		if (event.getRawSlot() < 0 && event.getSlotType() != SlotType.OUTSIDE)
+			return false;
+		else
+			return ItemQuery.hasItems(event.getCurrentItem());
 	}
 	
 	@Override
