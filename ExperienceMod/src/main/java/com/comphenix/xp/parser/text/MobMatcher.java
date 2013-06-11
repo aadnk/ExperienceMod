@@ -50,15 +50,15 @@ public class MobMatcher extends TextParser<List<Short>> {
 		registerCategory("UTILITY", EntityType.IRON_GOLEM, EntityType.SNOWMAN, EntityType.WITHER);
 		
 		// Passive mobs will never attack the player.
-		registerCategory("PASSIVE", EntityType.CHICKEN, EntityType.COW, EntityType.MUSHROOM_COW, EntityType.OCELOT, 
+		registerCategory("PASSIVE", EntityType.BAT, EntityType.CHICKEN, EntityType.COW, EntityType.MUSHROOM_COW, EntityType.OCELOT, 
 				EntityType.PIG, EntityType.SHEEP, EntityType.SQUID, EntityType.VILLAGER);
 		
 		// Neutral mobs will not attack the player unless provoked. The act of provoking neutral mobs varies between mobs. 
-		registerCategory("NEUTRAL", EntityType.BAT, EntityType.IRON_GOLEM, EntityType.ENDERMAN, EntityType.PIG_ZOMBIE, EntityType.WOLF);
+		registerCategory("NEUTRAL", EntityType.IRON_GOLEM, EntityType.ENDERMAN, EntityType.PIG_ZOMBIE, EntityType.WOLF);
 		
 		// Hostile mobs will attack the player when in range.
 		registerCategory("HOSTILE", EntityType.BLAZE, EntityType.CAVE_SPIDER, EntityType.CREEPER, EntityType.GHAST, 
-				EntityType.MAGMA_CUBE, EntityType.SILVERFISH, EntityType.SKELETON, EntityType.SLIME, 
+				EntityType.GIANT, EntityType.MAGMA_CUBE, EntityType.SILVERFISH, EntityType.SKELETON, EntityType.SLIME, 
 				EntityType.SPIDER, EntityType.ZOMBIE, EntityType.WITCH);
 		
 		// Boss mobs have a large amount of health and spawn only once per world. 
