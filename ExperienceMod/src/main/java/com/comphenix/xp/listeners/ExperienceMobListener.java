@@ -425,7 +425,7 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 			
 			// Reward the killer directly, or just drop it naturally
 			if (killer != null)
-				result = action.rewardPlayer(rewards, killer, generated);
+				result = action.rewardPlayer(rewards, killer, generated, entity.getLocation());
 			else
 				result = action.rewardAnyone(rewards, entity.getWorld(), generated, entity.getLocation());
 			
