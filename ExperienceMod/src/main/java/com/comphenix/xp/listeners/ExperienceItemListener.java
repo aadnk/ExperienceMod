@@ -131,12 +131,12 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 		switch (event.getState()) {
 		case CAUGHT_FISH:
 			action = playerReward.getFishingSuccess();
-			message = "Fish caught by %s: Spawned %d xp.";
+			message = "Fish caught by %s: Spawned %s xp.";
 			break;
 
 		case FAILED_ATTEMPT:
 			action = playerReward.getFishingFailure();
-			message = "Fishing failed for %s: Spawned %d xp.";
+			message = "Fishing failed for %s: Spawned %s xp.";
 			break;
 			
 		default:
