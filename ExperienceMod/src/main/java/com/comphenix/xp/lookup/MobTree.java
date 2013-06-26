@@ -37,6 +37,7 @@ public class MobTree extends ActionTree<MobQuery> implements Multipliable<MobTre
 	protected Parameter<Boolean> baby;
 	protected Parameter<Boolean> tamed;
 	protected Parameter<Boolean> playerKill;
+	protected Parameter<Boolean> villaged;
 	
 	// For cloning
 	protected MobTree(MobTree other, double newMultiplier) { 
@@ -54,6 +55,7 @@ public class MobTree extends ActionTree<MobQuery> implements Multipliable<MobTre
 		this.baby = other.baby;
 		this.tamed = other.tamed;
 		this.playerKill = other.playerKill;
+		this.villaged = other.villaged;
 	}
 	
 	public MobTree(double multiplier) {
@@ -67,6 +69,7 @@ public class MobTree extends ActionTree<MobQuery> implements Multipliable<MobTre
 		this.baby = new Parameter<Boolean>();
 		this.tamed = new Parameter<Boolean>();
 		this.playerKill = new Parameter<Boolean>();
+		this.villaged = new Parameter<Boolean>();
 	}
 
 	@Override
@@ -111,6 +114,10 @@ public class MobTree extends ActionTree<MobQuery> implements Multipliable<MobTre
 			playerKill.put(source.getPlayerKill(), id); paramCount++;
 		}
 		
+		if (source.hasVillaged()) {
+			villaged.put(source.getVillaged(), id); paramCount++;
+		}
+		
 		return paramCount;
 	}
 
@@ -151,6 +158,10 @@ public class MobTree extends ActionTree<MobQuery> implements Multipliable<MobTre
 			playerKill.retain(candidates, source.getPlayerKill());
 		}
 		
+		if (source.hasVillaged()) {
+			villaged.retain(candidates, source.getVillaged());
+		}
+		
 		return candidates;
 	}
 
@@ -167,6 +178,7 @@ public class MobTree extends ActionTree<MobQuery> implements Multipliable<MobTre
 		baby.putAll(tree.baby, offset);
 		tamed.putAll(tree.tamed, offset);
 		playerKill.putAll(tree.playerKill, offset);
+		villaged.putAll(tree.villaged, offset);
 	}
 
 	public Parameter<Short> getType() {
@@ -199,5 +211,9 @@ public class MobTree extends ActionTree<MobQuery> implements Multipliable<MobTre
 
 	public Parameter<Boolean> getPlayerKill() {
 		return playerKill;
+	}
+	
+	public Parameter<Boolean> getVillaged() {
+		return villaged;
 	}
 }

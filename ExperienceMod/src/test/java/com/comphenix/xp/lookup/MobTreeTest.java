@@ -21,22 +21,26 @@ public class MobTreeTest {
 		MobQuery fallGib = MobQuery.fromAny(null, DamageCause.FALL);
 		MobQuery magicGib = MobQuery.fromAny(null, DamageCause.MAGIC);
 		MobQuery zombieKill = MobQuery.fromAny(EntityType.ZOMBIE);
-		MobQuery noSpawnXP = MobQuery.fromAny((EntityType) null, null, SpawnReason.SPAWNER, null, null, null);
-		MobQuery smallSlime = MobQuery.fromAny(EntityType.SLIME, null,2, SpawnReason.NATURAL, null, null, null);
+		MobQuery zombieVillagerKill = MobQuery.fromAny(EntityType.ZOMBIE, null, null, null, null, null, null, true);
+		MobQuery noSpawnXP = MobQuery.fromAny((EntityType) null, null, SpawnReason.SPAWNER, null, null, null, null);
+		MobQuery smallSlime = MobQuery.fromAny(EntityType.SLIME, null,2, SpawnReason.NATURAL, null, null, null, null);
 		
 		Action zombieValue = new Action(def, new ExperienceFactory(5));
+		Action zombieVillagerValue = new Action(def, new ExperienceFactory(10));
 		Action magicValue = new Action(def,  new ExperienceFactory(2));
 		Action noSpawnValue = new Action(def, new ExperienceFactory(0));
 		Action fallValue = new Action(def, new ExperienceFactory(15));
 		Action slimeValue = new Action(def, new ExperienceFactory(10));
 		
 		tree.put(zombieKill, zombieValue);
+		tree.put(zombieVillagerKill, zombieVillagerValue);
 		tree.put(magicGib, magicValue);
 		tree.put(noSpawnXP, noSpawnValue);
 		tree.put(fallGib, fallValue);
 		tree.put(smallSlime, slimeValue);
 		
-		assertEquals(zombieValue, queryTree(tree, EntityType.ZOMBIE, DamageCause.ENTITY_ATTACK, SpawnReason.NATURAL, true));
+		assertEquals(zombieValue, queryTree(tree, EntityType.ZOMBIE, DamageCause.ENTITY_ATTACK, SpawnReason.NATURAL, true, false));
+		assertEquals(zombieVillagerValue, queryTree(tree, EntityType.ZOMBIE, DamageCause.ENTITY_ATTACK, SpawnReason.NATURAL, true, true));
 		assertEquals(magicValue, queryTree(tree, EntityType.ZOMBIE, DamageCause.MAGIC, SpawnReason.NATURAL, true));
 		assertEquals(noSpawnValue, queryTree(tree, EntityType.ZOMBIE, DamageCause.MAGIC, SpawnReason.SPAWNER, true));
 		assertEquals(fallValue, queryTree(tree, EntityType.ZOMBIE, DamageCause.FALL, SpawnReason.SPAWNER, false));
@@ -45,10 +49,14 @@ public class MobTreeTest {
 	}
 	
 	private Action queryTree(MobTree tree, EntityType type, DamageCause cause, SpawnReason reason, boolean hasKiller) {
-		return tree.get(MobQuery.fromExact(type, cause, reason, false, false, hasKiller));
+		return tree.get(MobQuery.fromExact(type, cause, reason, false, false, hasKiller, null));
+	}
+
+	private Action queryTree(MobTree tree, EntityType type, DamageCause cause, SpawnReason reason, boolean hasKiller, boolean villaged) {
+		return tree.get(MobQuery.fromExact(type, cause, reason, false, false, hasKiller, villaged));
 	}
 	
 	private Action queryTree(MobTree tree, EntityType type, int size, DamageCause cause, SpawnReason reason, boolean hasKiller) {
-		return tree.get(MobQuery.fromExact(type, cause, size, reason, false, false, hasKiller));
+		return tree.get(MobQuery.fromExact(type, cause, size, reason, false, false, hasKiller, null));
 	}
 }

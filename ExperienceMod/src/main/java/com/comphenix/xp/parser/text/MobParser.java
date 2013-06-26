@@ -43,6 +43,7 @@ public class MobParser extends TextParser<MobQuery> {
 	private BooleanParser babyParser = new BooleanParser("baby");
 	private BooleanParser tamedParser = new BooleanParser("tamed");
 	private BooleanParser playerParser = new BooleanParser("player");
+	private BooleanParser villagedParser = new BooleanParser("villaged");
 	
 	public MobParser(MobMatcher matcher) {
 		this.entityTypeParser = new ParameterParser<List<Short>>(new MobEntityTypeParser(matcher));
@@ -79,6 +80,7 @@ public class MobParser extends TextParser<MobQuery> {
 		List<Boolean> baby = babyParser.parseAny(tokens);
 		List<Boolean> tamed = tamedParser.parseAny(tokens);
 		List<Boolean> player = playerParser.parseAny(tokens);
+		List<Boolean> villaged = villagedParser.parseAny(tokens); // Zombies
 
 		// If there are some tokens left, a problem occured
 		if (!tokens.isEmpty()) {
@@ -90,7 +92,7 @@ public class MobParser extends TextParser<MobQuery> {
 				throw ParsingException.fromFormat("Unknown item tokens: %s", StringUtils.join(tokens, ", "));
 		}
 		
-		return new MobQuery(types, causes, sizes, skeletons, spawner, baby, tamed, player);
+		return new MobQuery(types, causes, sizes, skeletons, spawner, baby, tamed, player, villaged);
 	}
 
 	private List<Short> flatten(List<List<Short>> list) {

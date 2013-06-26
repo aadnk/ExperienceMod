@@ -28,6 +28,7 @@ import org.bukkit.entity.Ageable;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Skeleton;
+import org.bukkit.entity.Zombie;
 import org.bukkit.entity.Skeleton.SkeletonType;
 import org.bukkit.entity.Slime;
 import org.bukkit.entity.Tameable;
@@ -50,6 +51,7 @@ public class MobQuery implements Query {
 	private List<Boolean> baby;
 	private List<Boolean> tamed;
 	private List<Boolean> playerKill;
+	private List<Boolean> villaged;
 	
 	// Optimize away object creations
 	private static List<Short> noTypes = Utility.getElementList((Short) null);
@@ -63,7 +65,7 @@ public class MobQuery implements Query {
 	 */
 	public static MobQuery fromAny() {
 		return new MobQuery(noTypes, noDamages, noSizes, noSkeletons,
-							noBooleans, noBooleans, noBooleans, noBooleans);
+							noBooleans, noBooleans, noBooleans, noBooleans, noBooleans);
 	}	
 	
 	/**
@@ -93,13 +95,14 @@ public class MobQuery implements Query {
 	 * @param baby - TRUE to match babies, FALSE to match adults, and NULL to match both.
 	 * @param tamed - TRUE to matched tamed animals (wolfs), FALSE to match non-tamed or not-tamable, NULL for both.
 	 * @param playerKill - TRUE to match mobs killed by players, FALSE to match mobs killed by anything else, NULL for both.
+	 * @param villaged - TRUE to match zombie villagers, FALSE to match mobs killed by anything else, NULL for both.
 	 * @return The new mob query.
 	 */
 	public static MobQuery fromAny(EntityType type, DamageCause deathCause, SpawnReason reason, 
-			Boolean baby, Boolean tamed, Boolean playerKill) {
+			Boolean baby, Boolean tamed, Boolean playerKill, Boolean villaged) {
 
 		// Don't specify a size
-		return fromAny(type, deathCause, null, reason, baby, tamed, playerKill);
+		return fromAny(type, deathCause, null, reason, baby, tamed, playerKill, villaged);
 	}
 	
 	/**
@@ -111,14 +114,15 @@ public class MobQuery implements Query {
 	 * @param baby - TRUE to match babies, FALSE to match adults, and NULL to match both.
 	 * @param tamed - TRUE to matched tamed animals (wolfs), FALSE to match non-tamed or not-tamable, NULL for both.
 	 * @param playerKill - TRUE to match mobs killed by players, FALSE to match mobs killed by anything else, NULL for both.
+	 * @param villaged - TRUE to match zombie villagers, FALSE to match mobs killed by anything else, NULL for both.
 	 * @return The new mob query.
 	 */
 	public static MobQuery fromAny(EntityType type, DamageCause deathCause, Integer size, 
-			   SpawnReason reason, Boolean baby, Boolean tamed, Boolean playerKill) {
+			   SpawnReason reason, Boolean baby, Boolean tamed, Boolean playerKill, Boolean villaged) {
 		
 		// Convert type to type ID
 		return fromAny(type != null ? type.getTypeId() : null, 
-				deathCause, size, reason, baby, tamed, playerKill);
+				deathCause, size, reason, baby, tamed, playerKill, villaged);
 	}
 	
 	/**
@@ -130,12 +134,13 @@ public class MobQuery implements Query {
 	 * @param baby - TRUE to match babies, FALSE to match adults, and NULL to match both.
 	 * @param tamed - TRUE to matched tamed animals (wolfs), FALSE to match non-tamed or not-tamable, NULL for both.
 	 * @param playerKill - TRUE to match mobs killed by players, FALSE to match mobs killed by anything else, NULL for both.
+	 * @param villaged - TRUE to match zombie villagers, FALSE to match mobs killed by anything else, NULL for both.
 	 * @return The new mob query.
 	 */
 	public static MobQuery fromAny(Short typeID, DamageCause deathCause, Integer size,
-								   SpawnReason reason, Boolean baby, Boolean tamed, Boolean playerKill) {
+								   SpawnReason reason, Boolean baby, Boolean tamed, Boolean playerKill, Boolean villaged) {
 		
-		return fromAny(typeID, deathCause, size, null, reason, baby, tamed, playerKill);
+		return fromAny(typeID, deathCause, size, null, reason, baby, tamed, playerKill, villaged);
 	}
 	
 	/**
@@ -148,10 +153,11 @@ public class MobQuery implements Query {
 	 * @param baby - TRUE to match babies, FALSE to match adults, and NULL to match both.
 	 * @param tamed - TRUE to matched tamed animals (wolfs), FALSE to match non-tamed or not-tamable, NULL for both.
 	 * @param playerKill - TRUE to match mobs killed by players, FALSE to match mobs killed by anything else, NULL for both.
+	 * @param villaged - TRUE to match zombie villagers, FALSE to match mobs killed by anything else, NULL for both.
 	 * @return The new mob query.
 	 */
 	public static MobQuery fromAny(Short typeID, DamageCause deathCause, Integer size, SkeletonType skeleton,
-								   SpawnReason reason, Boolean baby, Boolean tamed, Boolean playerKill) {
+								   SpawnReason reason, Boolean baby, Boolean tamed, Boolean playerKill, Boolean villaged) {
 		
 		List<Boolean> spawner;
 		
@@ -168,7 +174,8 @@ public class MobQuery implements Query {
 				 	spawner,
 				 	Utility.getElementList(baby),
 				 	Utility.getElementList(tamed),
-				 	Utility.getElementList(playerKill)
+				 	Utility.getElementList(playerKill),
+				 	Utility.getElementList(villaged)
 		);
 	}
 	
@@ -186,6 +193,7 @@ public class MobQuery implements Query {
 		Integer size = null;
 		SkeletonType skeleton = null;
 		
+		Boolean villaged = false;
 		Boolean paramBaby = false;
 		Boolean paramTamed = false;
 		
@@ -212,9 +220,14 @@ public class MobQuery implements Query {
 			skeleton = ((Skeleton) entity).getSkeletonType();
 		} 
 		
+		// Check villaged
+		if (entity instanceof Zombie) {
+			villaged = ((Zombie) entity).isVillager();
+		}
+		
 		// Load directly
 		return fromExact(entity.getType(), deathCause, size, skeleton, reason, 
-					     paramBaby, paramTamed, playerKill);
+					     paramBaby, paramTamed, playerKill, villaged);
 	}
 
 	/**
@@ -226,13 +239,14 @@ public class MobQuery implements Query {
 	 * @param baby - TRUE to search for babies, FALSE to search for adults.
 	 * @param tamed - TRUE to search for tamed animals, FALSE for everything else.
 	 * @param playerKill - TRUE to search for mobs killed by a player, FALSE for anything else.
+	 * @param villaged - TRUE if we are looking for village mobs, such as zombie villagers.
 	 * @return The exact query.
 	 */
 	public static MobQuery fromExact(EntityType type, DamageCause deathCause, SpawnReason reason, 
-									 Boolean baby, Boolean tamed, Boolean playerKill) {
+									 Boolean baby, Boolean tamed, Boolean playerKill, Boolean villaged) {
 		
 		return fromExact(type != null ? type.getTypeId() : null, 
-						 deathCause, null, reason, baby, tamed, playerKill);
+						 deathCause, null, reason, baby, tamed, playerKill, villaged);
 	}
 	
 	/**
@@ -245,13 +259,14 @@ public class MobQuery implements Query {
 	 * @param baby - TRUE to search for babies, FALSE to search for adults.
 	 * @param tamed - TRUE to search for tamed animals, FALSE for everything else.
 	 * @param playerKill - TRUE to search for mobs killed by a player, FALSE for anything else.
+	 * @param villaged - TRUE if we are looking for village mobs, such as zombie villagers.
 	 * @return The exact query.
 	 */
 	public static MobQuery fromExact(EntityType type, DamageCause deathCause, Integer size, 
-									 SpawnReason reason, Boolean baby, Boolean tamed, Boolean playerKill) {
+									 SpawnReason reason, Boolean baby, Boolean tamed, Boolean playerKill, Boolean villaged) {
 
 		return fromExact(type != null ? type.getTypeId() : null, 
-						 deathCause, size, reason, baby, tamed, playerKill);
+						 deathCause, size, reason, baby, tamed, playerKill, villaged);
 	}	
 	
 	/**
@@ -265,14 +280,15 @@ public class MobQuery implements Query {
 	 * @param baby - TRUE to search for babies, FALSE to search for adults.
 	 * @param tamed - TRUE to search for tamed animals, FALSE for everything else.
 	 * @param playerKill - TRUE to search for mobs killed by a player, FALSE for anything else.
+	 * @param villaged - TRUE if we are looking for village mobs, such as zombie villagers.
 	 * @return The exact query.
 	 */
 	public static MobQuery fromExact(EntityType type, DamageCause deathCause, Integer size, SkeletonType skeleton,
-									 SpawnReason reason, Boolean baby, Boolean tamed, Boolean playerKill) {
+									 SpawnReason reason, Boolean baby, Boolean tamed, Boolean playerKill, Boolean villaged) {
 
 		return fromExact(type != null ? type.getTypeId() : null, 
 						 deathCause, size, skeleton, 
-						 reason, baby, tamed, playerKill);
+						 reason, baby, tamed, playerKill, villaged);
 	}	
 	
 	/**
@@ -285,10 +301,11 @@ public class MobQuery implements Query {
 	 * @param baby - TRUE to search for babies, FALSE to search for adults.
 	 * @param tamed - TRUE to search for tamed animals, FALSE for everything else.
 	 * @param playerKill - TRUE to search for mobs killed by a player, FALSE for anything else.
+	 * @param villaged - TRUE if we are looking for village mobs, such as zombie villagers.
 	 * @return The exact query.
 	 */
 	public static MobQuery fromExact(Short typeID, DamageCause deathCause, Integer size,
-									 SpawnReason reason, Boolean baby, Boolean tamed, Boolean playerKill) {
+									 SpawnReason reason, Boolean baby, Boolean tamed, Boolean playerKill, Boolean villaged) {
 		return new MobQuery(
 				Lists.newArrayList(typeID), 
 				Lists.newArrayList(deathCause),
@@ -297,7 +314,8 @@ public class MobQuery implements Query {
 					(reason == SpawnReason.SPAWNER)),
 				Lists.newArrayList(baby),
 				Lists.newArrayList(tamed),
-				Lists.newArrayList(playerKill)
+				Lists.newArrayList(playerKill),
+				Lists.newArrayList(villaged)
 		);
 	}
 	
@@ -312,10 +330,11 @@ public class MobQuery implements Query {
 	 * @param baby - TRUE to search for babies, FALSE to search for adults.
 	 * @param tamed - TRUE to search for tamed animals, FALSE for everything else.
 	 * @param playerKill - TRUE to search for mobs killed by a player, FALSE for anything else.
+	 * @param villaged - TRUE if we are looking for village mobs, such as zombie villagers.
 	 * @return The exact query.
 	 */
 	public static MobQuery fromExact(Short typeID, DamageCause deathCause, Integer size, SkeletonType skeleton,
-									 SpawnReason reason, Boolean baby, Boolean tamed, Boolean playerKill) {
+									 SpawnReason reason, Boolean baby, Boolean tamed, Boolean playerKill, Boolean villaged) {
 		return new MobQuery(
 				Lists.newArrayList(typeID), 
 				Lists.newArrayList(deathCause),
@@ -325,18 +344,19 @@ public class MobQuery implements Query {
 					(reason == SpawnReason.SPAWNER)),
 				Lists.newArrayList(baby),
 				Lists.newArrayList(tamed),
-				Lists.newArrayList(playerKill)
+				Lists.newArrayList(playerKill),
+				Lists.newArrayList(villaged)
 		);
 	}
 	
 	public MobQuery(List<Short> typeID, List<DamageCause> deathCause, List<Integer> size, 
 					List<Boolean> spawner, List<Boolean> baby, List<Boolean> tamed, 
-					List<Boolean> playerKill) {
-		this(typeID, deathCause, size, noSkeletons, spawner, baby, tamed, playerKill); 
+					List<Boolean> playerKill, List<Boolean> villaged) {
+		this(typeID, deathCause, size, noSkeletons, spawner, baby, tamed, playerKill, villaged); 
 	}
 
 	public MobQuery(List<Short> typeID, List<DamageCause> deathCause, List<Integer> size, List<SkeletonType> skeleton, 
-					List<Boolean> spawner, List<Boolean> baby, List<Boolean> tamed, List<Boolean> playerKill) {
+					List<Boolean> spawner, List<Boolean> baby, List<Boolean> tamed, List<Boolean> playerKill, List<Boolean> villaged) {
 		this.typeID = typeID;
 		this.deathCause = deathCause;
 		this.size = size;
@@ -345,6 +365,7 @@ public class MobQuery implements Query {
 		this.baby = baby;
 		this.tamed = tamed;
 		this.playerKill = playerKill;
+		this.villaged = villaged;
 	}
 	
 	public List<DamageCause> getDeathCause() {
@@ -369,6 +390,10 @@ public class MobQuery implements Query {
 	
 	public List<Boolean> getTamed() {
 		return tamed;
+	}
+	
+	public List<Boolean> getVillaged() {
+		return villaged;
 	}
 	
 	public List<Boolean> getPlayerKill() {
@@ -407,6 +432,10 @@ public class MobQuery implements Query {
 		return playerKill != null && !playerKill.isEmpty();
 	}
 	
+	public boolean hasVillaged() {
+		return villaged != null && !villaged.isEmpty();
+	}
+	
 	public boolean hasSkeletonType() {
 		return skeletonType != null && !skeletonType.isEmpty();
 	}
@@ -422,6 +451,7 @@ public class MobQuery implements Query {
 	            append(baby).
 	            append(tamed).
 	            append(playerKill).
+	            append(villaged).
 	            toHashCode();
 	}
 
@@ -444,6 +474,7 @@ public class MobQuery implements Query {
             append(baby, other.baby).
             append(tamed, other.tamed).
             append(playerKill, other.playerKill).
+            append(villaged, other.villaged).
             isEquals();
 	}
 	
@@ -463,7 +494,8 @@ public class MobQuery implements Query {
 				   QueryMatching.matchParameter(spawner, query.spawner) &&
 				   QueryMatching.matchParameter(baby, query.baby) &&
 				   QueryMatching.matchParameter(tamed, query.tamed) &&
-				   QueryMatching.matchParameter(playerKill, query.playerKill);
+				   QueryMatching.matchParameter(playerKill, query.playerKill) && 
+				   QueryMatching.matchParameter(villaged, query.villaged);
 		}
 		
 		// Query must be of the same type
@@ -472,7 +504,7 @@ public class MobQuery implements Query {
 	
 	@Override
 	public String toString() {
-		return String.format("%s|%s|%s|%s|%s|%s|%s|%s", 
+		return String.format("%s|%s|%s|%s|%s|%s|%s|%s|%s", 
 							hasType() ? StringUtils.join(typeID, ", ") : "",
 							hasDeathCause() ? StringUtils.join(deathCause, ", ") : "",
 							hasSize() ? StringUtils.join(size, ", ") : "",
@@ -480,7 +512,8 @@ public class MobQuery implements Query {
 						    Utility.formatBoolean("spawner", spawner),
 							Utility.formatBoolean("baby", baby),
 							Utility.formatBoolean("tamed", tamed),
-							Utility.formatBoolean("playerKill", playerKill));
+							Utility.formatBoolean("playerKill", playerKill),
+							Utility.formatBoolean("villaged", villaged));
 	}
 	
 	@Override
