@@ -47,7 +47,7 @@ public class Server {
 		// Split into n pieces
 		for (int current = 0; current < amount; current += xpSplit) {
 	        ExperienceOrb orb = world.spawn(corner, ExperienceOrb.class);
-	        orb.setExperience(Math.min(amount - current, xpSplit));
+	        orb.setExperience(orb.getExperience() + Math.min(amount - current, xpSplit));
 		}
 	}
 	
