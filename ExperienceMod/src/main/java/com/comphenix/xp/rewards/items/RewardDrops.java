@@ -38,7 +38,6 @@ public class RewardDrops implements RewardService {
 
 	@Override
 	public boolean canReward(Player player, ResourceHolder resource) {
-
 		if (resource instanceof ItemsHolder)
 			return true;
 		else
@@ -49,7 +48,7 @@ public class RewardDrops implements RewardService {
 	public void reward(Player player, ResourceHolder resource) {
 		if (player == null)
 			throw new NullArgumentException("player");
-		if (resource instanceof ItemsHolder)
+		if (!(resource instanceof ItemsHolder))
 			throw new IllegalArgumentException("Can only reward in items.");
 		
 		// Delegate to more specific method
