@@ -31,6 +31,7 @@ import com.comphenix.xp.ExperienceMod;
 import com.comphenix.xp.Server;
 import com.comphenix.xp.extra.Permissions;
 import com.comphenix.xp.parser.Utility;
+import com.comphenix.xp.parser.primitives.IntegerParser;
 
 public class CommandSpawnExp implements CommandExecutor {
 
@@ -71,7 +72,7 @@ public class CommandSpawnExp implements CommandExecutor {
 		
 		if (args.length == 1 && !Utility.isNullOrIgnoreable(args[0])) {
 			
-			Integer experience = Integer.parseInt(args[0]);
+			Integer experience = IntegerParser.tryParse(args[0]);
 			Player player = (Player) sender;
 			
 			if (experience == null) {

@@ -21,7 +21,11 @@ import com.comphenix.xp.parser.TextParser;
 import com.comphenix.xp.parser.ParsingException;
 
 public class IntegerParser extends TextParser<Integer> {
-
+	/**
+	 * Contains the default parser instance.
+	 */
+	public static final IntegerParser DEFAULT = new IntegerParser();
+	
 	@Override
 	public Integer parse(String text) throws ParsingException {
 		try {

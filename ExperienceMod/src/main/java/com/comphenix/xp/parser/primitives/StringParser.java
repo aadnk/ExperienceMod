@@ -21,6 +21,11 @@ import com.comphenix.xp.parser.TextParser;
 import com.comphenix.xp.parser.ParsingException;
 
 public class StringParser extends TextParser<String> {
+	/**
+	 * A default string parser instance.
+	 */
+	public static final StringParser DEFAULT = new StringParser();
+	
 	@Override
 	public String parse(String text) throws ParsingException {
 		return text.trim();
