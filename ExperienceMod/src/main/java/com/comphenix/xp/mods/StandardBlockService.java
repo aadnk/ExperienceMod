@@ -6,7 +6,7 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.inventory.InventoryType.SlotType;
 
 import com.comphenix.xp.ActionTypes;
-import com.comphenix.xp.extra.Permissions;
+import com.comphenix.xp.extra.PermissionSystem.CustomPermission;
 import com.comphenix.xp.lookup.ItemQuery;
 
 public class StandardBlockService implements BlockService {
@@ -33,26 +33,26 @@ public class StandardBlockService implements BlockService {
 			case BREWING:
 				// Make sure this is a potion result slot
 				if (isPotionResult && match(block, Material.BREWING_STAND)) {
-					return new BlockResponse(type, ActionTypes.BREWING, Permissions.REWARDS_BREWING);
+					return new BlockResponse(type, ActionTypes.BREWING, CustomPermission.REWARDS_BREWING.getBukkitPerm());
 				}
 				break;
 				
 			case CRAFTING:		
 				// Player crafting - meaning that the block query is irrelevant
 				if (isCraftResult) {
-					return new BlockResponse(type, ActionTypes.CRAFTING, Permissions.REWARDS_CRAFTING);
+					return new BlockResponse(type, ActionTypes.CRAFTING, CustomPermission.REWARDS_CRAFTING.getBukkitPerm());
 				}
 				break;
 				
 			case WORKBENCH:
 				if (isCraftResult && match(block, Material.WORKBENCH)) {
-					return new BlockResponse(type, ActionTypes.CRAFTING, Permissions.REWARDS_CRAFTING);
+					return new BlockResponse(type, ActionTypes.CRAFTING, CustomPermission.REWARDS_CRAFTING.getBukkitPerm());
 				}
 				break;
 				
 			case FURNACE:
 				if (isCraftResult && match(block, Material.FURNACE, Material.BURNING_FURNACE)) {
-					return new BlockResponse(type, ActionTypes.SMELTING, Permissions.REWARDS_SMELTING);
+					return new BlockResponse(type, ActionTypes.SMELTING, CustomPermission.REWARDS_SMELTING.getBukkitPerm());
 				}
 				break;
 				

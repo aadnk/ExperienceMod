@@ -29,7 +29,7 @@ import org.bukkit.entity.Player;
 
 import com.comphenix.xp.Action;
 import com.comphenix.xp.ExperienceMod;
-import com.comphenix.xp.extra.Permissions;
+import com.comphenix.xp.extra.PermissionSystem;
 import com.comphenix.xp.lookup.MobQuery;
 import com.comphenix.xp.lookup.Query;
 import com.comphenix.xp.parser.ParsingException;
@@ -78,7 +78,7 @@ public class CommandExperienceMod implements CommandExecutor {
 	private boolean handleMainCommand(CommandSender sender, String[] args) {
 		
 		// Make sure the sender has permissions
-		if (!Permissions.hasAdmin(sender)) {
+		if (!PermissionSystem.hasAdmin(sender)) {
 			plugin.respond(sender, ChatColor.RED + "You haven't got permission to execute this command.");
 			return true;
 		} 

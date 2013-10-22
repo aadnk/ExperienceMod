@@ -30,6 +30,12 @@ default channels: [global]
 maximum enchant level: 30
 maximum bookcase count: 15 
 
+# If disabled, the permission system is partially disabled - all game features will be 
+# granted to every player indiscriminately, except keep experience. Administrative 
+# persmission (such as experiencemod.admin) are unaffected, and accessible to 
+# operators by default.
+use permissions: true
+
 # Mobs can be selected by name|death_case|[spawner]|[baby]|[tamed]:
 mobs:
   enderman:

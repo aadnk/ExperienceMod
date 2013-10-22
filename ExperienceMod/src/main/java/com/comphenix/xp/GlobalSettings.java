@@ -6,10 +6,10 @@ import java.util.List;
 import org.apache.commons.lang.NullArgumentException;
 import org.bukkit.configuration.file.FileConfiguration;
 
+import com.comphenix.xp.extra.PermissionSystem;
 import com.comphenix.xp.parser.StringListParser;
 
 public class GlobalSettings {
-
 	// Settings
 	public static final String MAX_BLOCKS_IN_HISTORY_SETTING = "max blocks in history";
 	public static final String MAX_AGE_IN_HISTORY_SETTING = "max age in history";
@@ -53,17 +53,16 @@ public class GlobalSettings {
 	 * @param config - configuration section to load from.
 	 */
 	public void loadFromConfig(FileConfiguration config) {
-	
 		// Load history memory settings
-		maxBlocksInHistory = config.getInt(MAX_BLOCKS_IN_HISTORY_SETTING, DEFAULT_MAX_BLOCKS_IN_HISTORY);
-		maxAgeInHistory = config.getInt(MAX_AGE_IN_HISTORY_SETTING, DEFAULT_MAX_AGE_IN_HISTORY);
+		setMaxBlocksInHistory(config.getInt(MAX_BLOCKS_IN_HISTORY_SETTING, DEFAULT_MAX_BLOCKS_IN_HISTORY));
+		setMaxAgeInHistory(config.getInt(MAX_AGE_IN_HISTORY_SETTING, DEFAULT_MAX_AGE_IN_HISTORY));
 		
 		// Preset cache
-		presetCacheTimeout = config.getInt(PRESET_CACHE_TIMEOUT_SETTING, DEFAULT_PRESET_CACHE_TIMEOUT);
+		setPresetCacheTimeout(config.getInt(PRESET_CACHE_TIMEOUT_SETTING, DEFAULT_PRESET_CACHE_TIMEOUT));
 		
-		useMetrics = config.getBoolean(USE_METRICS, DEFAULT_USE_METRICS);
-		usePermissions = config.getBoolean(USE_PERMISSIONS, DEFAULT_USE_PERMISSIONS);
-		disabledServices = listParser.parseSafe(config, DISABLED_SERVICES);
+		setUseMetrics(config.getBoolean(USE_METRICS, DEFAULT_USE_METRICS));
+		setDisabledServices(listParser.parseSafe(config, DISABLED_SERVICES));
+		setUsePermissions(config.getBoolean(USE_PERMISSIONS, DEFAULT_USE_PERMISSIONS));
 		
 		// Handle errors
 		if (disabledServices == null) {
@@ -173,6 +172,7 @@ public class GlobalSettings {
 
 	public void setUsePermissions(boolean usePermissions) {
 		this.usePermissions = usePermissions;
+		PermissionSystem.setEnabled(usePermissions);
 	}
 
 	public List<String> getDisabledServices() {

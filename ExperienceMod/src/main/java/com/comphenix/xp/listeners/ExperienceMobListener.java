@@ -42,7 +42,7 @@ import com.comphenix.xp.Debugger;
 import com.comphenix.xp.Presets;
 import com.comphenix.xp.SampleRange;
 import com.comphenix.xp.expressions.NamedParameter;
-import com.comphenix.xp.extra.Permissions;
+import com.comphenix.xp.extra.PermissionSystem;
 import com.comphenix.xp.lookup.LevelingRate;
 import com.comphenix.xp.lookup.MobQuery;
 import com.comphenix.xp.lookup.PlayerQuery;
@@ -150,7 +150,7 @@ public class ExperienceMobListener extends AbstractExperienceListener {
                 	// Prevent this damage
                 	if (!onFutureKillEvent(entity, playerKiller)) {
             			// Events will not be directly cancelled for untouchables
-            			if (!Permissions.hasUntouchable(playerKiller))
+            			if (!PermissionSystem.hasUntouchable(playerKiller))
             				event.setCancelled(true);
             			
         				if (hasDebugger())
@@ -237,7 +237,7 @@ public class ExperienceMobListener extends AbstractExperienceListener {
 	private void handlePlayerDeath(PlayerDeathEvent event, Player player, Collection<ResourceHolder> dropped) {
 
 		// Permission check
-        if(Permissions.hasKeepExp(player)) {
+        if(PermissionSystem.hasKeepExp(player)) {
         	
         	event.setDroppedExp(0);
             event.setKeepLevel(true);

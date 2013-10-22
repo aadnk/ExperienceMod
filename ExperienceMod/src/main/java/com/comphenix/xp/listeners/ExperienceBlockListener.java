@@ -40,7 +40,7 @@ import com.comphenix.xp.Debugger;
 import com.comphenix.xp.Presets;
 import com.comphenix.xp.SampleRange;
 import com.comphenix.xp.expressions.NamedParameter;
-import com.comphenix.xp.extra.Permissions;
+import com.comphenix.xp.extra.PermissionSystem;
 import com.comphenix.xp.history.HistoryProviders;
 import com.comphenix.xp.lookup.ItemQuery;
 import com.comphenix.xp.lookup.ItemTree;
@@ -87,8 +87,8 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 		ItemStack toolItem = player.getItemInHand();
 		Configuration config = null;
 		
-		boolean allowBlockReward = Permissions.hasRewardBlock(player) && !hasSilkTouch(toolItem);
-		boolean allowBonusReward = Permissions.hasRewardBonus(player);
+		boolean allowBlockReward = PermissionSystem.hasRewardBlock(player) && !hasSilkTouch(toolItem);
+		boolean allowBonusReward = PermissionSystem.hasRewardBonus(player);
 		double multiplier = 1;
 		
 		if (event.getExpToDrop() > 0) {
@@ -162,7 +162,7 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 					debugger.printDebug(this, "Block " + description + " by %s cancelled: Not enough resources for item %s",
 						player.getName(), block.getType());
 				
-				if (!Permissions.hasUntouchable(player))
+				if (!PermissionSystem.hasUntouchable(player))
 					event.setCancelled(true);
 				return 1;
 			}
@@ -226,7 +226,7 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 	
 	public void handleBlockPlaceEvent(BlockPlaceEvent event, Block block, Player player) {
 		
-		boolean allowPlacingReward = Permissions.hasRewardPlacing(player);
+		boolean allowPlacingReward = PermissionSystem.hasRewardPlacing(player);
 		
 		// Inform other listeners too
 		if (historyProviders != null && historyProviders.getMemoryService() != null) {
@@ -260,7 +260,7 @@ public class ExperienceBlockListener extends AbstractExperienceListener {
 							player.getName(), block.getType());
 					
 					// Events will not be cancelled for untouchables
-					if (!Permissions.hasUntouchable(player))
+					if (!PermissionSystem.hasUntouchable(player))
 						event.setCancelled(true);
 				}
 				

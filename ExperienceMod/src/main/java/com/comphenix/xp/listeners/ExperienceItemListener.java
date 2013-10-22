@@ -43,7 +43,7 @@ import com.comphenix.xp.PlayerScheduler;
 import com.comphenix.xp.Presets;
 import com.comphenix.xp.expressions.NamedParameter;
 import com.comphenix.xp.expressions.ParameterProviderSet;
-import com.comphenix.xp.extra.Permissions;
+import com.comphenix.xp.extra.PermissionSystem;
 import com.comphenix.xp.lookup.ItemQuery;
 import com.comphenix.xp.lookup.ItemTree;
 import com.comphenix.xp.lookup.PlayerRewards;
@@ -102,7 +102,7 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 		try {
 			Player player = event.getPlayer();
 	
-			if (player != null && Permissions.hasRewardFishing(player)) {
+			if (player != null && PermissionSystem.hasRewardFishing(player)) {
 				handlePlayerFishing(event, player);
 			}
 			
@@ -156,7 +156,7 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 					debugger.printDebug(this, "Unable to penalize fishing for %s. Not enough funds.", player.getName());
 				
 				// Don't catch the fish
-				if (!Permissions.hasUntouchable(player))
+				if (!PermissionSystem.hasUntouchable(player))
 					event.setCancelled(true);
 				return;
 			}
@@ -363,7 +363,7 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 						public void run() {
 							
 							// Don't touch the inventory of the untouchables
-							if (!Permissions.hasUntouchable(player)) {
+							if (!PermissionSystem.hasUntouchable(player)) {
 								
 								if (originalBlockInventory != null)
 									blockInventory.setContents(originalBlockInventory);
@@ -407,7 +407,7 @@ public class ExperienceItemListener extends AbstractExperienceListener {
 					
 				} else {
 					// Events will not be cancelled for untouchables
-					if (!Permissions.hasUntouchable(player))
+					if (!PermissionSystem.hasUntouchable(player))
 						event.setCancelled(true);
 				}
 			}

@@ -47,9 +47,9 @@ import com.comphenix.xp.commands.CommandExperienceMod;
 import com.comphenix.xp.commands.CommandSpawnExp;
 import com.comphenix.xp.expressions.ParameterProviderSet;
 import com.comphenix.xp.expressions.StandardPlayerService;
-import com.comphenix.xp.extra.Permissions;
 import com.comphenix.xp.extra.Service;
 import com.comphenix.xp.extra.ServiceProvider;
+import com.comphenix.xp.extra.PermissionSystem.CustomPermission;
 import com.comphenix.xp.history.HawkeyeService;
 import com.comphenix.xp.history.HistoryProviders;
 import com.comphenix.xp.history.LogBlockService;
@@ -78,7 +78,6 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 
 public class ExperienceMod extends JavaPlugin implements Debugger {
-	
 	private static final int DEFAULT_BUFFER_SIZE = 1024 * 4;
 	
 	private Logger currentLogger;
@@ -466,7 +465,6 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			YamlConfiguration globalConfig = loadConfig("global.yml", "Creating default global settings.");
 			globalSettings = new GlobalSettings(this);
 			globalSettings.loadFromConfig(globalConfig);
-			Permissions.setGlobalSettings(globalSettings);
 			
 			if (autoUpdate == null) {
 				try {
@@ -829,7 +827,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			String formattedMessage = String.format("[ExperienceMod] " + message, params);
 			
 			// Every player with the info permission will also see this message
-			getServer().broadcast(formattedMessage, Permissions.INFO);
+			getServer().broadcast(formattedMessage, CustomPermission.INFO.getBukkitPerm());
 		}
 	}
 

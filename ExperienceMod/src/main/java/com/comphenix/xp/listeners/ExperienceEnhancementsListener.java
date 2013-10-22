@@ -38,7 +38,7 @@ import com.comphenix.xp.Configuration;
 import com.comphenix.xp.Debugger;
 import com.comphenix.xp.Presets;
 import com.comphenix.xp.extra.ConstantRandom;
-import com.comphenix.xp.extra.Permissions;
+import com.comphenix.xp.extra.PermissionSystem;
 import com.comphenix.xp.reflect.FieldUtils;
 import com.comphenix.xp.reflect.MethodUtils;
 import com.comphenix.xp.rewards.items.RandomSampling;
@@ -270,7 +270,7 @@ public class ExperienceEnhancementsListener extends AbstractExperienceListener {
     	}
     	
 		// Permission check
-        if(Permissions.hasMaxEnchant(player)) {
+        if(PermissionSystem.hasMaxEnchant(player)) {
     		costs[last] = getMaxBonus(bonus, config.getMaximumBookcaseCount(), last);
 
             if (hasDebugger())

@@ -30,7 +30,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
 import com.comphenix.xp.Debugger;
-import com.comphenix.xp.extra.Permissions;
+import com.comphenix.xp.extra.PermissionSystem;
+import com.comphenix.xp.extra.PermissionSystem.CustomPermission;
 
 public class ExperienceInformerListener implements Listener {
 
@@ -65,7 +66,7 @@ public class ExperienceInformerListener implements Listener {
 	public boolean displayWarnings(CommandSender sender, boolean ignorePermission) {
 		
 		// Player or console
-		if (ignorePermission || Permissions.hasInfo(sender)) {
+		if (ignorePermission || PermissionSystem.hasInfo(sender)) {
 			// Print warning messages
 			for (String message : warningMessages) {
 				sender.sendMessage(formatMessage(message));
@@ -83,10 +84,9 @@ public class ExperienceInformerListener implements Listener {
 	 * @param message - warning to broadcast.
 	 */
 	public void broadcastWarning(String message) {
-		
 		// Send the warning to every player (console will be informed differently)
 		for (Player player : server.getOnlinePlayers()) {
-			if (player.hasPermission(Permissions.INFO)) {
+			if (CustomPermission.INFO.check(player)) {
 				player.sendMessage(formatMessage(message));
 			}
 		}
