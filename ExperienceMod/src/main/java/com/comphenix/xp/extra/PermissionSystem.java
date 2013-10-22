@@ -22,7 +22,7 @@ public class PermissionSystem {
 		REWARDS_BREWING("experiencemod.rewards.brewing", PermissionType.REWARD),
 		REWARDS_CRAFTING("experiencemod.rewards.crafting", PermissionType.REWARD),
 		REWARDS_FISHING("experiencemod.rewards.fishing", PermissionType.REWARD),
-		UNOUCHABLE("experiencemod.untouchable", PermissionType.ADMIN),
+		UNTOUCHABLE("experiencemod.untouchable", PermissionType.ADMIN),
 		ADMIN("experiencemod.admin", PermissionType.ADMIN),
 		INFO("experiencemod.info", PermissionType.ADMIN);
 		
@@ -158,7 +158,7 @@ public class PermissionSystem {
 	}
 	
 	public static boolean hasUntouchable(Permissible target) {
-		return CustomPermission.UNOUCHABLE.check(target);
+		return CustomPermission.UNTOUCHABLE.check(target);
 	}
 	
 	public static boolean hasAdmin(Permissible target) {
