@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.comphenix.xp.ExperienceMod;
 import com.comphenix.xp.parser.ParsingException;
 import com.comphenix.xp.parser.TextParser;
 import com.comphenix.xp.parser.Utility;
@@ -47,22 +48,22 @@ public class MobMatcher extends TextParser<List<Short>> {
 		
 	protected void loadDefaultCategories() {
 		// Utility mobs may be created by and serve the player. 
-		registerCategory("UTILITY", EntityType.IRON_GOLEM, EntityType.SNOWMAN, EntityType.WITHER);
+		registerCategory("UTILITY", "IRON_GOLEM", "SNOWMAN", "WITHER");
 		
 		// Passive mobs will never attack the player.
-		registerCategory("PASSIVE", EntityType.BAT, EntityType.CHICKEN, EntityType.COW, EntityType.MUSHROOM_COW, EntityType.OCELOT, 
-				EntityType.PIG, EntityType.SHEEP, EntityType.SQUID, EntityType.VILLAGER);
+		registerCategory("PASSIVE", "BAT", "CHICKEN", "COW", "MUSHROOM_COW", "OCELOT", 
+				"PIG", "SHEEP", "SQUID", "VILLAGER");
 		
 		// Neutral mobs will not attack the player unless provoked. The act of provoking neutral mobs varies between mobs. 
-		registerCategory("NEUTRAL", EntityType.IRON_GOLEM, EntityType.ENDERMAN, EntityType.PIG_ZOMBIE, EntityType.WOLF);
+		registerCategory("NEUTRAL", "IRON_GOLEM", "ENDERMAN", "PIG_ZOMBIE", "WOLF");
 		
 		// Hostile mobs will attack the player when in range.
-		registerCategory("HOSTILE", EntityType.BLAZE, EntityType.CAVE_SPIDER, EntityType.CREEPER, EntityType.GHAST, 
-				EntityType.GIANT, EntityType.MAGMA_CUBE, EntityType.SILVERFISH, EntityType.SKELETON, EntityType.SLIME, 
-				EntityType.SPIDER, EntityType.ZOMBIE, EntityType.WITCH);
+		registerCategory("HOSTILE", "BLAZE", "CAVE_SPIDER", "CREEPER", "GHAST", 
+				"GIANT", "MAGMA_CUBE", "SILVERFISH", "SKELETON", "SLIME", 
+				"SPIDER", "ZOMBIE", "WITCH");
 		
 		// Boss mobs have a large amount of health and spawn only once per world. 
-		registerCategory("BOSS", EntityType.ENDER_DRAGON, EntityType.WITHER);
+		registerCategory("BOSS", "ENDER_DRAGON", "WITHER");
 	}
 	
 	protected void loadDefaultMobs() {
@@ -96,6 +97,35 @@ public class MobMatcher extends TextParser<List<Short>> {
 		
 		String enumed = Utility.getEnumName(text);
 		return names.get(enumed);
+	}
+	
+	/**
+	 * Registers a category with the given name.
+	 * @param categoryName - name of the category.
+	 * @param types - list of mobs in that category.
+	 */
+	public void registerCategory(String categoryName, String... typeNames) {
+		
+		if (categoryName == null)
+			throw new NullArgumentException("categoryName");
+		if (typeNames == null)
+			throw new NullArgumentException("types");
+		
+		List<Short> ids = new ArrayList<Short>();
+		
+		// Get all the type IDs
+		for (String typeName : typeNames) {
+			try {
+				if (typeName != null) {
+					ids.add(EntityType.valueOf(typeName).getTypeId());
+				}
+			} catch (IllegalArgumentException e) {
+				// Notify the user
+				ExperienceMod.getDefaultDebugger().
+					printWarning(this, "Cannot register %s as an %s.", typeName, categoryName);
+			}
+		}
+		categories.put(categoryName, ids);
 	}
 	
 	/**
