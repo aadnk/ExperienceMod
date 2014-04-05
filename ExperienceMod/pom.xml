@@ -20,6 +20,11 @@
       <name>Comphenix Maven 3rdParty</name>
       <url>http://repo.comphenix.net/content/repositories/thirdparty/</url>
     </repository>
+    <repository>
+      <id>comphenix-rep</id>
+      <name>Comphenix Maven Releases</name>
+      <url>http://repo.comphenix.net/content/groups/public</url>
+    </repository>
   </repositories>
   
   <distributionManagement>
