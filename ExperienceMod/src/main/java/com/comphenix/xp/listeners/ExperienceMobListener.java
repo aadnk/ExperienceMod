@@ -57,7 +57,6 @@ import com.comphenix.xp.rewards.xp.RewardEconomy;
 import com.comphenix.xp.rewards.xp.RewardVirtual;
 
 public class ExperienceMobListener extends AbstractExperienceListener {
-
 	/**
 	 * Used to schedule a future reward.
 	 * @author Kristian

@@ -17,10 +17,7 @@
 
 package com.comphenix.xp.listeners;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Arrays;
 import java.util.Random;
 
 import org.apache.commons.lang.Validate;
@@ -30,204 +27,41 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
-import org.bukkit.event.enchantment.EnchantItemEvent;
 import org.bukkit.event.enchantment.PrepareItemEnchantEvent;
-import org.bukkit.inventory.InventoryView;
-
 import com.comphenix.xp.Configuration;
 import com.comphenix.xp.Debugger;
 import com.comphenix.xp.Presets;
 import com.comphenix.xp.extra.ConstantRandom;
 import com.comphenix.xp.extra.PermissionSystem;
-import com.comphenix.xp.reflect.FieldUtils;
-import com.comphenix.xp.reflect.MethodUtils;
 import com.comphenix.xp.rewards.items.RandomSampling;
 
-public class ExperienceEnhancementsListener extends AbstractExperienceListener {
-	
+public class ExperienceEnhancementsListener extends AbstractExperienceListener {	
 	// Constants (unfortunate naming)	
 	private Debugger debugger;
 	private ErrorReporting report = ErrorReporting.DEFAULT;
+
+	private AbstractSlotModifier slotModifier;
 	
-	// Used by item enchant to swallow events
-	private Map<String, Integer> overrideEnchant = new HashMap<String, Integer>();
-	
-	// If we encounter any problem at all with our reflection trickery, we'll disable the maximum
-	// enchant level at once. This could happen if CraftBukkit changes, or we're installed on a server
-	// that is Bukkit-compatible only.
-	private boolean disableEnchantingTrickery;
-	
-	// Reflection helpers
-	private Field costsField;
-	private Method containerHandle;
-	private Method entityMethod;
-	private Method enchantItemMethod;
-	
-	public ExperienceEnhancementsListener(Debugger debugger, Presets presets) {
+	public ExperienceEnhancementsListener(Debugger debugger, Presets presets, AbstractSlotModifier slotModifier) {
 		this.debugger = debugger;
 		this.presets = presets;
+		this.slotModifier = slotModifier;
 	}
 		
-	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-	public void onEnchantItemEvent(EnchantItemEvent event) {
-
-		int maxEnchant = 0;
-		
-		try {
-			InventoryView view = event.getView();
-			Integer slot = event.whichButton();
-			
-			Player player = event.getEnchanter();
-			String name = player.getName();
-			
-			// Prevent infinite recursion and revert the temporary cost change
-			if (overrideEnchant.containsKey(name)) {
-				event.setExpLevelCost(overrideEnchant.get(name));
-				return;
-				
-			} else if (disableEnchantingTrickery) {
-				// Prevent too many errors from occurring
-				return;
-			}
-			
-			Configuration config = getConfiguration(player);
-			maxEnchant = config.getMaximumEnchantLevel();
-	
-			double reverseFactor = (double)Configuration.DEFAULT_MAXIMUM_ENCHANT_LEVEL / (double)maxEnchant;
-			 
-			// Don't do anything if we're at the default enchanting level
-			if (maxEnchant == Configuration.DEFAULT_MAXIMUM_ENCHANT_LEVEL) {
-				return;
-			}
-
-			// Read the container-field in CraftInventoryView
-			if (containerHandle == null)
-				containerHandle = MethodUtils.getAccessibleMethod(view.getClass(), "getHandle", null);
-			Object result = containerHandle.invoke(view);
-					
-			// Container should be of type net.minecraft.server.ContainerEnchantTable
-			if (result != null) {
-				// Cancel the original event
-				event.setCancelled(true);
-				
-				Class<? extends Object> containerEnchantTable = result.getClass();
-				
-				// Read the cost-table
-				if (costsField == null)
-					costsField = FieldUtils.getField(containerEnchantTable, "costs");
-				Object cost = FieldUtils.readField(costsField, result);
-				
-				// Get the real Minecraft player entity
-				if (entityMethod == null)
-					entityMethod = MethodUtils.getAccessibleMethod(player.getClass(), "getHandle", null);
-				
-				Object entity = entityMethod.invoke(player);
-				
-				if (cost instanceof int[]) {
-					int[] ref = (int[]) cost;
-					int oldCost = ref[slot];
-					
-					// Change the cost at the last second
-					ref[slot] = (int) (ref[slot] * reverseFactor);
-					
-					if (hasDebugger()) {
-						debugger.printDebug(this, "Modified slot %s from %s to %s.", slot, oldCost, ref[slot]);
-					}
-					
-					// We have to ignore the next enchant event
-					overrideEnchant.put(name, oldCost);
-					
-					// Run the method again
-					if (enchantItemMethod == null) {
-						enchantItemMethod = getEnchantMethod(result, entity, "a");
-					}
-						
-					// Attempt to call this method
-					if (enchantItemMethod != null) {
-						enchantItemMethod.invoke(result, entity, slot);
-					} else {
-						debugger.printWarning(this, "Unable to modify slot %s cost. Reflection failed.", slot);
-					}
-					
-					// OK, it's over
-					overrideEnchant.remove(name);
-				}
-			}
-			
-			// A bunch or problems could occur
-		} catch (Exception e) {
-			ErrorReporting.DEFAULT.reportError(debugger, this, e, event, maxEnchant);
-			disableEnchantingTrickery = true;
-		}
-	}
-	
 	private int getUnmodifiedMaximumEnchant(Configuration config) {
-		
 		// Calculate the highest enchanting level possible
 		return getMaxBonus(config.getMaximumBookcaseCount(), config.getMaximumBookcaseCount(), 2);
 	}
 	
-	private Method getEnchantMethod(Object container, Object entity, String methodName) {
-		
-		Method guess = MethodUtils.getMatchingAccessibleMethod(
-						container.getClass(), methodName, new Class[] { entity.getClass(), int.class });
-		
-		if (guess != null) {
-			// Great, got it on the first try
-			return guess;
-		} else {
-			if (hasDebugger())
-				debugger.printDebug(this, "Using fallback method to detect correct Minecraft method.");
-			
-			// Damn, something's wrong. The method name must have changed. Try again.
-			methodName = lastMinecraftMethod();
-			guess = MethodUtils.getMatchingAccessibleMethod(
-						container.getClass(), methodName, new Class[] { entity.getClass(), int.class });
-			
-			if (guess != null)
-				return guess;
-			else
-				debugger.printWarning(this, "Could not find method '%s' in ContainerEnchantTable.", methodName);
-			return null;
-		}
-	}
-	
-	/**
-	 * Determine the name of the last calling Minecraft method in the call stack.
-	 * <p>
-	 * A Minecraft method is any method in a class found in net.minecraft.* and below.
-	 * @return The name of this method, or NULL if not found.
-	 */
-    private static String lastMinecraftMethod() {
-        try {
-            throw new Exception();
-        } catch (Exception e) {
-            // Determine who called us
-            StackTraceElement[] elements = e.getStackTrace();
-            
-            for (StackTraceElement element : elements) {
-            	if (element.getClassName().startsWith("net.minecraft")) {
-            		return element.getMethodName();
-            	}
-            }
-            
-            // If none is found (very unlikely though)
-            return null;
-        }
-    }
-	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onPrepareItemEnchantEvent(PrepareItemEnchantEvent event) {
-
 		// Like above
 		try {
 			final Player player = event.getEnchanter();
 
 			if (player != null) {
 				handleItemEnchanting(event, player);
-
-				// Just in case this hasn't already been done
-				overrideEnchant.remove(player.getName());
+				slotModifier.onPreparedEnchanting(player);
 			}
 			
 		} catch (Exception e) {
@@ -236,11 +70,12 @@ public class ExperienceEnhancementsListener extends AbstractExperienceListener {
 	}
     
 	private void handleItemEnchanting(PrepareItemEnchantEvent event, Player player) {
-
 		Random rnd = RandomSampling.getThreadRandom();
 		
-    	int[] costs = event.getExpLevelCostsOffered();
-    	int last = costs.length - 1;
+		// Create a copy of the experience levels
+		int[] output = event.getExpLevelCostsOffered();
+    	int[] modified = output.clone();
+    	int last = modified.length - 1;
     	int bonus = event.getEnchantmentBonus();
     	
     	Configuration config = getConfiguration(player);
@@ -265,36 +100,32 @@ public class ExperienceEnhancementsListener extends AbstractExperienceListener {
     		
     		// We'll have to recreate the costs
     		for (int i = 0; i < 3; i++) {
-    			costs[i] = getBonus(rnd, bonus, config.getMaximumBookcaseCount(), i);
+    			modified[i] = getBonus(rnd, bonus, config.getMaximumBookcaseCount(), i);
     		}
     	}
     	
 		// Permission check
         if(PermissionSystem.hasMaxEnchant(player)) {
-    		costs[last] = getMaxBonus(bonus, config.getMaximumBookcaseCount(), last);
+    		modified[last] = getMaxBonus(bonus, config.getMaximumBookcaseCount(), last);
 
             if (hasDebugger())
         		debugger.printDebug(this, "Changed experience level costs for %s.", player.getName());	
         }
         
+	    // No need to do this if we're just using the default maximum
+	    if (maxEnchant != maxUnmodified) {
+	    	double enchantFactor = (double)maxEnchant / (double)maxUnmodified;
+	    	
+	    	for (int i = 0; i < 3; i++) {
+	    		modified[i] = (int) (modified[i] * enchantFactor);
+	    	}
+	    }
+	    
         // Modify the displayed enchanting levels
-        modifyCostList(maxEnchant, maxUnmodified, costs);
-	}
-	
-	private void modifyCostList(int maxEnchant, int maxUnmodified, int[] costs) {
-        
-        // No need to do this if we're just using the default maximum
-        if (maxEnchant != maxUnmodified) {
-        	double enchantFactor = (double)maxEnchant / (double)maxUnmodified;
-        	
-        	for (int i = 0; i < 3; i++) {
-        		costs[i] = (int) (costs[i] * enchantFactor);
-        	}
-        }
+	    slotModifier.modifyCostList(player, output, modified);
 	}
 	
 	private int getCustomBookshelfCount(Block table, int maxBookshelfCount, int yOffset) {
-		
 		final int bookID = Material.BOOKSHELF.getId();
 		final World world = table.getWorld();
 		
@@ -362,7 +193,6 @@ public class ExperienceEnhancementsListener extends AbstractExperienceListener {
 	 * @return The minimum level cost for this slot.
 	 */
 	public int getMinBonus(int bookshelves, int maxBookselfCount, int slot) {
-		
 		Validate.isTrue(slot > 0, "Slot # cannot be less than zero.");
 		Validate.isTrue(slot < 3, "Slot # cannot be greater than 3.");
 
@@ -376,7 +206,6 @@ public class ExperienceEnhancementsListener extends AbstractExperienceListener {
 	 * @return The maximum level cost for this slot.
 	 */
 	public int getMaxBonus(int bookshelves, int maxBookselfCount, int slot) {
-		
 		Validate.isTrue(slot > 0, "Slot # cannot be less than zero.");
 		Validate.isTrue(slot < 3, "Slot # cannot be greater than 3.");
 

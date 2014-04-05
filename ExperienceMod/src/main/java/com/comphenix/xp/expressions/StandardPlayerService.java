@@ -2,10 +2,10 @@ package com.comphenix.xp.expressions;
 
 import java.util.ArrayList;
 import java.util.Collection;
-
 import org.bukkit.entity.Player;
 
 import com.comphenix.xp.Action;
+import com.comphenix.xp.Debugger;
 import com.comphenix.xp.lookup.LevelingRate;
 import com.comphenix.xp.parser.Utility;
 import com.comphenix.xp.rewards.RewardTypes;
@@ -35,7 +35,11 @@ public class StandardPlayerService implements ParameterService<Player> {
 	// Used to support the currency parameter
 	protected RewardEconomy economy = null;
 	
-	public StandardPlayerService() {
+	// For debug logging
+	private Debugger debugger;
+	
+	public StandardPlayerService(Debugger debugger) {
+		this.debugger = debugger;
 	}
 	
 	public void setEconomy(RewardEconomy economy) {
@@ -71,6 +75,9 @@ public class StandardPlayerService implements ParameterService<Player> {
 				
 					// This is an approximation. We can't "undo" the leveling amount correctly.
 					double rateFactor = rate != null ? RewardVirtual.getLevelingFactor(rate, player, manager) : 1;
+					
+					if (debugger.isDebugEnabled())
+						debugger.printDebug(this, "Rate factor: %s for parameter %s", rateFactor, current);
 					
 					// Use a good ol' switch to execute the different functions
 					switch (current) {

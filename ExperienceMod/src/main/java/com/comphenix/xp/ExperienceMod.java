@@ -83,12 +83,15 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	private Logger currentLogger;
 	private PluginManager manager;
 	
+	// The current debugger
+	private static Debugger DEBUGGER;
+	
 	// Scheduling
 	private PlayerScheduler playerScheduler;
 
 	// VAULT only
-	private Economy economy;
-	private Chat chat;
+	private Object economy;
+	private Object chat;
 	private PlayerGroupMembership playerGroups;
 	
 	private ExperienceBlockListener xpBlockListener;
@@ -98,10 +101,14 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	private ExperienceCleanupListener xpCleanup;
 	private ExperienceLevelListener xpLevel;
 	
+	// Optional components
+	private ReflectionSlotModifier xpReflectionModifier;
+	private ProtocolSlotModifier xpProtocolModifier;
+	
 	private ExperienceInformerListener informer;
 	private ItemRewardListener itemListener;
 	private PlayerInteractionListener interactionListener;
-
+	
 	// Allows for plugin injection
 	private RewardProvider rewardProvider;
 	private ChannelProvider channelProvider;
@@ -132,8 +139,19 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	
 	private boolean debugEnabled;
 	
+	/**
+	 * Retrieve the default debugger.
+	 * @return Default debugger.
+	 */
+	public static Debugger getDefaultDebugger() {
+		return DEBUGGER;
+	}
+	
 	@Override
 	public void onLoad() {
+		// Save this as the debugger
+		DEBUGGER = this;
+		
 		try {
 			currentLogger = this.getLogger();
 			
@@ -160,6 +178,15 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			channelProvider = new ChannelProvider();
 			channelProvider.setMessageFormatter(new MessageFormatter());
 			
+			// Detect the existence of ProtocolLib
+			if (manager.getPlugin("ProtocolLib") != null) {
+				xpProtocolModifier = new ProtocolSlotModifier(this, this, presets);
+				currentLogger.info("Using ProtocolLib for experience slot modification.");
+			} else {
+				xpReflectionModifier = new ReflectionSlotModifier(this, presets);
+				currentLogger.info("Using NMS for experience slot modification.");
+			}
+			
 			// Load channel providers if we can
 			if (HeroService.exists()) {
 				channelProvider.register(new HeroService());
@@ -183,7 +210,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			
 			// Initialize parameter providers
 			parameterProviders = new ParameterProviderSet();
-			standardPlayerService = new StandardPlayerService();
+			standardPlayerService = new StandardPlayerService(this);
 			parameterProviders.registerPlayer(standardPlayerService);
 			
 			// Initialize configuration loader
@@ -238,12 +265,12 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 				e.printStackTrace();
 			}
 			
-			playerGroups = new PlayerGroupMembership(chat);
-			
+			playerGroups = new PlayerGroupMembership(getChat());
+						
 			// Don't register economy rewards unless we can
 			if (hasEconomy()) {
 				itemListener = new ItemRewardListener(this);
-				rewardEconomy = new RewardEconomy(economy, this, itemListener);
+				rewardEconomy = new RewardEconomy(getEconomy(), this, itemListener);
 				
 				// Associate everything
 				rewardProvider.register(rewardEconomy);
@@ -251,7 +278,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 				standardPlayerService.setEconomy(rewardEconomy);
 				
 				// Inform the player
-				currentLogger.info("Economy enabled. Using " + economy.getName() + ".");
+				currentLogger.info("Economy enabled. Using " + getEconomy().getName() + ".");
 				
 				// Register listener
 				manager.registerEvents(itemListener, this);
@@ -264,7 +291,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			
 			// Display chat hook
 			if (hasChat()) {
-				currentLogger.info("Hooked " + chat.getName() + " for chat options.");
+				currentLogger.info("Hooked " + getChat().getName() + " for chat options.");
 			}
 			
 			try {
@@ -272,6 +299,14 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 				loadDefaults(false);
 				
 				// Register listeners
+				if (xpReflectionModifier != null) {
+					manager.registerEvents(xpReflectionModifier, this);
+				}
+				if (xpProtocolModifier != null) {
+					xpProtocolModifier.register();
+					manager.registerEvents(xpProtocolModifier, this);
+				}
+				
 				manager.registerEvents(interactionListener, this);
 				manager.registerEvents(xpBlockListener, this);
 				manager.registerEvents(xpItemListener, this);
@@ -489,7 +524,7 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			
 			// Load it
 			presets = new Presets(presetList, configLoader, globalSettings.getPresetCacheTimeout(), 
-						 		  this, chat);
+						 		  this, getChat());
 			setPresets(presets);
 			
 			// Vault is required here
@@ -528,14 +563,14 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 		
 		String possibleOption = "";
 		
-		for (String group : chat.getGroups()) {
+		for (String group : getChat().getGroups()) {
 			for (World world : getServer().getWorlds()) {
 				
 				String worldName = world.getName();
 				
 				try {
 					// We have to be careful here - the plugin might throw an error
-					possibleOption = chat.getGroupInfoString(worldName, 
+					possibleOption = getChat().getGroupInfoString(worldName, 
 						group, Presets.OPTION_PRESET_SETTING, null);
 					
 					if (!Utility.isNullOrIgnoreable(possibleOption) && 
@@ -617,11 +652,11 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	}
 
 	public Chat getChat() {
-		return chat;
+		return (Chat)chat;
 	}
 	
 	public Economy getEconomy() {
-		return economy;
+		return (Economy)economy;
 	}
 	
 	public ExperienceInformerListener getInformer() {
@@ -800,13 +835,13 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 	}
 	
 	private void setPresets(Presets presets) {
-		
 		// Create a new listener if necessary
 		if (xpBlockListener == null || xpItemListener == null || xpMobListener == null) {
 			xpItemListener = new ExperienceItemListener(this, playerScheduler, customProvider, presets);
 			xpBlockListener = new ExperienceBlockListener(this, presets, historyProviders);
 			xpMobListener = new ExperienceMobListener(this, playerGroups, presets);
-			xpEnchancer = new ExperienceEnhancementsListener(this, presets);
+			xpEnchancer = new ExperienceEnhancementsListener(this, presets, 
+					xpReflectionModifier != null ? xpReflectionModifier : xpProtocolModifier);
 			xpLevel = new ExperienceLevelListener(this, presets);
 			xpCleanup = new ExperienceCleanupListener(presets, interactionListener, playerScheduler);
 			
@@ -815,9 +850,16 @@ public class ExperienceMod extends JavaPlugin implements Debugger {
 			xpItemListener.setPresets(presets);
 			xpBlockListener.setPresets(presets);
 			xpMobListener.setPresets(presets);
+			xpEnchancer.setPresets(presets);
 			xpLevel.setPresets(presets);
 			xpCleanup.setPlayerCleanupListeners(presets, interactionListener, playerScheduler);
 		}
+		
+		// Set presets
+		if (xpReflectionModifier != null)
+			xpReflectionModifier.setPresets(presets);
+		if (xpProtocolModifier != null)
+			xpProtocolModifier.setPresets(presets);
 	}
 	
 	@Override

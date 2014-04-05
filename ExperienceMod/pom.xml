@@ -110,6 +110,12 @@
       <version>5.6.1</version>
     </dependency>
     <dependency>
+  		<groupId>com.comphenix.protocol</groupId>
+  		<artifactId>ProtocolLib</artifactId>
+  		<version>3.2.0</version>
+  		<scope>provided</scope>
+  	</dependency>
+    <dependency>
       <groupId>com.feildmaster.channelchat</groupId>
       <artifactId>Channelchat</artifactId>
       <version>0.6.2</version>
